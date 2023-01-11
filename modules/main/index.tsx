@@ -155,7 +155,7 @@ export default class Main extends Module implements PageBlock {
     this.gridDApp.visible = true;
     this.configDApp.visible = false;
     this._data = this.configDApp.data;
-    this._data.chainId = this._data.token ? getChainId() : undefined;
+    // this._data.chainId = this._data.token ? getChainId() : undefined;
     this._data.contract = this._contract;
     this.refreshDApp();
   }
@@ -174,6 +174,7 @@ export default class Main extends Module implements PageBlock {
             reject(error);
           }
         }, (receipt: any) => {
+          console.log(receipt)
           this._contract = receipt.contractAddress;
           this.initApprovalAction();
           this.refreshDApp();
@@ -530,7 +531,7 @@ export default class Main extends Module implements PageBlock {
     this.edtAmount.readOnly = this.isBuy || !this._contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
-      this.tokenElm.chainId = this._data.chainId;
+      // this.tokenElm.chainId = this._data.chainId;
       this.tokenElm.token = this._data.token;
       this.tokenElm.visible = true;
       this.gemLogoStack.visible = false;

@@ -64,9 +64,9 @@ export default class Config extends Module {
       description: this.edtDescription.value || "",
       symbol: this.edtSymbol.value || "",
       cap: this.edtCap.value || "",
-      redemptionFee: this.edtRedemptionFee.value || "",
+      redemptionFee: this.edtRedemptionFee.value || "0",
       price: this.edtPrice.value || "",
-      mintingFee: this.edtMintingFee.value || ""
+      mintingFee: this.edtMintingFee.value || "0"
     };
     if (this._logo)
       config.logo = this._logo;
@@ -156,12 +156,12 @@ export default class Config extends Module {
           <i-label caption='Minting Fee'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
         </i-hstack>
-        <i-input id='edtMintingFee' inputType="number" width='100%' max={1}></i-input>
+        <i-input id='edtMintingFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
         <i-hstack gap={4} verticalAlignment="center">
           <i-label caption='Redemption Fee'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
         </i-hstack>
-        <i-input id='edtRedemptionFee' inputType="number" width='100%' max={1}></i-input>
+        <i-input id='edtRedemptionFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
         <i-hstack gap={4} verticalAlignment="center">
           <i-label caption='Price'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
