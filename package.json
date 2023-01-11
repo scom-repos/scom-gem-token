@@ -1,0 +1,20 @@
+{
+    "name": "@scom/gem-token",
+    "version": "0.1.1",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "devDependencies": {
+        "@ijstech/cli": "^0.1.26",
+        "@ijstech/compiler": "^0.1.22",
+        "@ijstech/components": "^0.1.29",
+        "@ijstech/eth-contract": "^0.1.10",
+        "@ijstech/eth-wallet": "^0.1.35",
+        "@scom/gem-token-contract": "file:./repos/gem-token-contract"
+    },
+    "scripts": {
+        "build": "rm -rf dist && npx @ijstech/compiler",
+        "serve": "npx @ijstech/cli serve 8080",
+        "test": "npm run build && npm run serve"
+    }
+}
