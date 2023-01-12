@@ -31,6 +31,9 @@
         },
         "@modules/main": {
             "path": "main"
+        },
+        "@modules/loading": {
+            "path": "loading"
         }
     },
     "dependencies": {

@@ -17,7 +17,7 @@ import {
 } from '@ijstech/components';
 import { BigNumber, WalletPlugin } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from '@modules/interface';
-import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction } from '@modules/utils';
+import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from '@modules/utils';
 import { EventId, getTokenList, setDataFromSCConfig } from '@modules/store';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from '@modules/wallet';
 import Config from '@modules/config';
@@ -57,6 +57,7 @@ export default class Main extends Module implements PageBlock {
   private gridTokenInput: GridLayout;
   private gemLogoStack: Panel;
   private maxStack: Panel;
+  private loadingElm: Panel;
 
   private _type: DappType | undefined;
   private _contract: string | undefined;
@@ -68,6 +69,7 @@ export default class Main extends Module implements PageBlock {
     price: '',
     mintingFee: ''
   };
+  private originalDataStr: string;
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
@@ -100,14 +102,15 @@ export default class Main extends Module implements PageBlock {
     // } else {
     //   this.onSetupPage(connected);
     // }
-    if (connected) {
+    if (connected)
       await this.updateTokenBalance();
-    }
   }
 
   onChainChanged = async () => {
     // this.onSetupPage(true);
     await this.updateTokenBalance();
+    if (this.tokenElm)
+      this.tokenElm.token = undefined;
   }
 
   private get isBuy() {
@@ -132,6 +135,7 @@ export default class Main extends Module implements PageBlock {
 
   async setData(data: IConfig) {
     this._data = data;
+    this.originalDataStr = JSON.stringify(this._data);
     this._contract = data.contract;
     this.configDApp.data = data;
     this.refreshDApp();
@@ -147,6 +151,7 @@ export default class Main extends Module implements PageBlock {
 
   async edit() {
     this.gridDApp.visible = false;
+    // TODO: update data later
     this.configDApp.data = this._data;
     this.configDApp.visible = true;
   }
@@ -155,7 +160,6 @@ export default class Main extends Module implements PageBlock {
     this.gridDApp.visible = true;
     this.configDApp.visible = false;
     this._data = this.configDApp.data;
-    // this._data.chainId = this._data.token ? getChainId() : undefined;
     this._data.contract = this._contract;
     this.refreshDApp();
   }
@@ -164,27 +168,34 @@ export default class Main extends Module implements PageBlock {
     return new Promise<void>(async (resolve, reject) => {
       await this.preview();
       try {
+        if (this.loadingElm) this.loadingElm.visible = true;
         await this.onDeploy((error: Error, receipt?: string) => {
           if (error) {
             this.mdAlert.message = {
               status: 'error',
-              content: error.message
+              content: parseContractError(error)
             };
             this.mdAlert.showModal();
             reject(error);
           }
         }, (receipt: any) => {
-          console.log(receipt)
           this._contract = receipt.contractAddress;
+          this._data.contract = this._contract;
           this.initApprovalAction();
           this.refreshDApp();
         });
       } catch (error) {
-        console.log('deploy err', error)
+        this.mdAlert.message = {
+          status: 'error',
+          content: parseContractError(error)
+        };
+        this.mdAlert.showModal();
+        reject(error);
       }
       if (!this._contract && !this._data)
         reject(new Error('Data missing'));
       resolve();
+      if (this.loadingElm) this.loadingElm.visible = false;
     })
   }
   
@@ -205,6 +216,7 @@ export default class Main extends Module implements PageBlock {
       confirmationCallback
     );
     this._contract = result.gem;
+    this._data.contract = this._contract;
   }
 
   async discard() {
@@ -296,7 +308,7 @@ export default class Main extends Module implements PageBlock {
             this.btnApprove.rightIcon.visible = false;
             this.btnApprove.caption = 'Approve';
           }
-          this.btnApprove.enabled = true;
+          this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
           this.isApproving = false;
         },
         onToBePaid: async (token: ITokenObject) => {
@@ -384,6 +396,7 @@ export default class Main extends Module implements PageBlock {
     const qty = Number(this.edtGemQty.value);
     const backerCoinAmount = this.getBackerCoinAmount(qty);
     this.edtAmount.value = backerCoinAmount;
+    this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
     this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
   }
 
@@ -482,7 +495,7 @@ export default class Main extends Module implements PageBlock {
       if (error) {
         this.mdAlert.message = {
           status: 'error',
-          content: error.message
+          content: parseContractError(error)
         };
         this.mdAlert.showModal();
       }
@@ -505,7 +518,7 @@ export default class Main extends Module implements PageBlock {
       if (error) {
         this.mdAlert.message = {
           status: 'error',
-          content: error.message
+          content: parseContractError(error)
         };
         this.mdAlert.showModal();
       }
@@ -531,9 +544,9 @@ export default class Main extends Module implements PageBlock {
     this.edtAmount.readOnly = this.isBuy || !this._contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
-      // this.tokenElm.chainId = this._data.chainId;
       this.tokenElm.token = this._data.token;
       this.tokenElm.visible = true;
+      this.tokenElm.readonly = !!this._contract;
       this.gemLogoStack.visible = false;
       this.maxStack.visible = false;
       this.gridTokenInput.templateColumns = ['60%', 'auto'];
@@ -556,131 +569,147 @@ export default class Main extends Module implements PageBlock {
   render() {
     return (
       <i-panel>
-        <i-grid-layout
-          id='gridDApp'
-          width='100%'
-          height='100%'
-          templateColumns={['60%', 'auto']}
-        >
-          <i-vstack padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}>
-            <i-hstack horizontalAlignment='center'>
-              <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
-            </i-hstack>
-            <i-label id="lblTitle" font={{bold: true, size: '1.5rem'}}></i-label>
-            <i-markdown
-              id='markdownViewer'
-              class={markdownStyle}
-              width='100%'
-              height='100%'
-            ></i-markdown>
-          </i-vstack>
-          <i-vstack gap="0.5rem" padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }} background={{ color: '#f1f1f1' }} verticalAlignment='space-between'>
-            <i-hstack gap="4px" class={centerStyle}>
-              <i-label id="fromTokenLb" font={{bold: true}}></i-label>
-              <i-label caption="=" font={{bold: true}}></i-label>
-              <i-label id="toTokenLb" font={{bold: true}}></i-label>
-            </i-hstack>
-            <i-vstack gap="0.5rem">
-              <i-grid-layout
-                id="balanceLayout"
-                gap={{column: '0.5rem', row: '0.25rem'}}
-              >
-                <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'qty'}}>
-                  <i-label caption='Qty' font={{ size: '0.875rem' }}></i-label>
-                  <i-input id='edtGemQty' onChanged={this.onQtyChanged.bind(this)} class={inputStyle} inputType='number' font={{ size: '0.875rem' }} border={{ radius: 4 }}></i-input>
-                </i-hstack>
-                <i-hstack horizontalAlignment="end" verticalAlignment="center" gap="0.5rem" grid={{area: 'fee'}}>
-                  <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
-                    <i-label caption="Transaction Fee" font={{size: '0.875rem'}}></i-label>
-                    <i-icon
-                      id="feeTooltip"
-                      name="question-circle"
-                      fill={Theme.text.primary}
-                      width={14} height={14}
-                    ></i-icon>
-                  </i-hstack>
-                  <i-label id="feeLb" font={{ size: '0.875rem' }} caption="0"></i-label>
-                </i-hstack>
-                <i-hstack horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'balance'}}>
-                  <i-label caption='Balance:' font={{ size: '0.875rem' }}></i-label>
-                  <i-label id='lblBalance' font={{ size: '0.875rem' }}></i-label>
-                </i-hstack>
-                <i-grid-layout
-                  id='gridTokenInput'
-                  verticalAlignment="center"
-                  templateColumns={['60%', 'auto']}
-                  border={{ radius: 5 }} overflow="hidden"
-                  background={{color: '#fff'}} width="100%"
-                  grid={{area: 'tokenInput'}}
-                >
-                  <i-panel id="gemLogoStack" padding={{left: 10}} visible={false}/>
-                  <gem-token-selection
-                    id="tokenElm"
-                    class={tokenSelectionStyle}
-                    background={{ color: '#fff' }}
-                    width="100%"
-                    onSelectToken={this.selectToken.bind(this)}
-                  ></gem-token-selection>
-                  <i-input
-                    id="edtAmount"
-                    width='100%'
-                    height='100%'
-                    minHeight={40}
-                    class={inputStyle}
-                    inputType='number'
-                    font={{ size: '0.875rem' }}
-                    onChanged={this.onAmountChanged.bind(this)}
-                  ></i-input>
-                  <i-hstack id="maxStack" horizontalAlignment="end" visible={false}>
-                    <i-button
-                      caption="Max"
-                      padding={{ top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }}
-                      margin={{ right: 10 }}
-                      font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
-                      onClick={() => this.onSetMaxBalance()}
-                    />
-                  </i-hstack>
-                </i-grid-layout>
-                <i-hstack
-                  id="backerStack"
-                  horizontalAlignment="space-between"
-                  verticalAlignment="center"
-                  grid={{area: 'redeem'}}
-                  margin={{top: '1rem', bottom: '1rem'}}
-                  maxWidth="50%"
-                  visible={false}
-                >
-                  <i-label caption='You get:' font={{ size: '0.875rem' }}></i-label>
-                  <i-image id="backerTokenImg" width={20} height={20} fallbackUrl={assets.tokenPath()}></i-image>
-                  <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '0.875rem' }}></i-label>
-                </i-hstack>
-              </i-grid-layout>
-              <i-hstack horizontalAlignment="center" verticalAlignment='center' gap="8px">
-                <i-button
-                  id="btnApprove"
-                  minWidth='100px'
-                  caption="Approve"
-                  padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
-                  font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
-                  rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
-                  visible={false}
-                  onClick={this.onApprove.bind(this)}
-                ></i-button>                
-                <i-button
-                  id='btnSubmit'
-                  minWidth='100px'
-                  caption='Submit'
-                  padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
-                  font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
-                  rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
-                  onClick={this.onSubmit.bind(this)}
-                  enabled={false}
-                ></i-button>
-              </i-hstack>
-              <i-label caption='Terms & Condition' font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }}></i-label>
+        <i-panel>
+          <i-vstack id="loadingElm" class="i-loading-overlay">
+            <i-vstack class="i-loading-spinner" horizontalAlignment="center" verticalAlignment="center">
+              <i-icon 
+                class="i-loading-spinner_icon"
+                width={24} height={24}
+                name="spinner"
+                fill="#FD4A4C"
+              ></i-icon>
+              <i-label
+                caption="Deploying..." font={{ color: '#FD4A4C', size: '1.2em' }}
+                class="i-loading-spinner_text"
+              ></i-label>
             </i-vstack>
           </i-vstack>
-        </i-grid-layout>
+          <i-grid-layout
+            id='gridDApp'
+            width='100%'
+            height='100%'
+            templateColumns={['60%', 'auto']}
+          >
+            <i-vstack padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}>
+              <i-hstack horizontalAlignment='center'>
+                <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
+              </i-hstack>
+              <i-label id="lblTitle" font={{bold: true, size: '1.5rem'}}></i-label>
+              <i-markdown
+                id='markdownViewer'
+                class={markdownStyle}
+                width='100%'
+                height='100%'
+              ></i-markdown>
+            </i-vstack>
+            <i-vstack gap="0.5rem" padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }} background={{ color: '#f1f1f1' }} verticalAlignment='space-between'>
+              <i-hstack gap="4px" class={centerStyle}>
+                <i-label id="fromTokenLb" font={{bold: true}}></i-label>
+                <i-label caption="=" font={{bold: true}}></i-label>
+                <i-label id="toTokenLb" font={{bold: true}}></i-label>
+              </i-hstack>
+              <i-vstack gap="0.5rem">
+                <i-grid-layout
+                  id="balanceLayout"
+                  gap={{column: '0.5rem', row: '0.25rem'}}
+                >
+                  <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'qty'}}>
+                    <i-label caption='Qty' font={{ size: '0.875rem' }}></i-label>
+                    <i-input id='edtGemQty' onChanged={this.onQtyChanged.bind(this)} class={inputStyle} inputType='number' font={{ size: '0.875rem' }} border={{ radius: 4 }}></i-input>
+                  </i-hstack>
+                  <i-hstack horizontalAlignment="end" verticalAlignment="center" gap="0.5rem" grid={{area: 'fee'}}>
+                    <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
+                      <i-label caption="Transaction Fee" font={{size: '0.875rem'}}></i-label>
+                      <i-icon
+                        id="feeTooltip"
+                        name="question-circle"
+                        fill={Theme.text.primary}
+                        width={14} height={14}
+                      ></i-icon>
+                    </i-hstack>
+                    <i-label id="feeLb" font={{ size: '0.875rem' }} caption="0"></i-label>
+                  </i-hstack>
+                  <i-hstack horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'balance'}}>
+                    <i-label caption='Balance:' font={{ size: '0.875rem' }}></i-label>
+                    <i-label id='lblBalance' font={{ size: '0.875rem' }}></i-label>
+                  </i-hstack>
+                  <i-grid-layout
+                    id='gridTokenInput'
+                    verticalAlignment="center"
+                    templateColumns={['60%', 'auto']}
+                    border={{ radius: 5 }} overflow="hidden"
+                    background={{color: '#fff'}} width="100%"
+                    grid={{area: 'tokenInput'}}
+                  >
+                    <i-panel id="gemLogoStack" padding={{left: 10}} visible={false}/>
+                    <gem-token-selection
+                      id="tokenElm"
+                      class={tokenSelectionStyle}
+                      background={{ color: '#fff' }}
+                      width="100%"
+                      onSelectToken={this.selectToken.bind(this)}
+                    ></gem-token-selection>
+                    <i-input
+                      id="edtAmount"
+                      width='100%'
+                      height='100%'
+                      minHeight={40}
+                      class={inputStyle}
+                      inputType='number'
+                      font={{ size: '0.875rem' }}
+                      onChanged={this.onAmountChanged.bind(this)}
+                    ></i-input>
+                    <i-hstack id="maxStack" horizontalAlignment="end" visible={false}>
+                      <i-button
+                        caption="Max"
+                        padding={{ top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }}
+                        margin={{ right: 10 }}
+                        font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
+                        onClick={() => this.onSetMaxBalance()}
+                      />
+                    </i-hstack>
+                  </i-grid-layout>
+                  <i-hstack
+                    id="backerStack"
+                    horizontalAlignment="space-between"
+                    verticalAlignment="center"
+                    grid={{area: 'redeem'}}
+                    margin={{top: '1rem', bottom: '1rem'}}
+                    maxWidth="50%"
+                    visible={false}
+                  >
+                    <i-label caption='You get:' font={{ size: '0.875rem' }}></i-label>
+                    <i-image id="backerTokenImg" width={20} height={20} fallbackUrl={assets.tokenPath()}></i-image>
+                    <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '0.875rem' }}></i-label>
+                  </i-hstack>
+                </i-grid-layout>
+                <i-hstack horizontalAlignment="center" verticalAlignment='center' gap="8px">
+                  <i-button
+                    id="btnApprove"
+                    minWidth='100px'
+                    caption="Approve"
+                    padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
+                    font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
+                    rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
+                    visible={false}
+                    onClick={this.onApprove.bind(this)}
+                  ></i-button>                
+                  <i-button
+                    id='btnSubmit'
+                    minWidth='100px'
+                    caption='Submit'
+                    padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
+                    font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
+                    rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
+                    onClick={this.onSubmit.bind(this)}
+                    enabled={false}
+                  ></i-button>
+                </i-hstack>
+                <i-label caption='Terms & Condition' font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }}></i-label>
+              </i-vstack>
+            </i-vstack>
+          </i-grid-layout>
+        </i-panel>
         <gem-token-config id='configDApp' visible={false}></gem-token-config>
         <nft-minter-alert id='mdAlert'></nft-minter-alert>
       </i-panel>
