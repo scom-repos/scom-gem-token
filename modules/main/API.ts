@@ -76,7 +76,7 @@ async function buyToken(
     });
     const wallet = Wallet.getInstance();
     const contract = new Contracts.GEM(wallet, address);
-    const receipt = await contract.buy(new BigNumber(backerCoinAmount));
+    const receipt = await contract.buy(Utils.toDecimals(backerCoinAmount).dp(0));
     if (receipt) {
       const data = contract.parseBuyEvent(receipt)[0];
       return {

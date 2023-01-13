@@ -51,6 +51,7 @@ export default class Config extends Module {
   private tokenSelection: TokenSelection;
   private comboDappType: ComboBox;
   private _logo: any;
+  private _contract: string = '';
   
   init() {
     super.init();
@@ -64,9 +65,9 @@ export default class Config extends Module {
       description: this.edtDescription.value || "",
       symbol: this.edtSymbol.value || "",
       cap: this.edtCap.value || "",
-      redemptionFee: this.edtRedemptionFee.value || "",
+      redemptionFee: this.edtRedemptionFee.value || "0",
       price: this.edtPrice.value || "",
-      mintingFee: this.edtMintingFee.value || ""
+      mintingFee: this.edtMintingFee.value || "0"
     };
     if (this._logo)
       config.logo = this._logo;
@@ -79,10 +80,10 @@ export default class Config extends Module {
     this.uploadLogo.clear();
     if (config.logo)
       this.uploadLogo.preview(config.logo);
-    this.edtName.value = config.name || "";
+    this._logo = config.logo;
     this.comboDappType.selectedItem = actionOptions.find(v => v.value == config.dappType);
     this.onChangedAction();
-    this._logo = config.logo;
+    this.edtName.value = config.name || "";
     this.edtPrice.value = config.price || "";
     this.edtSymbol.value = config.symbol || "";
     this.edtCap.value = config.cap || "";
@@ -91,38 +92,36 @@ export default class Config extends Module {
     this.edtDescription.value = config.description || "";
     this.tokenSelection.token = config.token;
     this.onMarkdownChanged();
+    this._contract = config.contract || '';
+    this.updateInputs();
   }
 
-  async onChangeFile(source: Control, files: File[]) {
+  private async onChangeFile(source: Control, files: File[]) {
     this._logo = files.length ? await this.uploadLogo.toBase64(files[0]) : undefined;
   }
 
-  onRemove(source: Control, file: File) {
+  private onRemove(source: Control, file: File) {
     this._logo = undefined;
   }
 
-  onMarkdownChanged() {
+  private onMarkdownChanged() {
     this.markdownViewer.load(this.edtDescription.value || "");
   }
   
-  onChangedAction() {
-    // const selectedItem = this.comboDappType.selectedItem as IComboItem;
-    // if (selectedItem.value == 'nft-minter') {
-    //   this.edtMaxOrderQty.enabled = true;
-    //   this.edtPrice.enabled = true;
-    //   this.edtMaxPrice.enabled = false;
-    //   this.edtMaxPrice.value = '0';
-    //   this.edtMaxOrderQty.value = '';
-    //   this.edtPrice.value = '';
-    // }
-    // else if (selectedItem.value == 'donation') {
-    //   this.edtMaxOrderQty.enabled = false;
-    //   this.edtPrice.enabled = false;
-    //   this.edtMaxPrice.enabled = true;
-    //   this.edtMaxPrice.value = '';
-    //   this.edtMaxOrderQty.value = '1';
-    //   this.edtPrice.value = '0';
-    // }
+  private onChangedAction() {}
+
+  private get isDeployed() {
+    return !!this._contract;
+  }
+
+  private updateInputs() {
+    this.edtName.readOnly = this.isDeployed;
+    this.edtSymbol.readOnly = this.isDeployed;
+    this.edtCap.readOnly = this.isDeployed;
+    this.edtMintingFee.readOnly = this.isDeployed;
+    this.edtRedemptionFee.readOnly = this.isDeployed;
+    this.edtPrice.readOnly = this.isDeployed;
+    this.tokenSelection.readonly = this.isDeployed;
   }
 
   render() {
@@ -156,12 +155,12 @@ export default class Config extends Module {
           <i-label caption='Minting Fee'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
         </i-hstack>
-        <i-input id='edtMintingFee' inputType="number" width='100%' max={1}></i-input>
+        <i-input id='edtMintingFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
         <i-hstack gap={4} verticalAlignment="center">
           <i-label caption='Redemption Fee'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
         </i-hstack>
-        <i-input id='edtRedemptionFee' inputType="number" width='100%' max={1}></i-input>
+        <i-input id='edtRedemptionFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
         <i-hstack gap={4} verticalAlignment="center">
           <i-label caption='Price'></i-label>
           <i-label caption="*" font={{ color: Theme.colors.error.main }} />
