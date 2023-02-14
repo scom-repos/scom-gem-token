@@ -61,6 +61,7 @@ export default class Main extends Module implements PageBlock {
 
   private _type: DappType | undefined;
   private _contract: string | undefined;
+  private _oldData: IConfig = {};
   private _data: IConfig = {
     name: '',
     symbol: '',
@@ -69,7 +70,6 @@ export default class Main extends Module implements PageBlock {
     price: '',
     mintingFee: ''
   };
-  private originalDataStr: string;
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
@@ -129,13 +129,64 @@ export default class Main extends Module implements PageBlock {
       this.initApprovalAction();
   }
 
+  getActions() {
+    const actions = [
+      {
+        name: 'Settings',
+        icon: 'cog',
+        command: (builder: any, userInputData: any) => {
+          return {
+            execute: async () => {
+              this._oldData = this._data;
+              if (userInputData.name != undefined) this._data.name = userInputData.name;
+              if (userInputData.symbol != undefined) this._data.symbol = userInputData.symbol;
+              if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
+              if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
+              if (userInputData.description != undefined) this._data.description = userInputData.description;
+              if (userInputData.cap != undefined) this._data.cap = userInputData.cap;
+              if (userInputData.chainId != undefined) this._data.chainId = userInputData.chainId;
+              if (userInputData.price != undefined) this._data.price = userInputData.price;
+              if (userInputData.redemptionFee != undefined) this._data.redemptionFee = userInputData.redemptionFee;
+              if (userInputData.mintingFee != undefined) this._data.mintingFee = userInputData.mintingFee;
+              if (userInputData.token != undefined) this._data.token = userInputData.token;
+              if (userInputData.contract != undefined) this._data.contract = userInputData.contract;
+              this.configDApp.data = this._data;
+              this._contract = this._data.contract;
+              await this.initApprovalAction();
+              this.refreshDApp();
+            },
+            undo: async () => {
+              this._data = this._oldData;
+              this.configDApp.data = this._data;
+              this._contract = this.configDApp.data.contract;
+              await this.initApprovalAction();
+              this.refreshDApp();
+            },
+            redo: () => {}
+          }
+        },
+        userInputDataSchema: {
+          type: 'object',
+          properties: {         
+            "contract": {
+              type: 'string'
+            },            
+            "description": {
+              type: 'string'
+            }
+          }
+        }
+      },
+    ]
+    return actions
+  }
+
   getData() {
     return this._data;
   }
 
   async setData(data: IConfig) {
     this._data = data;
-    this.originalDataStr = JSON.stringify(this._data);
     this._contract = data.contract;
     this.configDApp.data = data;
     await this.initApprovalAction();

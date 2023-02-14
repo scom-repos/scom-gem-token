@@ -32,13 +32,12 @@ export interface IDeploy {
   mintingFee: string;
   redemptionFee: string;
 }
-export interface IConfig extends IDeploy {
+export interface IConfig extends Partial<IDeploy> {
   dappType?: DappType;
   logo?: string;
   description?: string;
   chainId?: number;
   token?: ITokenObject;
-  qty?: number;
   contract?: string;
 }
 
