@@ -103,8 +103,8 @@ async function redeemToken(
       confirmation: confirmationCallback
     });
     const wallet = Wallet.getInstance();
-    const contract = new Contracts.GEM(wallet, address);
-    const receipt = await contract.redeem(new BigNumber(gemAmount));
+    const contract = new Contracts.GEM(wallet, address);  
+    const receipt = await contract.redeem(Utils.toDecimals(gemAmount).dp(0));
     if (receipt) {
       const data = contract.parseRedeemEvent(receipt)[0];
       return {

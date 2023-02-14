@@ -15,7 +15,7 @@ import {
   Panel,
   Icon
 } from '@ijstech/components';
-import { BigNumber, WalletPlugin } from '@ijstech/eth-wallet';
+import { BigNumber, Utils, WalletPlugin } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from '@modules/interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from '@modules/utils';
 import { EventId, getTokenList, setDataFromSCConfig } from '@modules/store';
@@ -420,9 +420,10 @@ export default class Main extends Module implements PageBlock {
     let balance = new BigNumber(0);
     const tokenData = token || this._data.token;
     if (this.isBuy && tokenData) {
-      balance = await getTokenBalance(tokenData)
+      balance = await getTokenBalance(tokenData);
     } else if (!this.isBuy && this._contract) {
       balance = await getGemBalance(this._contract);
+      balance = Utils.fromDecimals(balance);
     }
     return balance;
   }
@@ -430,15 +431,15 @@ export default class Main extends Module implements PageBlock {
   private async doSubmitAction() {
     if (!this._data || !this._contract) return;
     this.updateSubmitButton(true);
-    if (!this.tokenElm.token) {
-      this.mdAlert.message = {
-        status: 'error',
-        content: 'Token Required'
-      };
-      this.mdAlert.showModal();
-      this.updateSubmitButton(false);
-      return;
-    }
+    // if (!this.tokenElm.token) {
+    //   this.mdAlert.message = {
+    //     status: 'error',
+    //     content: 'Token Required'
+    //   };
+    //   this.mdAlert.showModal();
+    //   this.updateSubmitButton(false);
+    //   return;
+    // }
     const balance = await this.getBalance();
     if (this._type === 'buy') {
       const qty = this.edtGemQty.value ? Number(this.edtGemQty.value) : 1;
@@ -537,8 +538,7 @@ export default class Main extends Module implements PageBlock {
 
   private async onSetMaxBalance() {
     this.edtAmount.value = (await this.getBalance()).toFixed(2);
-    const gemAmount = Number(this.edtAmount.value);
-    this.backerTokenBalanceLb.caption = this.getBackerCoinAmount(gemAmount).toFixed(2);
+    await this.onAmountChanged();
   }
 
   private renderTokenInput() {
