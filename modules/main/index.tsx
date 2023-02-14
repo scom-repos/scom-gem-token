@@ -96,18 +96,18 @@ export default class Main extends Module implements PageBlock {
   }
 
   onWalletConnect = async (connected: boolean) => {
-    // let chainId = getChainId();
-    // if (connected && !chainId) {
-    //   this.onSetupPage(true);
-    // } else {
-    //   this.onSetupPage(connected);
-    // }
+    let chainId = getChainId();
+    if (connected && !chainId) {
+      this.onSetupPage(true);
+    } else {
+      this.onSetupPage(connected);
+    }
     if (connected)
       await this.updateTokenBalance();
   }
 
   onChainChanged = async () => {
-    // this.onSetupPage(true);
+    this.onSetupPage(true);
     await this.updateTokenBalance();
     if (this.tokenElm)
       this.tokenElm.token = undefined;
@@ -124,10 +124,10 @@ export default class Main extends Module implements PageBlock {
     this.lblBalance.caption = (await this.getBalance(token)).toFixed(2);
   }
 
-  // private onSetupPage(isWalletConnected: boolean) {
-  //   if (isWalletConnected)
-  //     this.initApprovalAction();
-  // }
+  private onSetupPage(isWalletConnected: boolean) {
+    if (isWalletConnected)
+      this.initApprovalAction();
+  }
 
   getData() {
     return this._data;
@@ -138,6 +138,7 @@ export default class Main extends Module implements PageBlock {
     this.originalDataStr = JSON.stringify(this._data);
     this._contract = data.contract;
     this.configDApp.data = data;
+    await this.initApprovalAction();
     this.refreshDApp();
   }
 
@@ -215,7 +216,7 @@ export default class Main extends Module implements PageBlock {
       callback,
       confirmationCallback
     );
-    this._contract = result.gem;
+    this._contract = result;
     this._data.contract = this._contract;
   }
 
@@ -283,7 +284,7 @@ export default class Main extends Module implements PageBlock {
   async init() {
     super.init();
     await this.initWalletData();
-    // this.onSetupPage(isWalletConnected());
+    this.onSetupPage(isWalletConnected());
   }
 
   private async initWalletData() {
@@ -570,7 +571,7 @@ export default class Main extends Module implements PageBlock {
     return (
       <i-panel>
         <i-panel>
-          <i-vstack id="loadingElm" class="i-loading-overlay">
+          <i-vstack id="loadingElm" class="i-loading-overlay" visible={false}>
             <i-vstack class="i-loading-spinner" horizontalAlignment="center" verticalAlignment="center">
               <i-icon 
                 class="i-loading-spinner_icon"

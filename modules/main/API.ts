@@ -29,8 +29,8 @@ async function deployContract(
     transactionHash: callback,
     confirmation: confirmationCallback
   });
-  const receipt = await deploy(
-    wallet,
+  const gem = new Contracts.GEM(wallet);
+  const receipt = await gem.deploy(
     {
       name: options.name,
       symbol: options.symbol,
@@ -38,11 +38,10 @@ async function deployContract(
       mintingFee: Utils.toDecimals(options.mintingFee).dp(0),
       redemptionFee: Utils.toDecimals(options.redemptionFee).dp(0),
       price: Utils.toDecimals(options.price).dp(0),
-      backerCoin: token?.address || ""
-    },
-    (msg: string) => {}
+      baseToken: token?.address || ""
+    }
   );
-  return receipt;
+  return gem.address;
 }
 
 async function transfer(contractAddress: string, to: string, amount: string) {
