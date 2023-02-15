@@ -1,5 +1,5 @@
 import { BigNumber, Erc20, Wallet, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
-import { ITokenObject } from "@modules/interface";
+import { ITokenObject } from "@pageblock-gem-token/interface";
 
 export const getERC20Amount = async (wallet: IWallet, tokenAddress: string, decimals: number) => {
   let erc20 = new Erc20(wallet, tokenAddress, decimals);

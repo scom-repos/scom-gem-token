@@ -11,7 +11,7 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@modules/*":["modules/*"],
+            "@pageblock-gem-token/*":["modules/*"],
             "@scom/gem-token-contract": ["repos/gem-token-contract"]
         }
     },

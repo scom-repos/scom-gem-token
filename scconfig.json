@@ -1,38 +1,38 @@
 {
     "env": "testnet",
     "logo": "logo",
-    "main": "@modules/main",
-    "assets": "@modules/assets",
+    "main": "@pageblock-gem-token/main",
+    "assets": "@pageblock-gem-token/assets",
     "moduleDir": "modules",
     "modules": {
-        "@modules/assets": {
+        "@pageblock-gem-token/assets": {
             "path": "assets"
         },
-        "@modules/interface": {
+        "@pageblock-gem-token/interface": {
             "path": "interface"
         },
-        "@modules/utils": {
+        "@pageblock-gem-token/utils": {
             "path": "utils"
         },
-        "@modules/store": {
+        "@pageblock-gem-token/store": {
             "path": "store"
         },
-        "@modules/wallet": {
+        "@pageblock-gem-token/wallet": {
             "path": "wallet"
         },
-        "@modules/token-selection": {
+        "@pageblock-gem-token/token-selection": {
             "path": "token-selection"
         },
-        "@modules/alert": {
+        "@pageblock-gem-token/alert": {
             "path": "alert"
         },
-        "@modules/config": {
+        "@pageblock-gem-token/config": {
             "path": "config"
         },
-        "@modules/main": {
+        "@pageblock-gem-token/main": {
             "path": "main"
         },
-        "@modules/loading": {
+        "@pageblock-gem-token/loading": {
             "path": "loading"
         }
     },

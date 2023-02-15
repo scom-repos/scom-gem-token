@@ -1,5 +1,5 @@
 {
-    "name": "@scom/gem-token",
+    "name": "@scom/pageblock-gem-token",
     "version": "0.1.1",
     "engines": {
         "node": ">=18.0.0"

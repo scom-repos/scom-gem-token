@@ -1,7 +1,7 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
-import { DappType, IDeploy, ITokenObject } from '@modules/interface';
+import { DappType, IDeploy, ITokenObject } from '@pageblock-gem-token/interface';
 import { Contracts, deploy } from '@scom/gem-token-contract';
-import { registerSendTxEvents } from '@modules/utils';
+import { registerSendTxEvents } from '@pageblock-gem-token/utils';
 
 async function getFee(contractAddress: string, type: DappType) {
   const wallet = Wallet.getInstance();

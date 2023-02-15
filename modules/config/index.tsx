@@ -11,9 +11,9 @@ import {
   IComboItem,
   ComboBox
 } from '@ijstech/components';
-import { DappType, IConfig } from '@modules/interface';
+import { DappType, IConfig } from '@pageblock-gem-token/interface';
 import { textareaStyle } from './index.css';
-import { TokenSelection } from '@modules/token-selection';
+import { TokenSelection } from '@pageblock-gem-token/token-selection';
 
 const Theme = Styles.Theme.ThemeVars;
 

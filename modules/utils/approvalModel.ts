@@ -2,7 +2,7 @@ import { BigNumber, Contracts, Wallet } from "@ijstech/eth-wallet";
 import { registerSendTxEvents } from './token';
 import {
   ITokenObject
-} from '@modules/interface';
+} from '@pageblock-gem-token/interface';
 
 class ERC20ApprovalModel {
   private options: IERC20ApprovalOptions = {
@@ -23,7 +23,7 @@ class ERC20ApprovalModel {
     this.options = options;
   }
 
-  set spenderAddress(value: string) {
+  private setSpenderAddress = (value: string) => {
     this.options.spenderAddress = value
   }
 
@@ -77,6 +77,7 @@ class ERC20ApprovalModel {
 
   public getAction = (): IERC20ApprovalAction => {
     return {
+      setSpenderAddress: this.setSpenderAddress,
       doApproveAction: this.doApproveAction,
       doPayAction: this.doPayAction,
       checkAllowance: this.checkAllowance
@@ -144,6 +145,7 @@ export interface IERC20ApprovalOptions extends IERC20ApprovalEventOptions {
 }
 
 export interface IERC20ApprovalAction {
+  setSpenderAddress: (value: string) => void;
   doApproveAction: (token: ITokenObject, inputAmount: string, data?: any) => Promise<void>;
   doPayAction: (data?: any) => Promise<void>;
   checkAllowance: (token: ITokenObject, inputAmount: string) => Promise<void>;

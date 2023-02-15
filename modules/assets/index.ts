@@ -1,5 +1,5 @@
 import { application } from '@ijstech/components';
-import { ITokenObject } from '@modules/interface';
+import { ITokenObject } from '@pageblock-gem-token/interface';
 
 const moduleDir = application.currentModuleDir;
 

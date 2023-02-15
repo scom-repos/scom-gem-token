@@ -11,11 +11,11 @@ import {
   Modal,
   Icon
 } from '@ijstech/components';
-import { ITokenObject } from '@modules/interface';
-import { getTokenList, ChainNativeTokenByChainId, EventId } from '@modules/store';
+import { ITokenObject } from '@pageblock-gem-token/interface';
+import { getTokenList, ChainNativeTokenByChainId, EventId } from '@pageblock-gem-token/store';
 import { } from '@ijstech/eth-wallet';
-import Assets from '@modules/assets';
-import { isWalletConnected, getChainId } from '@modules/wallet';
+import Assets from '@pageblock-gem-token/assets';
+import { isWalletConnected, getChainId } from '@pageblock-gem-token/wallet';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;

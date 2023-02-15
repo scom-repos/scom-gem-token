@@ -16,15 +16,15 @@ import {
   Icon
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin } from '@ijstech/eth-wallet';
-import { IConfig, ITokenObject, PageBlock, DappType } from '@modules/interface';
-import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from '@modules/utils';
-import { EventId, getTokenList, setDataFromSCConfig } from '@modules/store';
-import { connectWallet, getChainId, hasWallet, isWalletConnected } from '@modules/wallet';
-import Config from '@modules/config';
-import { TokenSelection } from '@modules/token-selection';
+import { IConfig, ITokenObject, PageBlock, DappType } from '@pageblock-gem-token/interface';
+import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from '@pageblock-gem-token/utils';
+import { EventId, getTokenList, setDataFromSCConfig } from '@pageblock-gem-token/store';
+import { connectWallet, getChainId, hasWallet, isWalletConnected } from '@pageblock-gem-token/wallet';
+import Config from '@pageblock-gem-token/config';
+import { TokenSelection } from '@pageblock-gem-token/token-selection';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
-import { Alert } from '@modules/alert';
-import assets from '@modules/assets';
+import { Alert } from '@pageblock-gem-token/alert';
+import assets from '@pageblock-gem-token/assets';
 import { deployContract, buyToken, redeemToken, getGemBalance, transfer } from './API';
 
 const Theme = Styles.Theme.ThemeVars;

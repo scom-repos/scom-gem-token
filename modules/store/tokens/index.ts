@@ -1,4 +1,4 @@
-import { ITokenObject } from "@modules/interface";
+import { ITokenObject } from "@pageblock-gem-token/interface";
 import { Tokens_Avalanche, Tokens_BSC, Tokens_Cronos, Tokens_Ethereuem, Tokens_Fantom, Tokens_Polygon } from "./mainnet/index";
 import { Tokens_Amino, Tokens_AminoXTestnet, Tokens_BSC_Testnet, Tokens_Cronos_Testnet, Tokens_Fantom_Testnet, Tokens_Fuji, Tokens_Kovan, Tokens_Mumbai } from "./testnet/index";
 

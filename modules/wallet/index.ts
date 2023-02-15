@@ -1,6 +1,6 @@
 import { application } from "@ijstech/components";
 import { IWallet, Wallet, WalletPlugin } from "@ijstech/eth-wallet";
-import { EventId } from "@modules/store";
+import { EventId } from "@pageblock-gem-token/store";
 import { walletList } from "./walletList";
 
 const defaultChainId = 1;
