@@ -763,7 +763,7 @@ export default class Main extends Module implements PageBlock {
           </i-grid-layout>
         </i-panel>
         <gem-token-config id='configDApp' visible={false}></gem-token-config>
-        <nft-minter-alert id='mdAlert'></nft-minter-alert>
+        <gem-token-alert id='mdAlert'></gem-token-alert>
       </i-panel>
     )
   }
