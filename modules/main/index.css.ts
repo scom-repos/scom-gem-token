@@ -1,8 +1,5 @@
 import { Styles } from "@ijstech/components";
 
-Styles.Theme.defaultTheme.background.modal = "#fff";
-Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
-
 export const imageStyle = Styles.style({
   $nest: {
     '&>img': {
