@@ -383,21 +383,19 @@ export default class Main extends Module implements PageBlock {
     this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
     this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
     this.backerStack.visible = !this.isBuy;
+    this.balanceLayout.templateAreas = [['qty'],['balance'], ['tokenInput'],['redeem']];
     this.pnlQty.visible = this.isBuy;
     this.edtGemQty.readOnly = !this._contract;
     this.edtGemQty.value = "";
-    this.balanceLayout.templateAreas = this.isBuy ?
-      [['qty'],['fee'],['balance'], ['tokenInput'],['redeem']] :
-      [['qty'],['balance'],['tokenInput'],['fee'],['redeem']];
     if (!this.isBuy) {
       this.btnSubmit.enabled = false;
       this.btnApprove.visible = false;
       this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
       this.backerTokenBalanceLb.caption = '0.00';
     }
-    this.feeLb.caption = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
     this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
-    // this.updateTokenBalance();
     this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
 
@@ -524,7 +522,8 @@ export default class Main extends Module implements PageBlock {
     const backerCoinAmount = this.getBackerCoinAmount(qty);
     this.edtAmount.value = backerCoinAmount;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
-    this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
+    if (this.approvalModelAction)
+      this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
   }
 
   private async onAmountChanged() {
@@ -759,24 +758,13 @@ export default class Main extends Module implements PageBlock {
                     ></i-label>
                     <i-input
                       id='edtGemQty'
+                      value={1}
                       onChanged={this.onQtyChanged.bind(this)}
                       class={inputStyle}
                       inputType='number'
                       font={{ size: '1rem', bold: true }}
                       border={{ radius: 4 }}
                     ></i-input>
-                  </i-hstack>
-                  <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem" grid={{area: 'fee'}}>
-                    <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
-                      <i-label caption="Transaction Fee" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
-                      <i-icon
-                        id="feeTooltip"
-                        name="question-circle"
-                        fill={Theme.text.primary}
-                        width={14} height={14}
-                      ></i-icon>
-                    </i-hstack>
-                    <i-label id="feeLb" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
                   </i-hstack>
                   <i-hstack
                     horizontalAlignment="space-between"
@@ -867,11 +855,23 @@ export default class Main extends Module implements PageBlock {
                     enabled={false}
                   ></i-button>
                 </i-vstack>
-                <i-label
+                <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem">
+                  <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
+                    <i-label caption="Transaction Fee" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
+                    <i-icon
+                      id="feeTooltip"
+                      name="question-circle"
+                      fill={Theme.text.primary}
+                      width={14} height={14}
+                    ></i-icon>
+                  </i-hstack>
+                  <i-label id="feeLb" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
+                </i-hstack>
+                {/* <i-label
                   caption='Terms & Condition'
                   font={{ size: '0.75rem' }}
                   link={{ href: 'https://docs.scom.dev/' }}
-                ></i-label>
+                ></i-label> */}
               </i-vstack>
             </i-vstack>
           </i-grid-layout>
