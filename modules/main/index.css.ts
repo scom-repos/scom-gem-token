@@ -1,4 +1,5 @@
 import { Styles } from "@ijstech/components";
+const Theme = Styles.Theme.ThemeVars;
 
 export const imageStyle = Styles.style({
   $nest: {
@@ -17,7 +18,8 @@ export const markdownStyle = Styles.style({
 export const inputStyle = Styles.style({
   $nest: {
     '> input': {
-      background: '#ffffff',
+      background: Theme.input.background,
+      color: Theme.input.fontColor,
       border: 0,
       padding: '0.25rem 0.5rem',
       textAlign: 'right'
