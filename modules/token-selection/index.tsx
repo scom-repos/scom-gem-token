@@ -45,6 +45,7 @@ export class TokenSelection extends Module {
   private _readonly: boolean = false;
   public onSelectToken: selectTokenCallback;
   private _chainId: number;
+  private isInited: boolean = false;
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
@@ -82,6 +83,7 @@ export class TokenSelection extends Module {
   }
 
   private onSetup(init?: boolean) {
+    if (!this.isInited) this.init();
     this.renderTokenItems();
     if (init && this.token && !this.readonly) {
       const chainId = getChainId();
@@ -182,11 +184,11 @@ export class TokenSelection extends Module {
       })
       this.btnTokens.icon = icon;
       this.btnTokens.caption = token.symbol;
-      this.btnTokens.font = { bold: true };
+      this.btnTokens.font = { bold: true, color: Theme.input.fontColor };
     } else {
       this.btnTokens.icon = undefined;
       this.btnTokens.caption = 'Select a token';
-      this.btnTokens.font = { bold: false };
+      this.btnTokens.font = { bold: false, color: Theme.input.fontColor };
     }
   }
 
@@ -210,7 +212,8 @@ export class TokenSelection extends Module {
   
   init() {
     super.init();
-    this.readonly = this.getAttribute('readonly', true, false); 
+    this.readonly = this.getAttribute('readonly', true, false);
+    this.isInited = true;
   }
 
   render() {
@@ -225,6 +228,7 @@ export class TokenSelection extends Module {
           rightIcon={{ width: 14, height: 14, name: 'angle-down' }}
           border={{ radius: 0 }}
           background={{ color: 'transparent' }}
+          font={{color: Theme.input.fontColor}}
           padding={{ top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }}
           onClick={this.showTokenModal.bind(this)}
         ></i-button>

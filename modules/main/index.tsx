@@ -70,6 +70,7 @@ export default class Main extends Module implements PageBlock {
     price: '',
     mintingFee: ''
   };
+  private oldTag: any;
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
@@ -116,17 +117,23 @@ export default class Main extends Module implements PageBlock {
   private get isBuy() {
     return this._data.dappType === 'buy';
   }
+
+  private get tokenSymbol() {
+    return this._data?.token?.symbol || '';
+  }
   
   private updateTokenBalance = async () => {
+    if (!this._data.token) return;
     let chainId = getChainId();
     const _tokenList = getTokenList(chainId);
-    const token = _tokenList.find(t => (t.address && t.address == this._data.token?.address) || (t.symbol == this._data.token?.symbol))
-    this.lblBalance.caption = (await this.getBalance(token)).toFixed(2);
+    const token = _tokenList.find(t => (t.address && t.address == this._data.token?.address) || (t.symbol == this.tokenSymbol))
+    const symbol = token?.symbol || '';
+    this.lblBalance.caption = `${(await this.getBalance(token)).toFixed(2)} ${symbol}`;
   }
 
-  private onSetupPage(isWalletConnected: boolean) {
+  private async onSetupPage(isWalletConnected: boolean) {
     if (isWalletConnected)
-      this.initApprovalAction();
+      await this.initApprovalAction();
   }
 
   getActions() {
@@ -177,6 +184,53 @@ export default class Main extends Module implements PageBlock {
           }
         }
       },
+      {
+        name: 'Theme Settings',
+        icon: 'palette',
+        command: (builder: any, userInputData: any) => {
+          return {
+            execute: async () => {
+              if (userInputData) {
+                this.oldTag = this.tag;
+                this.setTag(userInputData);
+                if (builder) builder.setTag(userInputData);
+              }
+            },
+            undo: () => {
+              if (userInputData) {
+                this.setTag(this.oldTag);
+                if (builder) builder.setTag(this.oldTag);
+              }
+            },
+            redo: () => {}
+          }
+        },
+        userInputDataSchema: {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputBackgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputFontColor: {
+              type: 'string',
+              format: 'color'
+            },
+            buttonBackgroundColor: {
+              type: 'string',
+              format: 'color'
+            }
+          }
+        }
+      }
     ]
     return actions
   }
@@ -199,6 +253,20 @@ export default class Main extends Module implements PageBlock {
 
   async setTag(value: any) {
     this.tag = value;
+    this.updateTheme();
+  }
+
+  private updateTheme() {
+    if (this.tag?.fontColor)
+      this.style.setProperty('--text-primary', this.tag.fontColor);
+    if (this.tag?.backgroundColor)
+      this.style.setProperty('--background-main', this.tag.backgroundColor);
+    if (this.tag?.inputFontColor)
+      this.style.setProperty('--input-font_color', this.tag.inputFontColor);
+    if (this.tag?.inputBackgroundColor)
+      this.style.setProperty('--input-background', this.tag.inputBackgroundColor);
+    if (this.tag?.buttonBackgroundColor)
+      this.style.setProperty('--colors-primary-main', this.tag.buttonBackgroundColor);
   }
 
   async edit() {
@@ -306,36 +374,41 @@ export default class Main extends Module implements PageBlock {
   private async refreshDApp() {
     this._type = this._data.dappType;
     this.renderTokenInput();
-    this.imgLogo.url = this._data.logo || assets.fullPath('img/sc-logo-mobile.svg');
+    this.imgLogo.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
     const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
     const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
     const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
     this.markdownViewer.load(description);
     this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
-    this.toTokenLb.caption = `1 ${this._data.token?.symbol || ''}`;
-    this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} GEM-Tokens`;
+    this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
+    this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
     this.backerStack.visible = !this.isBuy;
+    this.balanceLayout.templateAreas = [['qty'],['balance'], ['tokenInput'],['redeem']];
     this.pnlQty.visible = this.isBuy;
     this.edtGemQty.readOnly = !this._contract;
     this.edtGemQty.value = "";
-    this.balanceLayout.templateAreas = this.isBuy ?
-      [['qty'],['fee'],['balance'], ['tokenInput'],['redeem']] :
-      [['qty'],['balance'],['tokenInput'],['fee'],['redeem']];
     if (!this.isBuy) {
       this.btnSubmit.enabled = false;
       this.btnApprove.visible = false;
       this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
       this.backerTokenBalanceLb.caption = '0.00';
     }
-    this.feeLb.caption = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
     this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
-    this.lblBalance.caption = (await this.getBalance()).toFixed(2);
+    this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
 
   async init() {
     super.init();
     await this.initWalletData();
-    this.onSetupPage(isWalletConnected());
+    await this.onSetupPage(isWalletConnected());
+    this.setTag({
+      fontColor: '#000000',
+      inputFontColor: '#ffffff',
+      inputBackgroundColor: '#333333',
+      buttonBackgroundColor: '#FE6502'
+    })
   }
 
   private async initWalletData() {
@@ -426,8 +499,8 @@ export default class Main extends Module implements PageBlock {
   private async selectToken(token: ITokenObject) {
     this._data.token = token;
     this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
-    this.toTokenLb.caption = `1 ${this._data.token?.symbol || ''}`;
-    this.lblBalance.caption = (await this.getBalance()).toFixed(2);
+    this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
+    this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
 
   private updateSubmitButton(submitting: boolean) {
@@ -449,7 +522,8 @@ export default class Main extends Module implements PageBlock {
     const backerCoinAmount = this.getBackerCoinAmount(qty);
     this.edtAmount.value = backerCoinAmount;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
-    this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
+    if (this.approvalModelAction)
+      this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
   }
 
   private async onAmountChanged() {
@@ -580,7 +654,7 @@ export default class Main extends Module implements PageBlock {
     await redeemToken(this._contract, gemAmount, callback,
       async (result: any) => {
         console.log('redeemToken: ', result);
-        this.lblBalance.caption = (await this.getBalance()).toFixed(2);
+        this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
         this.edtAmount.value = '';
         this.backerTokenBalanceLb.caption = '0.00';
       }
@@ -610,7 +684,7 @@ export default class Main extends Module implements PageBlock {
         <i-image
           url={this._data.logo}
           class={imageStyle} width={30} height={30}
-          fallbackUrl={assets.fullPath('img/sc-logo-mobile.svg')}
+          fallbackUrl={assets.fullPath('img/gem-logo.svg')}
         ></i-image>
       )
       this.maxStack.visible = !!this._contract;
@@ -640,25 +714,36 @@ export default class Main extends Module implements PageBlock {
             id='gridDApp'
             width='100%'
             height='100%'
-            templateColumns={['60%', 'auto']}
+            templateColumns={['repeat(2, 1fr)']}
+            gap={{column: '6.313rem'}}
+            padding={{bottom: '1.563rem'}}
           >
-            <i-vstack padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}>
-              <i-hstack horizontalAlignment='center'>
+            <i-vstack
+              padding={{ top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '0.5rem' }}
+              gap="0.813rem"
+            >
+              <i-hstack>
                 <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
               </i-hstack>
-              <i-label id="lblTitle" font={{bold: true, size: '1.5rem'}}></i-label>
+              <i-label id="lblTitle" font={{bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase'}}></i-label>
               <i-markdown
                 id='markdownViewer'
                 class={markdownStyle}
                 width='100%'
                 height='100%'
+                font={{size: '1rem'}}
               ></i-markdown>
             </i-vstack>
-            <i-vstack gap="0.5rem" padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }} background={{ color: '#f1f1f1' }} verticalAlignment='space-between'>
-              <i-hstack gap="4px" class={centerStyle}>
-                <i-label id="fromTokenLb" font={{bold: true}}></i-label>
-                <i-label caption="=" font={{bold: true}}></i-label>
-                <i-label id="toTokenLb" font={{bold: true}}></i-label>
+            <i-vstack
+              gap="0.5rem"
+              padding={{ top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '5.25rem' }}
+              verticalAlignment='space-between'
+            >
+              <i-label caption="Price" font={{size: '1rem'}} opacity={0.6}></i-label>
+              <i-hstack gap="4px" class={centerStyle} margin={{bottom: '1rem'}}>
+                <i-label id="fromTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>
+                <i-label caption="=" font={{bold: true, size: '1.5rem'}}></i-label>
+                <i-label id="toTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>
               </i-hstack>
               <i-vstack gap="0.5rem">
                 <i-grid-layout
@@ -666,38 +751,47 @@ export default class Main extends Module implements PageBlock {
                   gap={{column: '0.5rem', row: '0.25rem'}}
                 >
                   <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'qty'}}>
-                    <i-label caption='Qty' font={{ size: '0.875rem' }}></i-label>
-                    <i-input id='edtGemQty' onChanged={this.onQtyChanged.bind(this)} class={inputStyle} inputType='number' font={{ size: '0.875rem' }} border={{ radius: 4 }}></i-input>
+                    <i-label
+                      caption='Qty'
+                      font={{ size: '1rem', bold: true }}
+                      opacity={0.6}
+                    ></i-label>
+                    <i-input
+                      id='edtGemQty'
+                      value={1}
+                      onChanged={this.onQtyChanged.bind(this)}
+                      class={inputStyle}
+                      inputType='number'
+                      font={{ size: '1rem', bold: true }}
+                      border={{ radius: 4 }}
+                    ></i-input>
                   </i-hstack>
-                  <i-hstack horizontalAlignment="end" verticalAlignment="center" gap="0.5rem" grid={{area: 'fee'}}>
-                    <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
-                      <i-label caption="Transaction Fee" font={{size: '0.875rem'}}></i-label>
-                      <i-icon
-                        id="feeTooltip"
-                        name="question-circle"
-                        fill={Theme.text.primary}
-                        width={14} height={14}
-                      ></i-icon>
+                  <i-hstack
+                    horizontalAlignment="space-between"
+                    verticalAlignment='center'
+                    gap="0.5rem"
+                    grid={{area: 'balance'}}
+                  >
+                    <i-label caption='Your donation' font={{size: '1rem'}}></i-label>
+                    <i-hstack verticalAlignment='center' gap="0.5rem">
+                      <i-label caption='Balance:' font={{size: '1rem'}} opacity={0.6}></i-label>
+                      <i-label id='lblBalance' font={{size: '1rem'}} opacity={0.6}></i-label>
                     </i-hstack>
-                    <i-label id="feeLb" font={{ size: '0.875rem' }} caption="0"></i-label>
-                  </i-hstack>
-                  <i-hstack horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'balance'}}>
-                    <i-label caption='Balance:' font={{ size: '0.875rem' }}></i-label>
-                    <i-label id='lblBalance' font={{ size: '0.875rem' }}></i-label>
                   </i-hstack>
                   <i-grid-layout
                     id='gridTokenInput'
                     verticalAlignment="center"
                     templateColumns={['60%', 'auto']}
-                    border={{ radius: 5 }} overflow="hidden"
-                    background={{color: '#fff'}} width="100%"
+                    border={{ radius: 16 }} overflow="hidden"
+                    background={{color: Theme.input.background}}
+                    font={{color: Theme.input.fontColor}}
+                    height={56} width="100%"
                     grid={{area: 'tokenInput'}}
                   >
                     <i-panel id="gemLogoStack" padding={{left: 10}} visible={false}/>
                     <gem-token-selection
                       id="tokenElm"
                       class={tokenSelectionStyle}
-                      background={{ color: '#fff' }}
                       width="100%"
                       onSelectToken={this.selectToken.bind(this)}
                     ></gem-token-selection>
@@ -708,7 +802,8 @@ export default class Main extends Module implements PageBlock {
                       minHeight={40}
                       class={inputStyle}
                       inputType='number'
-                      font={{ size: '0.875rem' }}
+                      font={{ size: '1.25rem' }}
+                      opacity={0.3}
                       onChanged={this.onAmountChanged.bind(this)}
                     ></i-input>
                     <i-hstack id="maxStack" horizontalAlignment="end" visible={false}>
@@ -730,34 +825,53 @@ export default class Main extends Module implements PageBlock {
                     maxWidth="50%"
                     visible={false}
                   >
-                    <i-label caption='You get:' font={{ size: '0.875rem' }}></i-label>
+                    <i-label caption='You get:' font={{ size: '1rem' }}></i-label>
                     <i-image id="backerTokenImg" width={20} height={20} fallbackUrl={assets.tokenPath()}></i-image>
-                    <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '0.875rem' }}></i-label>
+                    <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '1rem' }}></i-label>
                   </i-hstack>
                 </i-grid-layout>
-                <i-hstack horizontalAlignment="center" verticalAlignment='center' gap="8px">
+                <i-vstack horizontalAlignment="center" verticalAlignment='center' gap="8px" margin={{bottom: '1.313rem'}}>
                   <i-button
                     id="btnApprove"
-                    minWidth='100px'
+                    minWidth='100%'
                     caption="Approve"
-                    padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
-                    font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
+                    padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
+                    font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
+                    border={{radius: 12}}
                     visible={false}
                     onClick={this.onApprove.bind(this)}
                   ></i-button>                
                   <i-button
                     id='btnSubmit'
-                    minWidth='100px'
+                    minWidth='100%'
                     caption='Submit'
-                    padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
-                    font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
+                    padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
+                    font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
+                    background={{color: Theme.colors.primary.main}}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
+                    border={{radius: 12}}
                     onClick={this.onSubmit.bind(this)}
                     enabled={false}
                   ></i-button>
+                </i-vstack>
+                <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem">
+                  <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
+                    <i-label caption="Transaction Fee" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
+                    <i-icon
+                      id="feeTooltip"
+                      name="question-circle"
+                      fill={Theme.text.primary}
+                      width={14} height={14}
+                    ></i-icon>
+                  </i-hstack>
+                  <i-label id="feeLb" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
                 </i-hstack>
-                <i-label caption='Terms & Condition' font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }}></i-label>
+                {/* <i-label
+                  caption='Terms & Condition'
+                  font={{ size: '0.75rem' }}
+                  link={{ href: 'https://docs.scom.dev/' }}
+                ></i-label> */}
               </i-vstack>
             </i-vstack>
           </i-grid-layout>
