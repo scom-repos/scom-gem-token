@@ -381,7 +381,7 @@ export default class Main extends Module implements PageBlock {
     this.markdownViewer.load(description);
     this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
     this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-    this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} GEM-Tokens`;
+    this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
     this.backerStack.visible = !this.isBuy;
     this.pnlQty.visible = this.isBuy;
     this.edtGemQty.readOnly = !this._contract;
@@ -849,7 +849,6 @@ export default class Main extends Module implements PageBlock {
                     caption="Approve"
                     padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
                     font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
-                    background={{color: Theme.colors.primary.main}}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
                     border={{radius: 12}}
                     visible={false}
