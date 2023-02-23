@@ -694,7 +694,7 @@ export default class Main extends Module implements PageBlock {
 
   render() {
     return (
-      <i-panel>
+      <i-panel background={{color: Theme.background.main}}>
         <i-panel>
           <i-vstack id="loadingElm" class="i-loading-overlay" visible={false}>
             <i-vstack class="i-loading-spinner" horizontalAlignment="center" verticalAlignment="center">
@@ -715,11 +715,10 @@ export default class Main extends Module implements PageBlock {
             width='100%'
             height='100%'
             templateColumns={['repeat(2, 1fr)']}
-            gap={{column: '6.313rem'}}
             padding={{bottom: '1.563rem'}}
           >
             <i-vstack
-              padding={{ top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '0.5rem' }}
+              padding={{ top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }}
               gap="0.813rem"
             >
               <i-hstack>
