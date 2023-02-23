@@ -694,7 +694,7 @@ export default class Main extends Module implements PageBlock {
 
   render() {
     return (
-      <i-panel>
+      <i-panel background={{color: Theme.background.main}}>
         <i-panel>
           <i-vstack id="loadingElm" class="i-loading-overlay" visible={false}>
             <i-vstack class="i-loading-spinner" horizontalAlignment="center" verticalAlignment="center">
