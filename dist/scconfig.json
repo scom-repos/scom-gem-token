@@ -1,0 +1,103 @@
+{
+    "env": "testnet",
+    "logo": "logo",
+    "main": "@pageblock-gem-token/main",
+    "assets": "@pageblock-gem-token/assets",
+    "moduleDir": "modules",
+    "modules": {
+        "@pageblock-gem-token/assets": {
+            "path": "assets",
+            "dependencies": [
+                "@pageblock-gem-token/interface"
+            ]
+        },
+        "@pageblock-gem-token/interface": {
+            "path": "interface",
+            "dependencies": []
+        },
+        "@pageblock-gem-token/utils": {
+            "path": "utils",
+            "dependencies": [
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/interface"
+            ]
+        },
+        "@pageblock-gem-token/store": {
+            "path": "store",
+            "dependencies": [
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/interface"
+            ]
+        },
+        "@pageblock-gem-token/wallet": {
+            "path": "wallet",
+            "dependencies": [
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/interface",
+                "@pageblock-gem-token/store"
+            ]
+        },
+        "@pageblock-gem-token/token-selection": {
+            "path": "token-selection",
+            "dependencies": [
+                "@pageblock-gem-token/interface",
+                "@pageblock-gem-token/store",
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/assets",
+                "@pageblock-gem-token/wallet"
+            ]
+        },
+        "@pageblock-gem-token/alert": {
+            "path": "alert",
+            "dependencies": []
+        },
+        "@pageblock-gem-token/config": {
+            "path": "config",
+            "dependencies": [
+                "@pageblock-gem-token/interface",
+                "@pageblock-gem-token/wallet",
+                "@pageblock-gem-token/assets",
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/store",
+                "@pageblock-gem-token/token-selection"
+            ]
+        },
+        "@pageblock-gem-token/main": {
+            "path": "main",
+            "dependencies": [
+                "@ijstech/eth-wallet",
+                "@pageblock-gem-token/interface",
+                "@pageblock-gem-token/utils",
+                "@pageblock-gem-token/store",
+                "@pageblock-gem-token/wallet",
+                "@pageblock-gem-token/config",
+                "@pageblock-gem-token/token-selection",
+                "@pageblock-gem-token/alert",
+                "@pageblock-gem-token/assets",
+                "@scom/gem-token-contract"
+            ]
+        },
+        "@pageblock-gem-token/loading": {
+            "path": "loading",
+            "dependencies": []
+        }
+    },
+    "dependencies": {
+        "@ijstech/eth-wallet": "*",
+        "@ijstech/eth-contract": "*",
+        "@scom/gem-token-contract": "*"
+    },
+    "contractInfo": {
+        "43113": {
+            "ProductNFT": {
+                "address": "0xfa62A7997B6f473cf8d07D32bAdcb3C30f851e90"
+            },
+            "ProductInfo": {
+                "address": "0xC30BcB3adA0dbB047400a224Ac8EEf2AA12BD27d"
+            },
+            "Proxy": {
+                "address": "0x44ef4Ff71043f491ED6D69C61aF97eaA66f76CFb"
+            }
+        }
+    }
+}
