@@ -70,12 +70,12 @@ export default class Main extends Module implements PageBlock {
     price: '',
     mintingFee: ''
   };
-  private oldTag: any;
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
 
-  tag: any;
+  tag: any = {}
+  private oldTag: any = {};
   defaultEdit: boolean = true;
   readonly onConfirm: () => Promise<void>;
   readonly onDiscard: () => Promise<void>;
@@ -144,7 +144,7 @@ export default class Main extends Module implements PageBlock {
         command: (builder: any, userInputData: any) => {
           return {
             execute: async () => {
-              this._oldData = this._data;
+              this._oldData = {...this._data};
               if (userInputData.name != undefined) this._data.name = userInputData.name;
               if (userInputData.symbol != undefined) this._data.symbol = userInputData.symbol;
               if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
@@ -161,13 +161,15 @@ export default class Main extends Module implements PageBlock {
               this._contract = this._data.contract;
               await this.initApprovalAction();
               this.refreshDApp();
+              if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
-              this._data = this._oldData;
+              this._data = {...this._oldData};
               this.configDApp.data = this._data;
               this._contract = this.configDApp.data.contract;
               await this.initApprovalAction();
               this.refreshDApp();
+              if (builder?.setData) builder.setData(this._data);
             },
             redo: () => {}
           }
@@ -190,17 +192,14 @@ export default class Main extends Module implements PageBlock {
         command: (builder: any, userInputData: any) => {
           return {
             execute: async () => {
-              if (userInputData) {
-                this.oldTag = this.tag;
-                this.setTag(userInputData);
-                if (builder) builder.setTag(userInputData);
-              }
+              if (!userInputData) return;
+              if (builder) builder.setTag(userInputData);
+              // this.setTag(userInputData);
             },
             undo: () => {
-              if (userInputData) {
-                this.setTag(this.oldTag);
-                if (builder) builder.setTag(this.oldTag);
-              }
+              if (!userInputData) return;
+              if (builder) builder.setTag(this.oldTag);
+              // this.setTag(this.oldTag);
             },
             redo: () => {}
           }
@@ -252,21 +251,27 @@ export default class Main extends Module implements PageBlock {
   }
 
   async setTag(value: any) {
-    this.tag = value;
+    this.oldTag = {...this.tag};
+    const newValue = value || {};
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop))
+        this.tag[prop] = newValue[prop];
+    }
     this.updateTheme();
   }
 
+  private updateStyle(name: string, value: any) {
+    value ?
+      this.style.setProperty(name, value) :
+      this.style.removeProperty(name);
+  }
+
   private updateTheme() {
-    if (this.tag?.fontColor)
-      this.style.setProperty('--text-primary', this.tag.fontColor);
-    if (this.tag?.backgroundColor)
-      this.style.setProperty('--background-main', this.tag.backgroundColor);
-    if (this.tag?.inputFontColor)
-      this.style.setProperty('--input-font_color', this.tag.inputFontColor);
-    if (this.tag?.inputBackgroundColor)
-      this.style.setProperty('--input-background', this.tag.inputBackgroundColor);
-    if (this.tag?.buttonBackgroundColor)
-      this.style.setProperty('--colors-primary-main', this.tag.buttonBackgroundColor);
+    this.updateStyle('--text-primary', this.tag?.fontColor);
+    this.updateStyle('--background-main', this.tag?.backgroundColor);
+    this.updateStyle('--input-font_color', this.tag?.inputFontColor);
+    this.updateStyle('--input-background', this.tag?.inputBackgroundColor);
+    this.updateStyle('--colors-primary-main', this.tag?.buttonBackgroundColor);
   }
 
   async edit() {
@@ -407,7 +412,8 @@ export default class Main extends Module implements PageBlock {
       fontColor: '#000000',
       inputFontColor: '#ffffff',
       inputBackgroundColor: '#333333',
-      buttonBackgroundColor: '#FE6502'
+      buttonBackgroundColor: '#FE6502',
+      backgroundColor: '#ffffff'
     })
   }
 

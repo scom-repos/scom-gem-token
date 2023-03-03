@@ -167,6 +167,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 mintingFee: ''
             };
             this.isApproving = false;
+            this.tag = {};
+            this.oldTag = {};
             this.defaultEdit = true;
             this.onWalletConnect = async (connected) => {
                 let chainId = wallet_1.getChainId();
@@ -281,7 +283,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     command: (builder, userInputData) => {
                         return {
                             execute: async () => {
-                                this._oldData = this._data;
+                                this._oldData = Object.assign({}, this._data);
+                                console.log('execute', this._oldData);
                                 if (userInputData.name != undefined)
                                     this._data.name = userInputData.name;
                                 if (userInputData.symbol != undefined)
@@ -310,13 +313,19 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 this._contract = this._data.contract;
                                 await this.initApprovalAction();
                                 this.refreshDApp();
+                                console.log(builder === null || builder === void 0 ? void 0 : builder.setData, this._data);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
                             },
                             undo: async () => {
-                                this._data = this._oldData;
+                                this._data = Object.assign({}, this._oldData);
+                                console.log('undo', this._oldData);
                                 this.configDApp.data = this._data;
                                 this._contract = this.configDApp.data.contract;
                                 await this.initApprovalAction();
                                 this.refreshDApp();
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
                             },
                             redo: () => { }
                         };
@@ -339,19 +348,18 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     command: (builder, userInputData) => {
                         return {
                             execute: async () => {
-                                if (userInputData) {
-                                    this.oldTag = this.tag;
-                                    this.setTag(userInputData);
-                                    if (builder)
-                                        builder.setTag(userInputData);
-                                }
+                                if (!userInputData)
+                                    return;
+                                if (builder)
+                                    builder.setTag(userInputData);
+                                // this.setTag(userInputData);
                             },
                             undo: () => {
-                                if (userInputData) {
-                                    this.setTag(this.oldTag);
-                                    if (builder)
-                                        builder.setTag(this.oldTag);
-                                }
+                                if (!userInputData)
+                                    return;
+                                if (builder)
+                                    builder.setTag(this.oldTag);
+                                // this.setTag(this.oldTag);
                             },
                             redo: () => { }
                         };
@@ -399,21 +407,26 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             return this.tag;
         }
         async setTag(value) {
-            this.tag = value;
+            this.oldTag = Object.assign({}, this.tag);
+            const newValue = value || {};
+            for (let prop in newValue) {
+                if (newValue.hasOwnProperty(prop))
+                    this.tag[prop] = newValue[prop];
+            }
             this.updateTheme();
+        }
+        updateStyle(name, value) {
+            value ?
+                this.style.setProperty(name, value) :
+                this.style.removeProperty(name);
         }
         updateTheme() {
             var _a, _b, _c, _d, _e;
-            if ((_a = this.tag) === null || _a === void 0 ? void 0 : _a.fontColor)
-                this.style.setProperty('--text-primary', this.tag.fontColor);
-            if ((_b = this.tag) === null || _b === void 0 ? void 0 : _b.backgroundColor)
-                this.style.setProperty('--background-main', this.tag.backgroundColor);
-            if ((_c = this.tag) === null || _c === void 0 ? void 0 : _c.inputFontColor)
-                this.style.setProperty('--input-font_color', this.tag.inputFontColor);
-            if ((_d = this.tag) === null || _d === void 0 ? void 0 : _d.inputBackgroundColor)
-                this.style.setProperty('--input-background', this.tag.inputBackgroundColor);
-            if ((_e = this.tag) === null || _e === void 0 ? void 0 : _e.buttonBackgroundColor)
-                this.style.setProperty('--colors-primary-main', this.tag.buttonBackgroundColor);
+            this.updateStyle('--text-primary', (_a = this.tag) === null || _a === void 0 ? void 0 : _a.fontColor);
+            this.updateStyle('--background-main', (_b = this.tag) === null || _b === void 0 ? void 0 : _b.backgroundColor);
+            this.updateStyle('--input-font_color', (_c = this.tag) === null || _c === void 0 ? void 0 : _c.inputFontColor);
+            this.updateStyle('--input-background', (_d = this.tag) === null || _d === void 0 ? void 0 : _d.inputBackgroundColor);
+            this.updateStyle('--colors-primary-main', (_e = this.tag) === null || _e === void 0 ? void 0 : _e.buttonBackgroundColor);
         }
         async edit() {
             this.gridDApp.visible = false;
@@ -527,7 +540,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 fontColor: '#000000',
                 inputFontColor: '#ffffff',
                 inputBackgroundColor: '#333333',
-                buttonBackgroundColor: '#FE6502'
+                buttonBackgroundColor: '#FE6502',
+                backgroundColor: '#ffffff'
             });
         }
         async initWalletData() {
