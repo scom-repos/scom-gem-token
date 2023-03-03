@@ -193,12 +193,14 @@ export default class Main extends Module implements PageBlock {
           return {
             execute: async () => {
               if (!userInputData) return;
+              this.oldTag = {...this.tag};
               if (builder) builder.setTag(userInputData);
               // this.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              if (builder) builder.setTag(this.oldTag);
+              this.tag = {...this.oldTag};
+              if (builder) builder.setTag(this.tag);
               // this.setTag(this.oldTag);
             },
             redo: () => {}
@@ -251,7 +253,6 @@ export default class Main extends Module implements PageBlock {
   }
 
   async setTag(value: any) {
-    this.oldTag = {...this.tag};
     const newValue = value || {};
     for (let prop in newValue) {
       if (newValue.hasOwnProperty(prop))

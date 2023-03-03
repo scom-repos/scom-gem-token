@@ -284,7 +284,6 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                         return {
                             execute: async () => {
                                 this._oldData = Object.assign({}, this._data);
-                                console.log('execute', this._oldData);
                                 if (userInputData.name != undefined)
                                     this._data.name = userInputData.name;
                                 if (userInputData.symbol != undefined)
@@ -313,13 +312,11 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 this._contract = this._data.contract;
                                 await this.initApprovalAction();
                                 this.refreshDApp();
-                                console.log(builder === null || builder === void 0 ? void 0 : builder.setData, this._data);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
                             },
                             undo: async () => {
                                 this._data = Object.assign({}, this._oldData);
-                                console.log('undo', this._oldData);
                                 this.configDApp.data = this._data;
                                 this._contract = this.configDApp.data.contract;
                                 await this.initApprovalAction();
@@ -350,6 +347,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             execute: async () => {
                                 if (!userInputData)
                                     return;
+                                this.oldTag = Object.assign({}, this.tag);
                                 if (builder)
                                     builder.setTag(userInputData);
                                 // this.setTag(userInputData);
@@ -357,8 +355,9 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             undo: () => {
                                 if (!userInputData)
                                     return;
+                                this.tag = Object.assign({}, this.oldTag);
                                 if (builder)
-                                    builder.setTag(this.oldTag);
+                                    builder.setTag(this.tag);
                                 // this.setTag(this.oldTag);
                             },
                             redo: () => { }
@@ -407,7 +406,6 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             return this.tag;
         }
         async setTag(value) {
-            this.oldTag = Object.assign({}, this.tag);
             const newValue = value || {};
             for (let prop in newValue) {
                 if (newValue.hasOwnProperty(prop))
