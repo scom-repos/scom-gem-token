@@ -406,6 +406,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             return this.tag;
         }
         async setTag(value) {
+            console.log('set tag', value);
             const newValue = value || {};
             for (let prop in newValue) {
                 if (newValue.hasOwnProperty(prop))
@@ -531,9 +532,6 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
         }
         async init() {
-            super.init();
-            await this.initWalletData();
-            await this.onSetupPage(wallet_1.isWalletConnected());
             this.setTag({
                 fontColor: '#000000',
                 inputFontColor: '#ffffff',
@@ -541,6 +539,9 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 buttonBackgroundColor: '#FE6502',
                 backgroundColor: '#ffffff'
             });
+            super.init();
+            await this.initWalletData();
+            await this.onSetupPage(wallet_1.isWalletConnected());
         }
         async initWalletData() {
             const selectedProvider = localStorage.getItem('walletProvider');

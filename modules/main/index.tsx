@@ -253,6 +253,7 @@ export default class Main extends Module implements PageBlock {
   }
 
   async setTag(value: any) {
+    console.log('set tag', value)
     const newValue = value || {};
     for (let prop in newValue) {
       if (newValue.hasOwnProperty(prop))
@@ -406,16 +407,16 @@ export default class Main extends Module implements PageBlock {
   }
 
   async init() {
-    super.init();
-    await this.initWalletData();
-    await this.onSetupPage(isWalletConnected());
     this.setTag({
       fontColor: '#000000',
       inputFontColor: '#ffffff',
       inputBackgroundColor: '#333333',
       buttonBackgroundColor: '#FE6502',
       backgroundColor: '#ffffff'
-    })
+    });
+    super.init();
+    await this.initWalletData();
+    await this.onSetupPage(isWalletConnected());
   }
 
   private async initWalletData() {
