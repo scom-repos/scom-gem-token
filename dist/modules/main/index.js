@@ -276,6 +276,20 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 await this.initApprovalAction();
         }
         getActions() {
+            const userInputDataSchema = {
+                type: 'object',
+                properties: {
+                    "contract": {
+                        type: 'string'
+                    }
+                }
+            };
+            if (!this._data.hideDescription) {
+                userInputDataSchema.properties['description'] = {
+                    type: 'string',
+                    format: 'multi'
+                };
+            }
             const actions = [
                 {
                     name: 'Settings',
@@ -327,17 +341,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             redo: () => { }
                         };
                     },
-                    userInputDataSchema: {
-                        type: 'object',
-                        properties: {
-                            "contract": {
-                                type: 'string'
-                            },
-                            "description": {
-                                type: 'string'
-                            }
-                        }
-                    }
+                    userInputDataSchema: userInputDataSchema
                 },
                 {
                     name: 'Theme Settings',
@@ -350,7 +354,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 this.oldTag = Object.assign({}, this.tag);
                                 if (builder)
                                     builder.setTag(userInputData);
-                                // this.setTag(userInputData);
+                                else
+                                    this.setTag(userInputData);
                             },
                             undo: () => {
                                 if (!userInputData)
@@ -358,7 +363,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 this.tag = Object.assign({}, this.oldTag);
                                 if (builder)
                                     builder.setTag(this.tag);
-                                // this.setTag(this.oldTag);
+                                else
+                                    this.setTag(this.oldTag);
                             },
                             redo: () => { }
                         };
@@ -505,6 +511,14 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
         }
         async refreshDApp() {
             this._type = this._data.dappType;
+            if (this._data.hideDescription) {
+                this.pnlDescription.visible = false;
+                this.gridDApp.templateColumns = ['1fr'];
+            }
+            else {
+                this.pnlDescription.visible = true;
+                this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
+            }
             this.renderTokenInput();
             this.imgLogo.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.svg');
             const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
@@ -772,12 +786,12 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             this.$render("i-icon", { class: "i-loading-spinner_icon", width: 24, height: 24, name: "spinner", fill: "#FD4A4C" }),
                             this.$render("i-label", { caption: "Deploying...", font: { color: '#FD4A4C', size: '1.2em' }, class: "i-loading-spinner_text" }))),
                     this.$render("i-grid-layout", { id: 'gridDApp', width: '100%', height: '100%', templateColumns: ['repeat(2, 1fr)'], padding: { bottom: '1.563rem' } },
-                        this.$render("i-vstack", { padding: { top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }, gap: "0.813rem" },
+                        this.$render("i-vstack", { id: "pnlDescription", padding: { top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }, gap: "0.813rem" },
                             this.$render("i-hstack", null,
                                 this.$render("i-image", { id: 'imgLogo', class: index_css_1.imageStyle, height: 100 })),
                             this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
                             this.$render("i-markdown", { id: 'markdownViewer', class: index_css_1.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
-                        this.$render("i-vstack", { gap: "0.5rem", padding: { top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '5.25rem' }, verticalAlignment: 'space-between' },
+                        this.$render("i-vstack", { gap: "0.5rem", padding: { top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
                             this.$render("i-label", { caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
                             this.$render("i-hstack", { gap: "4px", class: index_css_1.centerStyle, margin: { bottom: '1rem' } },
                                 this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),

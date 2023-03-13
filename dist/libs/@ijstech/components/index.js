@@ -20720,7 +20720,7 @@ var UploadModal = class extends Control {
           break;
         } else {
           const file = this.fileListData[i];
-          file.url = `/ipfs/${cidItem.cid}${file.file.path || file.file.name}`;
+          file.url = `https://ipfs.scom.dev/ipfs/${cidItem.cid}${file.file.path || file.file.name}`;
           if ([1, 3].includes(file.status) || !((_a = file.file.cid) == null ? void 0 : _a.cid)) {
             continue;
           }
@@ -24715,7 +24715,7 @@ var Application = class {
     let { data } = await this.postData(`${API_IPFS_BASEURL}/upload`, { data: item });
     return data || {};
   }
-  async uploadData(fileName, content) {
+  async uploadData(fileName, content, endpoint) {
     let cid = await hashContent(content);
     let item = {
       cid: cid.cid,
@@ -24762,7 +24762,7 @@ var Application = class {
           ;
           resolve({
             success: true,
-            data: dir
+            data
           });
         } else {
           reject({ success: false, error: "No file selected" });
@@ -24770,58 +24770,6 @@ var Application = class {
       });
       input.click();
     });
-  }
-  async uploadTo(targetCid, items) {
-    let cid = await (await fetch(`/ipfs/${targetCid}`)).json();
-    if (cid == null ? void 0 : cid.links) {
-      for (let i = 0; i < items.length; i++) {
-        let item = items[i];
-        let exists = false;
-        for (let k = 0; k < cid.links.length; k++) {
-          if (cid.links[k].name == item.cid.name) {
-            cid.links[k] = item.cid;
-            exists = true;
-            break;
-          }
-          ;
-        }
-        ;
-        if (!exists)
-          cid.links.push(item.cid);
-      }
-      ;
-      let newCid = await hashItems(cid.links);
-      let uploadUrl = await this.getUploadUrl(newCid);
-      for (let i = 0; i < items.length; i++) {
-        let item = items[i];
-        if (uploadUrl[item.cid.cid]) {
-          let data;
-          if (item.cid.type == "dir")
-            data = item.data || JSON.stringify(item.cid);
-          else
-            data = item.data;
-          if (!data)
-            throw new Error(`Missing upload data: ${item.cid.name}`);
-          let result = await this.upload(uploadUrl[item.cid.cid], data);
-          if (result != 200)
-            throw new Error(`File upload failed: ${item.cid.name}`);
-        }
-        ;
-      }
-      ;
-      if (uploadUrl[newCid.cid]) {
-        let result = await this.upload(uploadUrl[newCid.cid], JSON.stringify(newCid));
-        if (result != 200)
-          throw new Error(`File upload failed: ${newCid.cid}`);
-      }
-      ;
-      return {
-        success: true,
-        data: newCid
-      };
-    }
-    ;
-    throw new Error(`Target CID not found: ${targetCid}`);
   }
   async upload(url, data) {
     return new Promise(async (resolve) => {
@@ -24989,14 +24937,13 @@ var Application = class {
   }
   async newModule(module2, options) {
     if (options) {
-      if (!this._initOptions)
-        this._initOptions = options;
-      if (!this._assets && options.assets)
-        this._assets = await this.loadPackage(options.assets) || {};
-      if (options.dependencies) {
-        for (let p in options.dependencies) {
-          if (p != options.main)
-            await this.loadPackage(p, options.dependencies[p]);
+      this._initOptions = options;
+      if (!this._assets && this._initOptions.assets)
+        this._assets = await this.loadPackage(this._initOptions.assets) || {};
+      if (this._initOptions.dependencies) {
+        for (let p in this._initOptions.dependencies) {
+          if (p != this._initOptions.main)
+            await this.loadPackage(p, this._initOptions.dependencies[p]);
         }
         ;
       }
@@ -25059,7 +25006,6 @@ var Application = class {
         ;
       }
     }
-    ;
     return null;
   }
   async copyToClipboard(value) {

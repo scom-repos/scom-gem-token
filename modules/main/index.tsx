@@ -13,7 +13,8 @@ import {
   IEventBus,
   application,
   Panel,
-  Icon
+  Icon,
+  VStack
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from '@pageblock-gem-token/interface';
@@ -58,6 +59,7 @@ export default class Main extends Module implements PageBlock {
   private gemLogoStack: Panel;
   private maxStack: Panel;
   private loadingElm: Panel;
+  private pnlDescription: VStack;
 
   private _type: DappType | undefined;
   private _contract: string | undefined;
@@ -137,6 +139,20 @@ export default class Main extends Module implements PageBlock {
   }
 
   getActions() {
+    const userInputDataSchema = {
+      type: 'object',
+      properties: {         
+        "contract": {
+          type: 'string'
+        }            
+      }
+    }
+    if (!this._data.hideDescription) {
+      userInputDataSchema.properties['description'] = {
+        type: 'string',
+        format: 'multi'
+      };     
+    }
     const actions = [
       {
         name: 'Settings',
@@ -174,17 +190,7 @@ export default class Main extends Module implements PageBlock {
             redo: () => {}
           }
         },
-        userInputDataSchema: {
-          type: 'object',
-          properties: {         
-            "contract": {
-              type: 'string'
-            },            
-            "description": {
-              type: 'string'
-            }
-          }
-        }
+        userInputDataSchema: userInputDataSchema
       },
       {
         name: 'Theme Settings',
@@ -195,13 +201,13 @@ export default class Main extends Module implements PageBlock {
               if (!userInputData) return;
               this.oldTag = {...this.tag};
               if (builder) builder.setTag(userInputData);
-              // this.setTag(userInputData);
+              else this.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
               this.tag = {...this.oldTag};
               if (builder) builder.setTag(this.tag);
-              // this.setTag(this.oldTag);
+              else this.setTag(this.oldTag);
             },
             redo: () => {}
           }
@@ -379,6 +385,14 @@ export default class Main extends Module implements PageBlock {
 
   private async refreshDApp() {
     this._type = this._data.dappType;
+    if (this._data.hideDescription) {
+      this.pnlDescription.visible = false;
+      this.gridDApp.templateColumns = ['1fr'];
+    }
+    else {
+      this.pnlDescription.visible = true;
+      this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
+    }
     this.renderTokenInput();
     this.imgLogo.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
     const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
@@ -728,6 +742,7 @@ export default class Main extends Module implements PageBlock {
             padding={{bottom: '1.563rem'}}
           >
             <i-vstack
+              id="pnlDescription"
               padding={{ top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }}
               gap="0.813rem"
             >
@@ -745,7 +760,7 @@ export default class Main extends Module implements PageBlock {
             </i-vstack>
             <i-vstack
               gap="0.5rem"
-              padding={{ top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '5.25rem' }}
+              padding={{ top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
               verticalAlignment='space-between'
             >
               <i-label caption="Price" font={{size: '1rem'}} opacity={0.6}></i-label>

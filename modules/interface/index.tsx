@@ -36,6 +36,7 @@ export interface IConfig extends Partial<IDeploy> {
   dappType?: DappType;
   logo?: string;
   description?: string;
+  hideDescription?: boolean;
   chainId?: number;
   token?: ITokenObject;
   contract?: string;
