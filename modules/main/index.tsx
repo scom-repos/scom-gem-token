@@ -441,6 +441,7 @@ export default class Main extends Module implements PageBlock {
         backgroundColor: '#ffffff'
       });
     }
+    this.$eventBus.dispatch('embedInitialized', this);
   }
 
   private async initWalletData() {

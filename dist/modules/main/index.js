@@ -561,6 +561,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     backgroundColor: '#ffffff'
                 });
             }
+            this.$eventBus.dispatch('embedInitialized', this);
         }
         async initWalletData() {
             const selectedProvider = localStorage.getItem('walletProvider');
