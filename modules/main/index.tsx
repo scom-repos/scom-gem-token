@@ -38,7 +38,9 @@ export default class Main extends Module implements PageBlock {
   private imgLogo: Image;
   private imgLogo2: Image;
   private markdownViewer: Markdown;
+  private pnlLogoTitle: VStack;
   private lblTitle: Label;
+  private lblTitle2: Label;
   private toTokenLb: Label;
   private fromTokenLb: Label;
   private feeLb: Label;
@@ -390,12 +392,12 @@ export default class Main extends Module implements PageBlock {
     if (this._data.hideDescription) {
       this.pnlDescription.visible = false;
       this.gridDApp.templateColumns = ['1fr'];
-      this.imgLogo2.visible = true;
+      this.pnlLogoTitle.visible = true;
     }
     else {
       this.pnlDescription.visible = true;
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
-      this.imgLogo2.visible = false;
+      this.pnlLogoTitle.visible = false;
     }
     this.renderTokenInput();
     this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
@@ -405,7 +407,7 @@ export default class Main extends Module implements PageBlock {
     this.markdownViewer.load(description);
     this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
     this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-    this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
+    this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
     this.backerStack.visible = !this.isBuy;
     this.balanceLayout.templateAreas = [['qty'],['balance'], ['tokenInput'],['redeem']];
     this.pnlQty.visible = this.isBuy;
@@ -769,10 +771,13 @@ export default class Main extends Module implements PageBlock {
             </i-vstack>
             <i-vstack
               gap="0.5rem"
-              padding={{ top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+              padding={{ top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
               verticalAlignment='space-between'
             >
-              <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
+              <i-vstack horizontalAlignment='center' id="pnlLogoTitle" gap='0.5rem'>
+                <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
+                <i-label id="lblTitle2" font={{bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase'}}></i-label>
+              </i-vstack>
               <i-label caption="Price" font={{size: '1rem'}} opacity={0.6}></i-label>
               <i-hstack gap="4px" class={centerStyle} margin={{bottom: '1rem'}}>
                 <i-label id="fromTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>

@@ -514,12 +514,12 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             if (this._data.hideDescription) {
                 this.pnlDescription.visible = false;
                 this.gridDApp.templateColumns = ['1fr'];
-                this.imgLogo2.visible = true;
+                this.pnlLogoTitle.visible = true;
             }
             else {
                 this.pnlDescription.visible = true;
                 this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
-                this.imgLogo2.visible = false;
+                this.pnlLogoTitle.visible = false;
             }
             this.renderTokenInput();
             this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.svg');
@@ -529,7 +529,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             this.markdownViewer.load(description);
             this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
             this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-            this.lblTitle.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
+            this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
             this.backerStack.visible = !this.isBuy;
             this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
             this.pnlQty.visible = this.isBuy;
@@ -798,8 +798,10 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 this.$render("i-image", { id: 'imgLogo', class: index_css_1.imageStyle, height: 100 })),
                             this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
                             this.$render("i-markdown", { id: 'markdownViewer', class: index_css_1.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
-                        this.$render("i-vstack", { gap: "0.5rem", padding: { top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
-                            this.$render("i-image", { id: 'imgLogo2', class: index_css_1.imageStyle, height: 100 }),
+                        this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
+                            this.$render("i-vstack", { horizontalAlignment: 'center', id: "pnlLogoTitle", gap: '0.5rem' },
+                                this.$render("i-image", { id: 'imgLogo2', class: index_css_1.imageStyle, height: 100 }),
+                                this.$render("i-label", { id: "lblTitle2", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } })),
                             this.$render("i-label", { caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
                             this.$render("i-hstack", { gap: "4px", class: index_css_1.centerStyle, margin: { bottom: '1rem' } },
                                 this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
