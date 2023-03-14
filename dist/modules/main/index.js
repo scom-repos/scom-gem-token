@@ -514,13 +514,15 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             if (this._data.hideDescription) {
                 this.pnlDescription.visible = false;
                 this.gridDApp.templateColumns = ['1fr'];
+                this.imgLogo2.visible = true;
             }
             else {
                 this.pnlDescription.visible = true;
                 this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
+                this.imgLogo2.visible = false;
             }
             this.renderTokenInput();
-            this.imgLogo.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.svg');
+            this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.svg');
             const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
             const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
             const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
@@ -541,6 +543,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             }
             const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
             this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
+            const total = new eth_wallet_2.BigNumber(this.edtAmount.value || 0).plus(feeValue).toFixed();
+            this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
             this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
             this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
         }
@@ -663,6 +667,9 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             const qty = Number(this.edtGemQty.value);
             const backerCoinAmount = this.getBackerCoinAmount(qty);
             this.edtAmount.value = backerCoinAmount;
+            const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+            const total = new eth_wallet_2.BigNumber(backerCoinAmount).plus(feeValue).toFixed();
+            this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
             this.btnApprove.enabled = new eth_wallet_2.BigNumber(this.edtGemQty.value).gt(0);
             if (this.approvalModelAction)
                 this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
@@ -792,6 +799,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
                             this.$render("i-markdown", { id: 'markdownViewer', class: index_css_1.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
                         this.$render("i-vstack", { gap: "0.5rem", padding: { top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
+                            this.$render("i-image", { id: 'imgLogo2', class: index_css_1.imageStyle, height: 100 }),
                             this.$render("i-label", { caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
                             this.$render("i-hstack", { gap: "4px", class: index_css_1.centerStyle, margin: { bottom: '1rem' } },
                                 this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
@@ -803,7 +811,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                         this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_1.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4 } })),
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
-                                        this.$render("i-label", { caption: 'Your donation', font: { size: '1rem' } }),
+                                        this.$render("i-label", { caption: 'Subtotal', font: { size: '1rem' } }),
                                         this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                             this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                             this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
@@ -824,7 +832,10 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                     this.$render("i-hstack", { horizontalAlignment: "end", verticalAlignment: "center", gap: 4 },
                                         this.$render("i-label", { caption: "Transaction Fee", font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-icon", { id: "feeTooltip", name: "question-circle", fill: Theme.text.primary, width: 14, height: 14 })),
-                                    this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })))))),
+                                    this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })),
+                                this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
+                                    this.$render("i-label", { caption: "Total", font: { size: '1rem', bold: true }, opacity: 0.6 }),
+                                    this.$render("i-label", { id: "lbTotal", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })))))),
                 this.$render("gem-token-config", { id: 'configDApp', visible: false }),
                 this.$render("gem-token-alert", { id: 'mdAlert' })));
         }

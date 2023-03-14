@@ -36,11 +36,13 @@ const redeemTooltip = 'The spread the project owner will receive for redemptions
 export default class Main extends Module implements PageBlock {
   private gridDApp: GridLayout;
   private imgLogo: Image;
+  private imgLogo2: Image;
   private markdownViewer: Markdown;
   private lblTitle: Label;
   private toTokenLb: Label;
   private fromTokenLb: Label;
   private feeLb: Label;
+  private lbTotal: Label;
   private feeTooltip: Icon;
   private pnlQty: HStack;
   private edtGemQty: Input;
@@ -388,13 +390,15 @@ export default class Main extends Module implements PageBlock {
     if (this._data.hideDescription) {
       this.pnlDescription.visible = false;
       this.gridDApp.templateColumns = ['1fr'];
+      this.imgLogo2.visible = true;
     }
     else {
       this.pnlDescription.visible = true;
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
+      this.imgLogo2.visible = false;
     }
     this.renderTokenInput();
-    this.imgLogo.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
+    this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
     const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
     const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
     const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
@@ -415,6 +419,8 @@ export default class Main extends Module implements PageBlock {
     }
     const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
     this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
+    const total = new BigNumber(this.edtAmount.value || 0).plus(feeValue).toFixed();
+    this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
     this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
     this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
@@ -545,6 +551,9 @@ export default class Main extends Module implements PageBlock {
     const qty = Number(this.edtGemQty.value);
     const backerCoinAmount = this.getBackerCoinAmount(qty);
     this.edtAmount.value = backerCoinAmount;
+    const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    const total = new BigNumber(backerCoinAmount).plus(feeValue).toFixed();
+    this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
     if (this.approvalModelAction)
       this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
@@ -763,6 +772,7 @@ export default class Main extends Module implements PageBlock {
               padding={{ top: '3.375rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
               verticalAlignment='space-between'
             >
+              <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
               <i-label caption="Price" font={{size: '1rem'}} opacity={0.6}></i-label>
               <i-hstack gap="4px" class={centerStyle} margin={{bottom: '1rem'}}>
                 <i-label id="fromTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>
@@ -796,7 +806,7 @@ export default class Main extends Module implements PageBlock {
                     gap="0.5rem"
                     grid={{area: 'balance'}}
                   >
-                    <i-label caption='Your donation' font={{size: '1rem'}}></i-label>
+                    <i-label caption='Subtotal' font={{size: '1rem'}}></i-label>
                     <i-hstack verticalAlignment='center' gap="0.5rem">
                       <i-label caption='Balance:' font={{size: '1rem'}} opacity={0.6}></i-label>
                       <i-label id='lblBalance' font={{size: '1rem'}} opacity={0.6}></i-label>
@@ -891,6 +901,10 @@ export default class Main extends Module implements PageBlock {
                   </i-hstack>
                   <i-label id="feeLb" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
                 </i-hstack>
+                <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem">
+                  <i-label caption="Total" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
+                  <i-label id="lbTotal" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
+                </i-hstack>                
                 {/* <i-label
                   caption='Terms & Condition'
                   font={{ size: '0.75rem' }}
