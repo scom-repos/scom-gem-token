@@ -42,15 +42,10 @@
     },
     "contractInfo": {
         "43113": {
-            "ProductNFT": {
-                "address": "0xfa62A7997B6f473cf8d07D32bAdcb3C30f851e90"
-            },
-            "ProductInfo": {
-                "address": "0xC30BcB3adA0dbB047400a224Ac8EEf2AA12BD27d"
-            },
             "Proxy": {
-                "address": "0x44ef4Ff71043f491ED6D69C61aF97eaA66f76CFb"
+                "address": "0x7f1EAB0db83c02263539E3bFf99b638E61916B96"
             }
         }
-    }
+    },
+    "commissionFee": "0.01"
 }

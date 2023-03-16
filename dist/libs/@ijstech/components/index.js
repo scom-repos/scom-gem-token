@@ -9925,6 +9925,1773 @@ function BufferBigIntNotDefined () {
   //   globalObject.IPFSUtils = { parse, hashItems, hashContent, hashFile, mergeOptions };
   // };
 })(this);
+/*! @license DOMPurify 3.0.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.1/LICENSE */
+
+(function (global, factory) {
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.DOMPurify = factory());
+})(this, (function () { 'use strict';
+
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
+
+    return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) {
+      return typeof obj;
+    } : function (obj) {
+      return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    }, _typeof(obj);
+  }
+
+  function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
+
+    return _setPrototypeOf(o, p);
+  }
+
+  function _isNativeReflectConstruct() {
+    if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+    if (Reflect.construct.sham) return false;
+    if (typeof Proxy === "function") return true;
+
+    try {
+      Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function _construct(Parent, args, Class) {
+    if (_isNativeReflectConstruct()) {
+      _construct = Reflect.construct;
+    } else {
+      _construct = function _construct(Parent, args, Class) {
+        var a = [null];
+        a.push.apply(a, args);
+        var Constructor = Function.bind.apply(Parent, a);
+        var instance = new Constructor();
+        if (Class) _setPrototypeOf(instance, Class.prototype);
+        return instance;
+      };
+    }
+
+    return _construct.apply(null, arguments);
+  }
+
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArray(iter) {
+    if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+    if (_i == null) return;
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+
+    var _s, _e;
+
+    try {
+      for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  function _createForOfIteratorHelper(o, allowArrayLike) {
+    var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+
+    if (!it) {
+      if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+        if (it) o = it;
+        var i = 0;
+
+        var F = function () {};
+
+        return {
+          s: F,
+          n: function () {
+            if (i >= o.length) return {
+              done: true
+            };
+            return {
+              done: false,
+              value: o[i++]
+            };
+          },
+          e: function (e) {
+            throw e;
+          },
+          f: F
+        };
+      }
+
+      throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+
+    var normalCompletion = true,
+        didErr = false,
+        err;
+    return {
+      s: function () {
+        it = it.call(o);
+      },
+      n: function () {
+        var step = it.next();
+        normalCompletion = step.done;
+        return step;
+      },
+      e: function (e) {
+        didErr = true;
+        err = e;
+      },
+      f: function () {
+        try {
+          if (!normalCompletion && it.return != null) it.return();
+        } finally {
+          if (didErr) throw err;
+        }
+      }
+    };
+  }
+
+  var entries = Object.entries,
+      setPrototypeOf = Object.setPrototypeOf,
+      isFrozen = Object.isFrozen,
+      getPrototypeOf = Object.getPrototypeOf,
+      getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+  var freeze = Object.freeze,
+      seal = Object.seal,
+      create = Object.create; // eslint-disable-line import/no-mutable-exports
+
+  var _ref = typeof Reflect !== 'undefined' && Reflect,
+      apply = _ref.apply,
+      construct = _ref.construct;
+
+  if (!apply) {
+    apply = function apply(fun, thisValue, args) {
+      return fun.apply(thisValue, args);
+    };
+  }
+
+  if (!freeze) {
+    freeze = function freeze(x) {
+      return x;
+    };
+  }
+
+  if (!seal) {
+    seal = function seal(x) {
+      return x;
+    };
+  }
+
+  if (!construct) {
+    construct = function construct(Func, args) {
+      return _construct(Func, _toConsumableArray(args));
+    };
+  }
+
+  var arrayForEach = unapply(Array.prototype.forEach);
+  var arrayPop = unapply(Array.prototype.pop);
+  var arrayPush = unapply(Array.prototype.push);
+  var stringToLowerCase = unapply(String.prototype.toLowerCase);
+  var stringToString = unapply(String.prototype.toString);
+  var stringMatch = unapply(String.prototype.match);
+  var stringReplace = unapply(String.prototype.replace);
+  var stringIndexOf = unapply(String.prototype.indexOf);
+  var stringTrim = unapply(String.prototype.trim);
+  var regExpTest = unapply(RegExp.prototype.test);
+  var typeErrorCreate = unconstruct(TypeError);
+  function unapply(func) {
+    return function (thisArg) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
+
+      return apply(func, thisArg, args);
+    };
+  }
+  function unconstruct(func) {
+    return function () {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      return construct(func, args);
+    };
+  }
+  /* Add properties to a lookup table */
+
+  function addToSet(set, array, transformCaseFunc) {
+    transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
+
+    if (setPrototypeOf) {
+      // Make 'in' and truthy checks like Boolean(set.constructor)
+      // independent of any properties defined on Object.prototype.
+      // Prevent prototype setters from intercepting set as a this value.
+      setPrototypeOf(set, null);
+    }
+
+    var l = array.length;
+
+    while (l--) {
+      var element = array[l];
+
+      if (typeof element === 'string') {
+        var lcElement = transformCaseFunc(element);
+
+        if (lcElement !== element) {
+          // Config presets (e.g. tags.js, attrs.js) are immutable.
+          if (!isFrozen(array)) {
+            array[l] = lcElement;
+          }
+
+          element = lcElement;
+        }
+      }
+
+      set[element] = true;
+    }
+
+    return set;
+  }
+  /* Shallow clone an object */
+
+  function clone(object) {
+    var newObject = create(null);
+
+    var _iterator = _createForOfIteratorHelper(entries(object)),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var _step$value = _slicedToArray(_step.value, 2),
+            property = _step$value[0],
+            value = _step$value[1];
+
+        newObject[property] = value;
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+
+    return newObject;
+  }
+  /* This method automatically checks if the prop is function
+   * or getter and behaves accordingly. */
+
+  function lookupGetter(object, prop) {
+    while (object !== null) {
+      var desc = getOwnPropertyDescriptor(object, prop);
+
+      if (desc) {
+        if (desc.get) {
+          return unapply(desc.get);
+        }
+
+        if (typeof desc.value === 'function') {
+          return unapply(desc.value);
+        }
+      }
+
+      object = getPrototypeOf(object);
+    }
+
+    function fallbackValue(element) {
+      console.warn('fallback value for', element);
+      return null;
+    }
+
+    return fallbackValue;
+  }
+
+  var html$1 = freeze(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']); // SVG
+
+  var svg$1 = freeze(['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'view', 'vkern']);
+  var svgFilters = freeze(['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence']); // List of SVG elements that are disallowed by default.
+  // We still need to know them so that we can do namespace
+  // checks properly in case one wants to add them to
+  // allow-list.
+
+  var svgDisallowed = freeze(['animate', 'color-profile', 'cursor', 'discard', 'fedropshadow', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignobject', 'hatch', 'hatchpath', 'mesh', 'meshgradient', 'meshpatch', 'meshrow', 'missing-glyph', 'script', 'set', 'solidcolor', 'unknown', 'use']);
+  var mathMl$1 = freeze(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover']); // Similarly to SVG, we want to know all MathML elements,
+  // even those that we disallow by default.
+
+  var mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
+  var text = freeze(['#text']);
+
+  var html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'playsinline', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'xmlns', 'slot']);
+  var svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
+  var mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
+  var xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
+
+  var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+
+  var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+  var TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
+  var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
+
+  var ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
+
+  var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+  );
+  var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
+  var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
+  );
+  var DOCTYPE_NAME = seal(/^html$/i);
+
+  var getGlobal = function getGlobal() {
+    return typeof window === 'undefined' ? null : window;
+  };
+  /**
+   * Creates a no-op policy for internal use only.
+   * Don't export this function outside this module!
+   * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+   * @param {Document} document The document object (to determine policy name suffix)
+   * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+   * are not supported).
+   */
+
+
+  var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, document) {
+    if (_typeof(trustedTypes) !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
+      return null;
+    } // Allow the callers to control the unique policy name
+    // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
+    // Policy creation with duplicate names throws in Trusted Types.
+
+
+    var suffix = null;
+    var ATTR_NAME = 'data-tt-policy-suffix';
+
+    if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
+      suffix = document.currentScript.getAttribute(ATTR_NAME);
+    }
+
+    var policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+
+    try {
+      return trustedTypes.createPolicy(policyName, {
+        createHTML: function createHTML(html) {
+          return html;
+        },
+        createScriptURL: function createScriptURL(scriptUrl) {
+          return scriptUrl;
+        }
+      });
+    } catch (_) {
+      // Policy creation failed (most likely another DOMPurify script has
+      // already run). Skip creating the policy, as this will only cause errors
+      // if TT are enforced.
+      console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
+      return null;
+    }
+  };
+
+  function createDOMPurify() {
+    var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
+
+    var DOMPurify = function DOMPurify(root) {
+      return createDOMPurify(root);
+    };
+    /**
+     * Version label, exposed for easier checks
+     * if DOMPurify is up to date or not
+     */
+
+
+    DOMPurify.version = '3.0.1';
+    /**
+     * Array of elements that DOMPurify removed during sanitation.
+     * Empty if nothing was removed.
+     */
+
+    DOMPurify.removed = [];
+
+    if (!window || !window.document || window.document.nodeType !== 9) {
+      // Not running in a browser, provide a factory function
+      // so that you can pass your own Window
+      DOMPurify.isSupported = false;
+      return DOMPurify;
+    }
+
+    var originalDocument = window.document;
+    var document = window.document;
+    var DocumentFragment = window.DocumentFragment,
+        HTMLTemplateElement = window.HTMLTemplateElement,
+        Node = window.Node,
+        Element = window.Element,
+        NodeFilter = window.NodeFilter,
+        _window$NamedNodeMap = window.NamedNodeMap,
+        NamedNodeMap = _window$NamedNodeMap === void 0 ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
+        HTMLFormElement = window.HTMLFormElement,
+        DOMParser = window.DOMParser,
+        trustedTypes = window.trustedTypes;
+    var ElementPrototype = Element.prototype;
+    var cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+    var getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
+    var getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
+    var getParentNode = lookupGetter(ElementPrototype, 'parentNode'); // As per issue #47, the web-components registry is inherited by a
+    // new document created via createHTMLDocument. As per the spec
+    // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
+    // a new empty registry is used when creating a template contents owner
+    // document, so we use that as our parent document to ensure nothing
+    // is inherited.
+
+    if (typeof HTMLTemplateElement === 'function') {
+      var template = document.createElement('template');
+
+      if (template.content && template.content.ownerDocument) {
+        document = template.content.ownerDocument;
+      }
+    }
+
+    var trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, originalDocument);
+
+    var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
+    var _document = document,
+        implementation = _document.implementation,
+        createNodeIterator = _document.createNodeIterator,
+        createDocumentFragment = _document.createDocumentFragment,
+        getElementsByTagName = _document.getElementsByTagName;
+    var importNode = originalDocument.importNode;
+    var hooks = {};
+    /**
+     * Expose whether this browser supports running the full DOMPurify.
+     */
+
+    DOMPurify.isSupported = typeof entries === 'function' && typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined';
+    var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
+        ERB_EXPR$1 = ERB_EXPR,
+        TMPLIT_EXPR$1 = TMPLIT_EXPR,
+        DATA_ATTR$1 = DATA_ATTR,
+        ARIA_ATTR$1 = ARIA_ATTR,
+        IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA,
+        ATTR_WHITESPACE$1 = ATTR_WHITESPACE;
+    var IS_ALLOWED_URI$1 = IS_ALLOWED_URI;
+    /**
+     * We consider the elements and attributes below to be safe. Ideally
+     * don't add any new ones but feel free to remove unwanted ones.
+     */
+
+    /* allowed element names */
+
+    var ALLOWED_TAGS = null;
+    var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(html$1), _toConsumableArray(svg$1), _toConsumableArray(svgFilters), _toConsumableArray(mathMl$1), _toConsumableArray(text)));
+    /* Allowed attribute names */
+
+    var ALLOWED_ATTR = null;
+    var DEFAULT_ALLOWED_ATTR = addToSet({}, [].concat(_toConsumableArray(html), _toConsumableArray(svg), _toConsumableArray(mathMl), _toConsumableArray(xml)));
+    /*
+     * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+     * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
+     * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
+     * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
+     */
+
+    var CUSTOM_ELEMENT_HANDLING = Object.seal(Object.create(null, {
+      tagNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null
+      },
+      attributeNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null
+      },
+      allowCustomizedBuiltInElements: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: false
+      }
+    }));
+    /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
+
+    var FORBID_TAGS = null;
+    /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
+
+    var FORBID_ATTR = null;
+    /* Decide if ARIA attributes are okay */
+
+    var ALLOW_ARIA_ATTR = true;
+    /* Decide if custom data attributes are okay */
+
+    var ALLOW_DATA_ATTR = true;
+    /* Decide if unknown protocols are okay */
+
+    var ALLOW_UNKNOWN_PROTOCOLS = false;
+    /* Decide if self-closing tags in attributes are allowed.
+     * Usually removed due to a mXSS issue in jQuery 3.0 */
+
+    var ALLOW_SELF_CLOSE_IN_ATTR = true;
+    /* Output should be safe for common template engines.
+     * This means, DOMPurify removes data attributes, mustaches and ERB
+     */
+
+    var SAFE_FOR_TEMPLATES = false;
+    /* Decide if document with <html>... should be returned */
+
+    var WHOLE_DOCUMENT = false;
+    /* Track whether config is already set on this instance of DOMPurify. */
+
+    var SET_CONFIG = false;
+    /* Decide if all elements (e.g. style, script) must be children of
+     * document.body. By default, browsers might move them to document.head */
+
+    var FORCE_BODY = false;
+    /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
+     * string (or a TrustedHTML object if Trusted Types are supported).
+     * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
+     */
+
+    var RETURN_DOM = false;
+    /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
+     * string  (or a TrustedHTML object if Trusted Types are supported) */
+
+    var RETURN_DOM_FRAGMENT = false;
+    /* Try to return a Trusted Type object instead of a string, return a string in
+     * case Trusted Types are not supported  */
+
+    var RETURN_TRUSTED_TYPE = false;
+    /* Output should be free from DOM clobbering attacks?
+     * This sanitizes markups named with colliding, clobberable built-in DOM APIs.
+     */
+
+    var SANITIZE_DOM = true;
+    /* Achieve full DOM Clobbering protection by isolating the namespace of named
+     * properties and JS variables, mitigating attacks that abuse the HTML/DOM spec rules.
+     *
+     * HTML/DOM spec rules that enable DOM Clobbering:
+     *   - Named Access on Window (§7.3.3)
+     *   - DOM Tree Accessors (§3.1.5)
+     *   - Form Element Parent-Child Relations (§4.10.3)
+     *   - Iframe srcdoc / Nested WindowProxies (§4.8.5)
+     *   - HTMLCollection (§4.2.10.2)
+     *
+     * Namespace isolation is implemented by prefixing `id` and `name` attributes
+     * with a constant string, i.e., `user-content-`
+     */
+
+    var SANITIZE_NAMED_PROPS = false;
+    var SANITIZE_NAMED_PROPS_PREFIX = 'user-content-';
+    /* Keep element content when removing element? */
+
+    var KEEP_CONTENT = true;
+    /* If a `Node` is passed to sanitize(), then performs sanitization in-place instead
+     * of importing it into a new Document and returning a sanitized copy */
+
+    var IN_PLACE = false;
+    /* Allow usage of profiles like html, svg and mathMl */
+
+    var USE_PROFILES = {};
+    /* Tags to ignore content of when KEEP_CONTENT is true */
+
+    var FORBID_CONTENTS = null;
+    var DEFAULT_FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'noscript', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
+    /* Tags that are safe for data: URIs */
+
+    var DATA_URI_TAGS = null;
+    var DEFAULT_DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image', 'track']);
+    /* Attributes safe for values like "javascript:" */
+
+    var URI_SAFE_ATTRIBUTES = null;
+    var DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'role', 'summary', 'title', 'value', 'style', 'xmlns']);
+    var MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+    var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+    var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+    /* Document namespace */
+
+    var NAMESPACE = HTML_NAMESPACE;
+    var IS_EMPTY_INPUT = false;
+    /* Allowed XHTML+XML namespaces */
+
+    var ALLOWED_NAMESPACES = null;
+    var DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
+    /* Parsing of strict XHTML documents */
+
+    var PARSER_MEDIA_TYPE;
+    var SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
+    var DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+    var transformCaseFunc;
+    /* Keep a reference to config to pass to hooks */
+
+    var CONFIG = null;
+    /* Ideally, do not touch anything below this line */
+
+    /* ______________________________________________ */
+
+    var formElement = document.createElement('form');
+
+    var isRegexOrFunction = function isRegexOrFunction(testValue) {
+      return testValue instanceof RegExp || testValue instanceof Function;
+    };
+    /**
+     * _parseConfig
+     *
+     * @param  {Object} cfg optional config literal
+     */
+    // eslint-disable-next-line complexity
+
+
+    var _parseConfig = function _parseConfig(cfg) {
+      if (CONFIG && CONFIG === cfg) {
+        return;
+      }
+      /* Shield configuration object from tampering */
+
+
+      if (!cfg || _typeof(cfg) !== 'object') {
+        cfg = {};
+      }
+      /* Shield configuration object from prototype pollution */
+
+
+      cfg = clone(cfg);
+      PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
+      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+
+      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
+      /* Set configuration parameters */
+
+      ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+      ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+      ALLOWED_NAMESPACES = 'ALLOWED_NAMESPACES' in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+      URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+      cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+      transformCaseFunc // eslint-disable-line indent
+      ) // eslint-disable-line indent
+      : DEFAULT_URI_SAFE_ATTRIBUTES;
+      DATA_URI_TAGS = 'ADD_DATA_URI_TAGS' in cfg ? addToSet(clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+      cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+      transformCaseFunc // eslint-disable-line indent
+      ) // eslint-disable-line indent
+      : DEFAULT_DATA_URI_TAGS;
+      FORBID_CONTENTS = 'FORBID_CONTENTS' in cfg ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+      FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
+      FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+      USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
+      ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
+
+      ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
+
+      ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+
+      ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
+
+      SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
+
+      WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
+
+      RETURN_DOM = cfg.RETURN_DOM || false; // Default false
+
+      RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
+
+      RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
+
+      FORCE_BODY = cfg.FORCE_BODY || false; // Default false
+
+      SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
+
+      SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
+
+      KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+
+      IN_PLACE = cfg.IN_PLACE || false; // Default false
+
+      IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$1;
+      NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+      CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+
+      if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
+        CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+      }
+
+      if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) {
+        CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+      }
+
+      if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
+        CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+      }
+
+      if (SAFE_FOR_TEMPLATES) {
+        ALLOW_DATA_ATTR = false;
+      }
+
+      if (RETURN_DOM_FRAGMENT) {
+        RETURN_DOM = true;
+      }
+      /* Parse profile info */
+
+
+      if (USE_PROFILES) {
+        ALLOWED_TAGS = addToSet({}, _toConsumableArray(text));
+        ALLOWED_ATTR = [];
+
+        if (USE_PROFILES.html === true) {
+          addToSet(ALLOWED_TAGS, html$1);
+          addToSet(ALLOWED_ATTR, html);
+        }
+
+        if (USE_PROFILES.svg === true) {
+          addToSet(ALLOWED_TAGS, svg$1);
+          addToSet(ALLOWED_ATTR, svg);
+          addToSet(ALLOWED_ATTR, xml);
+        }
+
+        if (USE_PROFILES.svgFilters === true) {
+          addToSet(ALLOWED_TAGS, svgFilters);
+          addToSet(ALLOWED_ATTR, svg);
+          addToSet(ALLOWED_ATTR, xml);
+        }
+
+        if (USE_PROFILES.mathMl === true) {
+          addToSet(ALLOWED_TAGS, mathMl$1);
+          addToSet(ALLOWED_ATTR, mathMl);
+          addToSet(ALLOWED_ATTR, xml);
+        }
+      }
+      /* Merge configuration parameters */
+
+
+      if (cfg.ADD_TAGS) {
+        if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
+          ALLOWED_TAGS = clone(ALLOWED_TAGS);
+        }
+
+        addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
+      }
+
+      if (cfg.ADD_ATTR) {
+        if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+          ALLOWED_ATTR = clone(ALLOWED_ATTR);
+        }
+
+        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+      }
+
+      if (cfg.ADD_URI_SAFE_ATTR) {
+        addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
+      }
+
+      if (cfg.FORBID_CONTENTS) {
+        if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+          FORBID_CONTENTS = clone(FORBID_CONTENTS);
+        }
+
+        addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+      }
+      /* Add #text in case KEEP_CONTENT is set to true */
+
+
+      if (KEEP_CONTENT) {
+        ALLOWED_TAGS['#text'] = true;
+      }
+      /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
+
+
+      if (WHOLE_DOCUMENT) {
+        addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
+      }
+      /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
+
+
+      if (ALLOWED_TAGS.table) {
+        addToSet(ALLOWED_TAGS, ['tbody']);
+        delete FORBID_TAGS.tbody;
+      } // Prevent further manipulation of configuration.
+      // Not available in IE8, Safari 5, etc.
+
+
+      if (freeze) {
+        freeze(cfg);
+      }
+
+      CONFIG = cfg;
+    };
+
+    var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
+    var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']); // Certain elements are allowed in both SVG and HTML
+    // namespace. We need to specify them explicitly
+    // so that they don't get erroneously deleted from
+    // HTML namespace.
+
+    var COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
+    /* Keep track of all possible SVG and MathML tags
+     * so that we can perform the namespace checks
+     * correctly. */
+
+    var ALL_SVG_TAGS = addToSet({}, svg$1);
+    addToSet(ALL_SVG_TAGS, svgFilters);
+    addToSet(ALL_SVG_TAGS, svgDisallowed);
+    var ALL_MATHML_TAGS = addToSet({}, mathMl$1);
+    addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
+    /**
+     *
+     *
+     * @param  {Element} element a DOM element whose namespace is being checked
+     * @returns {boolean} Return false if the element has a
+     *  namespace that a spec-compliant parser would never
+     *  return. Return true otherwise.
+     */
+
+    var _checkValidNamespace = function _checkValidNamespace(element) {
+      var parent = getParentNode(element); // In JSDOM, if we're inside shadow DOM, then parentNode
+      // can be null. We just simulate parent in this case.
+
+      if (!parent || !parent.tagName) {
+        parent = {
+          namespaceURI: NAMESPACE,
+          tagName: 'template'
+        };
+      }
+
+      var tagName = stringToLowerCase(element.tagName);
+      var parentTagName = stringToLowerCase(parent.tagName);
+
+      if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return false;
+      }
+
+      if (element.namespaceURI === SVG_NAMESPACE) {
+        // The only way to switch from HTML namespace to SVG
+        // is via <svg>. If it happens via any other tag, then
+        // it should be killed.
+        if (parent.namespaceURI === HTML_NAMESPACE) {
+          return tagName === 'svg';
+        } // The only way to switch from MathML to SVG is via`
+        // svg if parent is either <annotation-xml> or MathML
+        // text integration points.
+
+
+        if (parent.namespaceURI === MATHML_NAMESPACE) {
+          return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
+        } // We only allow elements that are defined in SVG
+        // spec. All others are disallowed in SVG namespace.
+
+
+        return Boolean(ALL_SVG_TAGS[tagName]);
+      }
+
+      if (element.namespaceURI === MATHML_NAMESPACE) {
+        // The only way to switch from HTML namespace to MathML
+        // is via <math>. If it happens via any other tag, then
+        // it should be killed.
+        if (parent.namespaceURI === HTML_NAMESPACE) {
+          return tagName === 'math';
+        } // The only way to switch from SVG to MathML is via
+        // <math> and HTML integration points
+
+
+        if (parent.namespaceURI === SVG_NAMESPACE) {
+          return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
+        } // We only allow elements that are defined in MathML
+        // spec. All others are disallowed in MathML namespace.
+
+
+        return Boolean(ALL_MATHML_TAGS[tagName]);
+      }
+
+      if (element.namespaceURI === HTML_NAMESPACE) {
+        // The only way to switch from SVG to HTML is via
+        // HTML integration points, and from MathML to HTML
+        // is via MathML text integration points
+        if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) {
+          return false;
+        }
+
+        if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
+          return false;
+        } // We disallow tags that are specific for MathML
+        // or SVG and should never appear in HTML namespace
+
+
+        return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+      } // For XHTML and XML documents that support custom namespaces
+
+
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
+        return true;
+      } // The code should never reach this place (this means
+      // that the element somehow got namespace that is not
+      // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+      // Return false just in case.
+
+
+      return false;
+    };
+    /**
+     * _forceRemove
+     *
+     * @param  {Node} node a DOM node
+     */
+
+
+    var _forceRemove = function _forceRemove(node) {
+      arrayPush(DOMPurify.removed, {
+        element: node
+      });
+
+      try {
+        // eslint-disable-next-line unicorn/prefer-dom-node-remove
+        node.parentNode.removeChild(node);
+      } catch (_) {
+        node.remove();
+      }
+    };
+    /**
+     * _removeAttribute
+     *
+     * @param  {String} name an Attribute name
+     * @param  {Node} node a DOM node
+     */
+
+
+    var _removeAttribute = function _removeAttribute(name, node) {
+      try {
+        arrayPush(DOMPurify.removed, {
+          attribute: node.getAttributeNode(name),
+          from: node
+        });
+      } catch (_) {
+        arrayPush(DOMPurify.removed, {
+          attribute: null,
+          from: node
+        });
+      }
+
+      node.removeAttribute(name); // We void attribute values for unremovable "is"" attributes
+
+      if (name === 'is' && !ALLOWED_ATTR[name]) {
+        if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
+          try {
+            _forceRemove(node);
+          } catch (_) {}
+        } else {
+          try {
+            node.setAttribute(name, '');
+          } catch (_) {}
+        }
+      }
+    };
+    /**
+     * _initDocument
+     *
+     * @param  {String} dirty a string of dirty markup
+     * @return {Document} a DOM, filled with the dirty markup
+     */
+
+
+    var _initDocument = function _initDocument(dirty) {
+      /* Create a HTML document */
+      var doc;
+      var leadingWhitespace;
+
+      if (FORCE_BODY) {
+        dirty = '<remove></remove>' + dirty;
+      } else {
+        /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
+        var matches = stringMatch(dirty, /^[\r\n\t ]+/);
+        leadingWhitespace = matches && matches[0];
+      }
+
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
+        // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
+        dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
+      }
+
+      var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+      /*
+       * Use the DOMParser API by default, fallback later if needs be
+       * DOMParser not work for svg when has multiple root element.
+       */
+
+      if (NAMESPACE === HTML_NAMESPACE) {
+        try {
+          doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
+        } catch (_) {}
+      }
+      /* Use createHTMLDocument in case DOMParser is not available */
+
+
+      if (!doc || !doc.documentElement) {
+        doc = implementation.createDocument(NAMESPACE, 'template', null);
+
+        try {
+          doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
+        } catch (_) {// Syntax error if dirtyPayload is invalid xml
+        }
+      }
+
+      var body = doc.body || doc.documentElement;
+
+      if (dirty && leadingWhitespace) {
+        body.insertBefore(document.createTextNode(leadingWhitespace), body.childNodes[0] || null);
+      }
+      /* Work on whole document or just its body */
+
+
+      if (NAMESPACE === HTML_NAMESPACE) {
+        return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
+      }
+
+      return WHOLE_DOCUMENT ? doc.documentElement : body;
+    };
+    /**
+     * _createIterator
+     *
+     * @param  {Document} root document/fragment to create iterator for
+     * @return {Iterator} iterator instance
+     */
+
+
+    var _createIterator = function _createIterator(root) {
+      return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
+      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null, false);
+    };
+    /**
+     * _isClobbered
+     *
+     * @param  {Node} elm element to check for clobbering attacks
+     * @return {Boolean} true if clobbered, false if safe
+     */
+
+
+    var _isClobbered = function _isClobbered(elm) {
+      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
+    };
+    /**
+     * _isNode
+     *
+     * @param  {Node} obj object to check whether it's a DOM node
+     * @return {Boolean} true is object is a DOM node
+     */
+
+
+    var _isNode = function _isNode(object) {
+      return _typeof(Node) === 'object' ? object instanceof Node : object && _typeof(object) === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string';
+    };
+    /**
+     * _executeHook
+     * Execute user configurable hooks
+     *
+     * @param  {String} entryPoint  Name of the hook's entry point
+     * @param  {Node} currentNode node to work on with the hook
+     * @param  {Object} data additional hook parameters
+     */
+
+
+    var _executeHook = function _executeHook(entryPoint, currentNode, data) {
+      if (!hooks[entryPoint]) {
+        return;
+      }
+
+      arrayForEach(hooks[entryPoint], function (hook) {
+        hook.call(DOMPurify, currentNode, data, CONFIG);
+      });
+    };
+    /**
+     * _sanitizeElements
+     *
+     * @protect nodeName
+     * @protect textContent
+     * @protect removeChild
+     *
+     * @param   {Node} currentNode to check for permission to exist
+     * @return  {Boolean} true if node was killed, false if left alive
+     */
+
+
+    var _sanitizeElements = function _sanitizeElements(currentNode) {
+      var content;
+      /* Execute a hook if present */
+
+      _executeHook('beforeSanitizeElements', currentNode, null);
+      /* Check if element is clobbered or can clobber */
+
+
+      if (_isClobbered(currentNode)) {
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Now let's check the element's type and name */
+
+
+      var tagName = transformCaseFunc(currentNode.nodeName);
+      /* Execute a hook if present */
+
+      _executeHook('uponSanitizeElement', currentNode, {
+        tagName: tagName,
+        allowedTags: ALLOWED_TAGS
+      });
+      /* Detect mXSS attempts abusing namespace confusion */
+
+
+      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Remove element if anything forbids its presence */
+
+
+      if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+        /* Check if we have a custom element to handle */
+        if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
+          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
+        }
+        /* Keep content except for bad-listed elements */
+
+
+        if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+          var parentNode = getParentNode(currentNode) || currentNode.parentNode;
+          var childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+
+          if (childNodes && parentNode) {
+            var childCount = childNodes.length;
+
+            for (var i = childCount - 1; i >= 0; --i) {
+              parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+            }
+          }
+        }
+
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Check whether element has a valid namespace */
+
+
+      if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Make sure that older browsers don't get noscript mXSS */
+
+
+      if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Sanitize element content to be template-safe */
+
+
+      if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+        /* Get the element's text content */
+        content = currentNode.textContent;
+        content = stringReplace(content, MUSTACHE_EXPR$1, ' ');
+        content = stringReplace(content, ERB_EXPR$1, ' ');
+        content = stringReplace(content, TMPLIT_EXPR$1, ' ');
+
+        if (currentNode.textContent !== content) {
+          arrayPush(DOMPurify.removed, {
+            element: currentNode.cloneNode()
+          });
+          currentNode.textContent = content;
+        }
+      }
+      /* Execute a hook if present */
+
+
+      _executeHook('afterSanitizeElements', currentNode, null);
+
+      return false;
+    };
+    /**
+     * _isValidAttribute
+     *
+     * @param  {string} lcTag Lowercase tag name of containing element.
+     * @param  {string} lcName Lowercase attribute name.
+     * @param  {string} value Attribute value.
+     * @return {Boolean} Returns true if `value` is valid, otherwise false.
+     */
+    // eslint-disable-next-line complexity
+
+
+    var _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
+      /* Make sure attribute cannot clobber */
+      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
+        return false;
+      }
+      /* Allow valid data-* attributes: At least one character after "-"
+          (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+          XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
+          We don't need to check the value; it's always URI safe. */
+
+
+      if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName)) ; else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+        if ( // First condition does a very basic check if a) it's basically a valid custom element tagname AND
+        // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+        // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
+        _basicCustomElementTest(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || // Alternative, second condition checks if it's an `is`-attribute, AND
+        // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+        lcName === 'is' && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))) ; else {
+          return false;
+        }
+        /* Check value is safe. First, is attr inert? If so, is safe */
+
+      } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if (!value) ; else {
+        return false;
+      }
+
+      return true;
+    };
+    /**
+     * _basicCustomElementCheck
+     * checks if at least one dash is included in tagName, and it's not the first char
+     * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+     * @param {string} tagName name of the tag of the node to sanitize
+     */
+
+
+    var _basicCustomElementTest = function _basicCustomElementTest(tagName) {
+      return tagName.indexOf('-') > 0;
+    };
+    /**
+     * _sanitizeAttributes
+     *
+     * @protect attributes
+     * @protect nodeName
+     * @protect removeAttribute
+     * @protect setAttribute
+     *
+     * @param  {Node} currentNode to sanitize
+     */
+
+
+    var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
+      var attr;
+      var value;
+      var lcName;
+      var l;
+      /* Execute a hook if present */
+
+      _executeHook('beforeSanitizeAttributes', currentNode, null);
+
+      var attributes = currentNode.attributes;
+      /* Check if we have attributes; if not we might have a text node */
+
+      if (!attributes) {
+        return;
+      }
+
+      var hookEvent = {
+        attrName: '',
+        attrValue: '',
+        keepAttr: true,
+        allowedAttributes: ALLOWED_ATTR
+      };
+      l = attributes.length;
+      /* Go backwards over all attributes; safely remove bad ones */
+
+      while (l--) {
+        attr = attributes[l];
+        var _attr = attr,
+            name = _attr.name,
+            namespaceURI = _attr.namespaceURI;
+        value = name === 'value' ? attr.value : stringTrim(attr.value);
+        lcName = transformCaseFunc(name);
+        /* Execute a hook if present */
+
+        hookEvent.attrName = lcName;
+        hookEvent.attrValue = value;
+        hookEvent.keepAttr = true;
+        hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
+
+        _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
+
+        value = hookEvent.attrValue;
+        /* Did the hooks approve of the attribute? */
+
+        if (hookEvent.forceKeepAttr) {
+          continue;
+        }
+        /* Remove attribute */
+
+
+        _removeAttribute(name, currentNode);
+        /* Did the hooks approve of the attribute? */
+
+
+        if (!hookEvent.keepAttr) {
+          continue;
+        }
+        /* Work around a security issue in jQuery 3.0 */
+
+
+        if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+          _removeAttribute(name, currentNode);
+
+          continue;
+        }
+        /* Sanitize attribute content to be template-safe */
+
+
+        if (SAFE_FOR_TEMPLATES) {
+          value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
+          value = stringReplace(value, ERB_EXPR$1, ' ');
+          value = stringReplace(value, TMPLIT_EXPR$1, ' ');
+        }
+        /* Is `value` valid for this attribute? */
+
+
+        var lcTag = transformCaseFunc(currentNode.nodeName);
+
+        if (!_isValidAttribute(lcTag, lcName, value)) {
+          continue;
+        }
+        /* Full DOM Clobbering protection via namespace isolation,
+         * Prefix id and name attributes with `user-content-`
+         */
+
+
+        if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+          // Remove the attribute with this value
+          _removeAttribute(name, currentNode); // Prefix the value and later re-create the attribute with the sanitized value
+
+
+          value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        }
+        /* Handle attributes that require Trusted Types */
+
+
+        if (trustedTypesPolicy && _typeof(trustedTypes) === 'object' && typeof trustedTypes.getAttributeType === 'function') {
+          if (namespaceURI) ; else {
+            switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+              case 'TrustedHTML':
+                value = trustedTypesPolicy.createHTML(value);
+                break;
+
+              case 'TrustedScriptURL':
+                value = trustedTypesPolicy.createScriptURL(value);
+                break;
+            }
+          }
+        }
+        /* Handle invalid data-* attribute set by try-catching it */
+
+
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
+
+          arrayPop(DOMPurify.removed);
+        } catch (_) {}
+      }
+      /* Execute a hook if present */
+
+
+      _executeHook('afterSanitizeAttributes', currentNode, null);
+    };
+    /**
+     * _sanitizeShadowDOM
+     *
+     * @param  {DocumentFragment} fragment to iterate over recursively
+     */
+
+
+    var _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
+      var shadowNode;
+
+      var shadowIterator = _createIterator(fragment);
+      /* Execute a hook if present */
+
+
+      _executeHook('beforeSanitizeShadowDOM', fragment, null);
+
+      while (shadowNode = shadowIterator.nextNode()) {
+        /* Execute a hook if present */
+        _executeHook('uponSanitizeShadowNode', shadowNode, null);
+        /* Sanitize tags and elements */
+
+
+        if (_sanitizeElements(shadowNode)) {
+          continue;
+        }
+        /* Deep shadow DOM detected */
+
+
+        if (shadowNode.content instanceof DocumentFragment) {
+          _sanitizeShadowDOM(shadowNode.content);
+        }
+        /* Check attributes, sanitize if necessary */
+
+
+        _sanitizeAttributes(shadowNode);
+      }
+      /* Execute a hook if present */
+
+
+      _executeHook('afterSanitizeShadowDOM', fragment, null);
+    };
+    /**
+     * Sanitize
+     * Public method providing core sanitation functionality
+     *
+     * @param {String|Node} dirty string or DOM node
+     * @param {Object} configuration object
+     */
+    // eslint-disable-next-line complexity
+
+
+    DOMPurify.sanitize = function (dirty) {
+      var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var body;
+      var importedNode;
+      var currentNode;
+      var returnNode;
+      /* Make sure we have a string to sanitize.
+        DO NOT return early, as this will return the wrong type if
+        the user has requested a DOM object rather than a string */
+
+      IS_EMPTY_INPUT = !dirty;
+
+      if (IS_EMPTY_INPUT) {
+        dirty = '<!-->';
+      }
+      /* Stringify, in case dirty is an object */
+
+
+      if (typeof dirty !== 'string' && !_isNode(dirty)) {
+        // eslint-disable-next-line no-negated-condition
+        if (typeof dirty.toString !== 'function') {
+          throw typeErrorCreate('toString is not a function');
+        } else {
+          dirty = dirty.toString();
+
+          if (typeof dirty !== 'string') {
+            throw typeErrorCreate('dirty is not a string, aborting');
+          }
+        }
+      }
+      /* Return dirty HTML if DOMPurify cannot run */
+
+
+      if (!DOMPurify.isSupported) {
+        return dirty;
+      }
+      /* Assign config vars */
+
+
+      if (!SET_CONFIG) {
+        _parseConfig(cfg);
+      }
+      /* Clean up removed elements */
+
+
+      DOMPurify.removed = [];
+      /* Check if dirty is correctly typed for IN_PLACE */
+
+      if (typeof dirty === 'string') {
+        IN_PLACE = false;
+      }
+
+      if (IN_PLACE) {
+        /* Do some early pre-sanitization to avoid unsafe root nodes */
+        if (dirty.nodeName) {
+          var tagName = transformCaseFunc(dirty.nodeName);
+
+          if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+            throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
+          }
+        }
+      } else if (dirty instanceof Node) {
+        /* If dirty is a DOM element, append to an empty document to avoid
+           elements being stripped by the parser */
+        body = _initDocument('<!---->');
+        importedNode = body.ownerDocument.importNode(dirty, true);
+
+        if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+          /* Node is already a body, use as is */
+          body = importedNode;
+        } else if (importedNode.nodeName === 'HTML') {
+          body = importedNode;
+        } else {
+          // eslint-disable-next-line unicorn/prefer-dom-node-append
+          body.appendChild(importedNode);
+        }
+      } else {
+        /* Exit directly if we have nothing to do */
+        if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && // eslint-disable-next-line unicorn/prefer-includes
+        dirty.indexOf('<') === -1) {
+          return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
+        }
+        /* Initialize the document to work on */
+
+
+        body = _initDocument(dirty);
+        /* Check we have a DOM node from the data */
+
+        if (!body) {
+          return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
+        }
+      }
+      /* Remove first element node (ours) if FORCE_BODY is set */
+
+
+      if (body && FORCE_BODY) {
+        _forceRemove(body.firstChild);
+      }
+      /* Get node iterator */
+
+
+      var nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+      /* Now start iterating over the created document */
+
+
+      while (currentNode = nodeIterator.nextNode()) {
+        /* Sanitize tags and elements */
+        if (_sanitizeElements(currentNode)) {
+          continue;
+        }
+        /* Shadow DOM detected, sanitize it */
+
+
+        if (currentNode.content instanceof DocumentFragment) {
+          _sanitizeShadowDOM(currentNode.content);
+        }
+        /* Check attributes, sanitize if necessary */
+
+
+        _sanitizeAttributes(currentNode);
+      }
+      /* If we sanitized `dirty` in-place, return it. */
+
+
+      if (IN_PLACE) {
+        return dirty;
+      }
+      /* Return sanitized string or DOM */
+
+
+      if (RETURN_DOM) {
+        if (RETURN_DOM_FRAGMENT) {
+          returnNode = createDocumentFragment.call(body.ownerDocument);
+
+          while (body.firstChild) {
+            // eslint-disable-next-line unicorn/prefer-dom-node-append
+            returnNode.appendChild(body.firstChild);
+          }
+        } else {
+          returnNode = body;
+        }
+
+        if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmod) {
+          /*
+            AdoptNode() is not used because internal state is not reset
+            (e.g. the past names map of a HTMLFormElement), this is safe
+            in theory but we would rather not risk another attack vector.
+            The state that is cloned by importNode() is explicitly defined
+            by the specs.
+          */
+          returnNode = importNode.call(originalDocument, returnNode, true);
+        }
+
+        return returnNode;
+      }
+
+      var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+      /* Serialize doctype if allowed */
+
+      if (WHOLE_DOCUMENT && ALLOWED_TAGS['!doctype'] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) {
+        serializedHTML = '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+      }
+      /* Sanitize final string template-safe */
+
+
+      if (SAFE_FOR_TEMPLATES) {
+        serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$1, ' ');
+        serializedHTML = stringReplace(serializedHTML, ERB_EXPR$1, ' ');
+        serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR$1, ' ');
+      }
+
+      return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+    };
+    /**
+     * Public method to set the configuration once
+     * setConfig
+     *
+     * @param {Object} cfg configuration object
+     */
+
+
+    DOMPurify.setConfig = function (cfg) {
+      _parseConfig(cfg);
+
+      SET_CONFIG = true;
+    };
+    /**
+     * Public method to remove the configuration
+     * clearConfig
+     *
+     */
+
+
+    DOMPurify.clearConfig = function () {
+      CONFIG = null;
+      SET_CONFIG = false;
+    };
+    /**
+     * Public method to check if an attribute value is valid.
+     * Uses last set config, if any. Otherwise, uses config defaults.
+     * isValidAttribute
+     *
+     * @param  {string} tag Tag name of containing element.
+     * @param  {string} attr Attribute name.
+     * @param  {string} value Attribute value.
+     * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
+     */
+
+
+    DOMPurify.isValidAttribute = function (tag, attr, value) {
+      /* Initialize shared config vars if necessary. */
+      if (!CONFIG) {
+        _parseConfig({});
+      }
+
+      var lcTag = transformCaseFunc(tag);
+      var lcName = transformCaseFunc(attr);
+      return _isValidAttribute(lcTag, lcName, value);
+    };
+    /**
+     * AddHook
+     * Public method to add DOMPurify hooks
+     *
+     * @param {String} entryPoint entry point for the hook to add
+     * @param {Function} hookFunction function to execute
+     */
+
+
+    DOMPurify.addHook = function (entryPoint, hookFunction) {
+      if (typeof hookFunction !== 'function') {
+        return;
+      }
+
+      hooks[entryPoint] = hooks[entryPoint] || [];
+      arrayPush(hooks[entryPoint], hookFunction);
+    };
+    /**
+     * RemoveHook
+     * Public method to remove a DOMPurify hook at a given entryPoint
+     * (pops it from the stack of hooks if more are present)
+     *
+     * @param {String} entryPoint entry point for the hook to remove
+     * @return {Function} removed(popped) hook
+     */
+
+
+    DOMPurify.removeHook = function (entryPoint) {
+      if (hooks[entryPoint]) {
+        return arrayPop(hooks[entryPoint]);
+      }
+    };
+    /**
+     * RemoveHooks
+     * Public method to remove all DOMPurify hooks at a given entryPoint
+     *
+     * @param  {String} entryPoint entry point for the hooks to remove
+     */
+
+
+    DOMPurify.removeHooks = function (entryPoint) {
+      if (hooks[entryPoint]) {
+        hooks[entryPoint] = [];
+      }
+    };
+    /**
+     * RemoveAllHooks
+     * Public method to remove all DOMPurify hooks
+     *
+     */
+
+
+    DOMPurify.removeAllHooks = function () {
+      hooks = {};
+    };
+
+    return DOMPurify;
+  }
+
+  var purify = createDOMPurify();
+
+  return purify;
+
+}));
+//# sourceMappingURL=purify.js.map
+
 define("@ijstech/components",(require, exports)=>{
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -16321,7 +18088,8 @@ var Border = class {
     if (options) {
       if (options.width || options.style || options.color || options.radius) {
         this.updateAllSidesProps(options);
-      } else if (options.top || options.right || options.bottom || options.left) {
+      }
+      if (options.top || options.right || options.bottom || options.left) {
         if (options.top)
           this._top = options.top;
         if (options.right)
@@ -16590,6 +18358,9 @@ var Control = class extends Component {
     const bottom = toNumberValue(computedStyle.paddingBottom);
     const top = toNumberValue(computedStyle.paddingTop);
     return { top, right, bottom, left };
+  }
+  xssSanitize(value) {
+    return DOMPurify.sanitize(value);
   }
   get margin() {
     return this._margin;
@@ -17062,7 +18833,7 @@ var Control = class extends Component {
     font && (this.font = font);
     let border = this.getAttribute("border", true);
     if (border) {
-      this._border = new Border(this, border);
+      this.border = new Border(this, border);
     }
     this.setAttributeToProperty("overflow");
     this.setAttributeToProperty("display");
@@ -17456,7 +19227,10 @@ var RequireJS = {
 };
 function customElements2(name, options) {
   return (constructor) => {
-    window.customElements.define(name, constructor, options);
+    try {
+      window.customElements.define(name, constructor, options);
+    } catch (err) {
+    }
   };
 }
 function customModule(target) {
@@ -18615,55 +20389,56 @@ var UploadDrag = class extends Control {
       (_a = this.parentElement) == null ? void 0 : _a.classList.remove("i-upload-dragger_active");
     }
   }
-  async getFiles(files) {
-    let result = [];
-    async function addFile2(entry) {
-      return new Promise((resolve, reject) => {
-        entry.file(async (file) => {
-          const rawFile = file;
-          rawFile.path = entry.fullPath;
-          rawFile.cid = await hashFile(file);
-          result.push(rawFile);
-          resolve();
-        }, reject);
-      });
+  async getAllFileEntries(dataTransferItemList) {
+    let fileEntries = [];
+    let queue = [];
+    for (let i = 0; i < dataTransferItemList.length; i++) {
+      queue.push(dataTransferItemList[i].webkitGetAsEntry());
     }
-    ;
-    function getEntries(entry) {
-      return new Promise((resolve) => {
-        let dirReader = entry.createReader();
-        dirReader.readEntries((entries) => {
-          resolve(entries);
-        });
-      });
-    }
-    ;
-    async function getFiles(entries) {
-      for (let i = 0; i < entries.length; i++) {
-        let entry = entries[i];
-        if (entry == null ? void 0 : entry.isFile)
-          await addFile2(entry);
-        else if (entry == null ? void 0 : entry.isDirectory) {
-          let entries2 = await getEntries(entry);
-          await getFiles(entries2);
-        }
-        ;
+    while (queue.length > 0) {
+      let entry = queue.shift();
+      if (entry == null ? void 0 : entry.isFile) {
+        fileEntries.push(entry);
+      } else if (entry == null ? void 0 : entry.isDirectory) {
+        let reader = entry.createReader();
+        queue.push(...await this.readAllDirectoryEntries(reader));
       }
-      ;
     }
-    ;
-    return new Promise(async (resolve) => {
-      for (let i = 0; i < files.length; i++) {
-        let entry = files[i].webkitGetAsEntry();
-        if (entry == null ? void 0 : entry.isFile) {
-          await addFile2(entry);
-        } else if (entry == null ? void 0 : entry.isDirectory) {
-          let entries = await getEntries(entry);
-          await getFiles(entries);
+    return Promise.all(fileEntries.map((entry) => this.readEntryContentAsync(entry)));
+  }
+  async readAllDirectoryEntries(directoryReader) {
+    let entries = [];
+    let readEntries = await this.readEntriesPromise(directoryReader);
+    while (readEntries.length > 0) {
+      entries.push(...readEntries);
+      readEntries = await this.readEntriesPromise(directoryReader);
+    }
+    return entries;
+  }
+  async readEntriesPromise(directoryReader) {
+    try {
+      return await new Promise((resolve, reject) => {
+        directoryReader.readEntries(resolve, reject);
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  async readEntryContentAsync(entry) {
+    return new Promise((resolve, reject) => {
+      let reading = 0;
+      const contents = [];
+      reading++;
+      entry.file(async (file) => {
+        reading--;
+        const rawFile = file;
+        rawFile.path = entry.fullPath;
+        rawFile.cid = await hashFile(file);
+        contents.push(rawFile);
+        if (reading === 0) {
+          resolve(contents);
         }
-      }
-      ;
-      resolve(result);
+      });
     });
   }
   async handleOnDrop(source, event) {
@@ -18671,15 +20446,19 @@ var UploadDrag = class extends Control {
     source.preventDefault();
     if (this.disabled)
       return;
+    this.onBeforeDrop(this);
     this.counter = 0;
     (_a = this.parentElement) == null ? void 0 : _a.classList.remove("i-upload-dragger_active");
     const accept = (_b = this.parentElement) == null ? void 0 : _b.getAttribute("accept");
     if (!accept) {
-      if (this.onDrop)
-        this.onDrop(this, await this.getFiles(source.dataTransfer.items));
+      if (this.onDrop) {
+        const files = await this.getAllFileEntries(source.dataTransfer.items);
+        const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
+        console.log("beforeOnDrop: ", flattenFiles);
+        this.onDrop(this, flattenFiles);
+      }
       return;
     }
-    ;
     const valids = [].slice.call(source.dataTransfer.files).filter((file) => {
       const { type, name } = file;
       const extension = name.indexOf(".") > -1 ? `.${name.split(".").pop()}` : "";
@@ -18703,6 +20482,7 @@ var UploadDrag = class extends Control {
   init() {
     if (!this._wrapperElm) {
       super.init();
+      this.onBeforeDrop = this.getAttribute("onBeforeDrop", true) || this.onBeforeDrop;
       this.onDrop = this.getAttribute("onDrop", true) || this.onDrop;
       this._wrapperElm = this.createElement("div", this);
       this._wrapperElm.classList.add("i-upload-drag_area");
@@ -18820,9 +20600,18 @@ var Upload = class extends Control {
     const imgUrl = URL.createObjectURL(files[files.length - 1]);
     this.preview(imgUrl);
   }
-  handleUpload(source, event) {
+  async handleUpload(source, event) {
     const files = source.target.files;
-    this.proccessFiles(files);
+    if (files) {
+      const processedFiles = [];
+      for (let i = 0; i < files.length; i++) {
+        const rawFile = files[i];
+        rawFile.path = `/${rawFile.name}`;
+        rawFile.cid = await hashFile(rawFile);
+        processedFiles.push(rawFile);
+      }
+      this.proccessFiles(processedFiles);
+    }
   }
   async proccessFiles(files) {
     if (!files || !files.length)
@@ -18969,6 +20758,7 @@ var Upload = class extends Control {
       this._uploadDragElm = new UploadDrag(this, {
         caption: this.caption,
         disabled: !this.enabled || !this.draggable,
+        onBeforeDrop: (source) => this.onBeforeDrop(source),
         onDrop: (source, value) => {
           value && this.proccessFiles(value);
         }
@@ -20341,7 +22131,11 @@ cssRule("i-upload-modal", {
             },
             "i-label": {
               fontSize: "14px",
-              color: Theme12.colors.primary.dark
+              color: Theme12.colors.primary.dark,
+              maxWidth: "80%",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis"
             },
             ".filename": {
               fontWeight: 600
@@ -20376,20 +22170,24 @@ cssRule("i-upload-modal", {
           gap: "5px",
           $nest: {
             "i-button": {
-              width: "20px",
-              height: "20px",
+              width: "24px",
+              height: "24px",
               borderRadius: "50%",
-              fontSize: "12px",
+              fontSize: "11px",
               fontWeight: 700,
               color: Theme12.colors.primary.dark,
               backgroundColor: "transparent",
               border: `1px solid ${Theme12.colors.primary.dark}`,
               boxShadow: "none",
               gap: "unset",
+              userSelect: "none",
               $nest: {
                 "&.active": {
                   color: Theme12.colors.primary.contrastText,
                   backgroundColor: Theme12.colors.primary.dark
+                },
+                "&.dots": {
+                  borderColor: "transparent"
                 },
                 "i-icon": {
                   height: "10px!important",
@@ -20502,6 +22300,12 @@ var UploadModal = class extends Control {
     this._uploadModalElm.visible = false;
     this.reset();
   }
+  onBeforeDrop(target) {
+    console.log("onBeforeDrop: ", target);
+    this._fileUploader.enabled = false;
+    this._fileIcon.url = `${LibPath}assets/img/loading-icon.svg`;
+    this._dragLabelElm.caption = "Processing your files...";
+  }
   onBeforeUpload(target, file) {
     return new Promise((resolve, reject) => {
       resolve(true);
@@ -20578,8 +22382,29 @@ var UploadModal = class extends Control {
       removeBtnElm.onClick = () => this.onRemoveFile(i);
     }
   }
+  getPagination(currentIndex, totalPages) {
+    let current = currentIndex, last = totalPages, delta = 2, left = current - delta, right = current + delta + 1, range = [], rangeWithDots = [], l;
+    for (let i = 1; i <= last; i++) {
+      if (i == 1 || i == last || i >= left && i < right) {
+        range.push(i);
+      }
+    }
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push("...");
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+    return rangeWithDots;
+  }
   async renderPagination() {
     const numPages = this.numPages();
+    const rangeWithDots = this.getPagination(this.currentPage, numPages);
     if (numPages >= 1) {
       if (this.currentPage > numPages) {
         this.setCurrentPage(numPages);
@@ -20591,14 +22416,18 @@ var UploadModal = class extends Control {
         prevBtn.onClick = () => {
           this.setCurrentPage(this.currentPage - 1);
         };
-        for (let i = 1; i <= numPages; i++) {
+        for (let i = 0; i < rangeWithDots.length; i++) {
           const pageBtn = new Button(this._paginationElm, {
-            class: this.currentPage === i ? "active" : "",
-            caption: i.toString()
+            class: this.currentPage === rangeWithDots[i] ? "active" : "",
+            caption: rangeWithDots[i].toString()
           });
-          pageBtn.onClick = () => {
-            this.setCurrentPage(i);
-          };
+          if (rangeWithDots[i] === "...") {
+            pageBtn.classList.add("dots");
+          } else {
+            pageBtn.onClick = () => {
+              this.setCurrentPage(rangeWithDots[i]);
+            };
+          }
         }
         const nexBtn = new Button(this._paginationElm, {
           icon: { name: "chevron-right" }
@@ -20620,7 +22449,11 @@ var UploadModal = class extends Control {
   onClear() {
     switch (this.currentFilterStatus) {
       case 0:
-        this.fileListData = this.fileListData && this.fileListData.length ? this.fileListData.filter((fileData) => ![1, 2].includes(fileData.status)) : this.fileListData;
+        this.fileListData = this.fileListData && this.fileListData.length ? this.fileListData.filter((fileData) => ![
+          0,
+          1,
+          2
+        ].includes(fileData.status)) : this.fileListData;
         break;
       case 1:
         this.fileListData = this.fileListData && this.fileListData.length ? this.fileListData.filter((fileData) => ![1].includes(fileData.status)) : this.fileListData;
@@ -20638,9 +22471,13 @@ var UploadModal = class extends Control {
     this.isForcedCancelled = true;
   }
   async onChangeFile(source, files) {
+    console.log("onChangeFile: ", files);
     return new Promise(async (resolve, reject) => {
       if (!files.length)
         reject();
+      this._fileUploader.enabled = true;
+      this._fileIcon.url = `${LibPath}assets/img/file-icon.png`;
+      this._dragLabelElm.caption = "Drag and drop your files here";
       for (let i = 0; i < files.length; i++) {
         this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
         this.files.push(files[i]);
@@ -20681,9 +22518,7 @@ var UploadModal = class extends Control {
             type: item.type
           });
         }
-        ;
       }
-      ;
       result.push({
         cid: cidItem.cid,
         name: cidItem.name,
@@ -20692,59 +22527,80 @@ var UploadModal = class extends Control {
         links: items
       });
     }
-    ;
     return result;
   }
-  async onUpload() {
+  async onUpload(rootDirCID) {
     return new Promise(async (resolve, reject) => {
-      var _a, _b, _c;
+      var _a, _b, _c, _d;
       if (!this.fileListData.length)
         reject();
       this._uploadBtnElm.caption = "Uploading files to IPFS...";
       this.isForcedCancelled = false;
-      let cidItem = await hashFiles(this.files);
+      const cidItem = await hashFiles(this.files);
       console.dir("### IPFS Upload ###");
-      console.dir(cidItem);
-      let uploadUrl = await application.getUploadUrl(cidItem);
+      console.log("cidItem: ", cidItem);
       let dirItems = this.getDirItems(cidItem);
-      for (let i = 0; i < dirItems.length; i++) {
-        let item = dirItems[i];
-        if (uploadUrl[item.cid]) {
-          await application.upload(uploadUrl[item.cid], JSON.stringify(item));
+      console.log("dirItems: ", dirItems);
+      if (this.onBeforeUploaded)
+        this.onBeforeUploaded(this, cidItem);
+      if (rootDirCID) {
+        const oldRootDirCID = cidItem.cid;
+        dirItems = dirItems.filter((dirItem) => dirItem.cid !== oldRootDirCID);
+        const items = [];
+        for (let i = 0; i < dirItems.length; i++) {
+          let item = dirItems[i];
+          items.push({ cid: item });
         }
-        ;
-      }
-      ;
-      for (let i = 0; i < this.fileListData.length; i++) {
-        if (this.isForcedCancelled) {
-          break;
-        } else {
+        for (let i = 0; i < this.fileListData.length; i++) {
           const file = this.fileListData[i];
-          file.url = `/ipfs/${cidItem.cid}${file.file.path || file.file.name}`;
-          if ([1, 3].includes(file.status) || !((_a = file.file.cid) == null ? void 0 : _a.cid)) {
-            continue;
+          items.push({ cid: cidItem, data: file.file });
+        }
+        try {
+          let result = await application.uploadTo(rootDirCID, items);
+          console.log("uploadTo fileListData result: ", result);
+        } catch (err) {
+          console.log("Error! ", err);
+        }
+      } else {
+        let uploadUrl = await application.getUploadUrl(cidItem);
+        for (let i = 0; i < dirItems.length; i++) {
+          let item = dirItems[i];
+          if (uploadUrl[item.cid]) {
+            await application.upload(uploadUrl[item.cid], JSON.stringify(item));
           }
-          this.fileListData[i].status = 3;
-          this.renderFilterBar();
-          if (uploadUrl[(_b = file.file.cid) == null ? void 0 : _b.cid]) {
-            try {
-              let result = await application.upload(uploadUrl[(_c = file.file.cid) == null ? void 0 : _c.cid], file.file);
-              this.fileListData[i].status = 1;
-              this.renderFilterBar();
-            } catch (err) {
-              console.log("Error! ", err);
-              this.fileListData[i].status = 2;
+        }
+        for (let i = 0; i < this.fileListData.length; i++) {
+          if (this.isForcedCancelled) {
+            break;
+          } else {
+            const file = this.fileListData[i];
+            file.url = `/ipfs/${cidItem.cid}${file.file.path || file.file.name}`;
+            if ([1, 3].includes(file.status) || !((_a = file.file.cid) == null ? void 0 : _a.cid)) {
+              continue;
+            }
+            this.fileListData[i].status = 3;
+            this.renderFilterBar();
+            if (uploadUrl[(_b = file.file.cid) == null ? void 0 : _b.cid]) {
+              try {
+                let result = await application.upload(uploadUrl[(_c = file.file.cid) == null ? void 0 : _c.cid], file.file);
+                console.log("uploaded fileListData result: ", result);
+                if (this.onUploaded)
+                  this.onUploaded(this, file.file, (_d = file.file.cid) == null ? void 0 : _d.cid);
+                this.fileListData[i].status = 1;
+                this.renderFilterBar();
+                this.renderFileList();
+              } catch (err) {
+                console.log("Error! ", err);
+                this.fileListData[i].status = 2;
+              }
             }
           }
-          ;
         }
-        ;
+        this.renderFilterBar();
+        this.renderFileList();
+        this.renderPagination();
+        this._uploadBtnElm.caption = "Upload file to IPFS";
       }
-      ;
-      this.renderFilterBar();
-      this.renderFileList();
-      this.renderPagination();
-      this._uploadBtnElm.caption = "Upload file to IPFS";
     });
   }
   reset() {
@@ -20752,6 +22608,7 @@ var UploadModal = class extends Control {
     this._paginationElm.clearInnerHTML();
     this._uploadBtnElm.caption = "Upload file to IPFS";
     this.fileListData = [];
+    this.files = [];
     this.toggle(false);
   }
   toggle(showFileList) {
@@ -20798,13 +22655,14 @@ var UploadModal = class extends Control {
         multiple: true,
         draggable: true
       });
+      this._fileUploader.onBeforeDrop = (source) => this.onBeforeDrop(source);
       this._fileUploader.onUploading = this.onBeforeUpload;
       this._fileUploader.onChanged = (source, files) => this.onChangeFile(source, files);
       this._fileUploader.onRemoved = () => this.onRemove;
-      const image = new Image2(droparea, { width: 60, height: 60 });
-      image.classList.add("icon");
-      image.url = `${LibPath}assets/img/file-icon.png`;
-      const dargLabelElm = new Label(droparea, {
+      this._fileIcon = new Image2(droparea, { width: 60, height: 60 });
+      this._fileIcon.classList.add("icon");
+      this._fileIcon.url = `${LibPath}assets/img/file-icon.png`;
+      this._dragLabelElm = new Label(droparea, {
         caption: "Drag and drop your files here"
       });
       this._statusFilterElm = new Panel(fileUploaderDropzone);
@@ -20823,7 +22681,7 @@ var UploadModal = class extends Control {
         class: "upload-btn",
         visible: false
       });
-      this._uploadBoxElm.onClick = () => this.onUpload();
+      this._uploadBtnElm.onClick = () => this.onUpload();
       this._notePnlElm = new Panel(this._uploadBoxElm);
       const note1Elm = new Panel(this._notePnlElm, { class: "note" });
       const head1Elm = new Label(note1Elm, {
@@ -20861,12 +22719,75 @@ var Theme14 = theme_exports.ThemeVars;
 cssRule("i-tabs", {
   display: "block",
   $nest: {
-    ".tabs-nav-wrap": {
+    "> .tabs-nav-wrap": {
       display: "flex",
       flex: "none",
-      overflow: "hidden"
+      overflow: "hidden",
+      $nest: {
+        ".tabs-nav": {
+          position: "relative",
+          display: "flex",
+          flex: "none",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          borderBottom: `1px solid #252525`,
+          margin: 0
+        },
+        ".tabs-nav:not(.is-closable) span.close": {
+          display: "none"
+        },
+        ".tabs-nav.is-closable i-tab:not(.disabled):hover span.close": {
+          visibility: "visible",
+          opacity: 1
+        },
+        ".tabs-nav.is-closable i-tab:not(.disabled).active span.close": {
+          visibility: "visible",
+          opacity: 1
+        },
+        "i-tab": {
+          position: "relative",
+          display: "inline-flex",
+          overflow: "hidden",
+          color: "rgba(255, 255, 255, 0.55)",
+          background: "#2e2e2e",
+          marginBottom: "-1px",
+          border: `1px solid #252525`,
+          alignItems: "center",
+          font: "inherit",
+          textAlign: "center",
+          minHeight: "36px",
+          $nest: {
+            "&:not(.disabled):hover": {
+              cursor: "pointer",
+              color: "#fff"
+            },
+            "&:not(.disabled).active.border": {
+              borderColor: `${Theme14.divider} ${Theme14.divider} #fff`,
+              borderBottomWidth: "1.5px"
+            },
+            ".tab-item": {
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              padding: "0.5rem 1rem",
+              gap: "5px",
+              $nest: {
+                "i-image": {
+                  display: "flex"
+                }
+              }
+            }
+          }
+        },
+        "i-tab:not(.disabled).active": {
+          backgroundColor: "#1d1d1d",
+          borderBottomColor: "transparent",
+          color: "#fff"
+        }
+      }
     },
-    "&:not(.vertical) .tabs-nav-wrap": {
+    "&:not(.vertical) > .tabs-nav-wrap": {
       $nest: {
         "&:hover": {
           overflowX: "auto",
@@ -20881,76 +22802,26 @@ cssRule("i-tabs", {
         }
       }
     },
-    ".tabs-nav": {
-      position: "relative",
-      display: "flex",
-      flex: "none",
-      overflow: "hidden",
-      whiteSpace: "nowrap",
-      borderBottom: `1px solid #252525`,
-      margin: 0
-    },
     "&.vertical": {
       display: "flex",
       $nest: {
-        ".tabs-nav": {
+        "> .tabs-nav-wrap .tabs-nav": {
           display: "flex",
           flexDirection: "column"
         },
-        ".tabs-nav:hover": {
+        "> .tabs-nav-wrap .tabs-nav:hover": {
           overflowY: "auto"
         },
-        ".tabs-nav::-webkit-scrollbar-thumb": {
+        "> .tabs-nav-wrap .tabs-nav::-webkit-scrollbar-thumb": {
           background: "#4b4b4b",
           borderRadius: "5px"
         },
-        ".tabs-nav::-webkit-scrollbar": {
+        "> .tabs-nav-wrap .tabs-nav::-webkit-scrollbar": {
           width: "3px"
         }
       }
     },
-    "i-tab": {
-      position: "relative",
-      display: "inline-flex",
-      overflow: "hidden",
-      color: "rgba(255, 255, 255, 0.55)",
-      background: "#2e2e2e",
-      marginBottom: "-1px",
-      border: `1px solid #252525`,
-      alignItems: "center",
-      font: "inherit",
-      textAlign: "center",
-      minHeight: "36px",
-      $nest: {
-        "&:not(.disabled):hover": {
-          cursor: "pointer",
-          color: "#fff"
-        },
-        "&:not(.disabled).active.border": {
-          borderColor: `${Theme14.divider} ${Theme14.divider} #fff`,
-          borderBottomWidth: "1.5px"
-        },
-        ".tab-item": {
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          cursor: "pointer",
-          padding: "0.5rem 1rem",
-          gap: "5px",
-          $nest: {
-            "i-image": {
-              display: "flex"
-            }
-          }
-        }
-      }
-    },
-    "i-tab:not(.disabled).active": {
-      backgroundColor: "#1d1d1d",
-      borderBottomColor: "transparent",
-      color: "#fff"
-    },
-    ".tabs-content": {
+    "> .tabs-content": {
       position: "relative",
       overflow: "hidden",
       display: "flex",
@@ -20987,13 +22858,6 @@ cssRule("i-tabs", {
           background: "rgba(78, 78, 78, 0.48)"
         }
       }
-    },
-    ".tabs-nav:not(.is-closable) span.close": {
-      display: "none"
-    },
-    ".tabs-nav.is-closable i-tab:not(.disabled):hover span.close, .tabs-nav.is-closable i-tab:not(.disabled).active span.close": {
-      visibility: "visible",
-      opacity: 1
     }
   }
 });
@@ -21015,20 +22879,20 @@ var getTabMediaQueriesStyleClass = (mediaQueries) => {
         ...ruleObj,
         $nest: {
           ...nestObj,
-          ".tabs-nav": {}
+          "> .tabs-nav-wrap .tabs-nav": {}
         }
       };
       if (mediaQuery.properties.mode) {
         const mode = mediaQuery.properties.mode;
         styleObj["$nest"][mediaQueryRule]["display"] = mode === "vertical" ? "flex !important" : "block !important";
         if (mode === "horizontal") {
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["flexDirection"] = "row !important";
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["width"] = "100%";
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["justifyContent"] = "center";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["flexDirection"] = "row !important";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["width"] = "100%";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["justifyContent"] = "center";
         } else {
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["flexDirection"] = "column !important";
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["width"] = "auto";
-          styleObj["$nest"][mediaQueryRule]["$nest"][".tabs-nav"]["justifyContent"] = "start";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["flexDirection"] = "column !important";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["width"] = "auto";
+          styleObj["$nest"][mediaQueryRule]["$nest"]["> .tabs-nav-wrap .tabs-nav"]["justifyContent"] = "start";
         }
       }
       if (typeof mediaQuery.properties.visible === "boolean") {
@@ -21459,14 +23323,16 @@ cssRule("i-combo-box", {
       background: "inherit",
       padding: "8px",
       marginLeft: "-1px",
-      borderRadius: "0 3px 3px 0",
       cursor: "pointer",
       height: "100%",
       alignItems: "center",
       position: "absolute",
       right: 0,
-      border: `1px solid ${Theme15.divider}`,
-      borderLeft: "none"
+      border: `0.5px solid ${Theme15.divider}`,
+      borderLeft: "none",
+      borderRadius: "inherit",
+      borderTopLeftRadius: "0px !important",
+      borderBottomLeftRadius: "0px !important"
     },
     "> .icon-btn:hover": {
       backgroundColor: Theme15.action.hover
@@ -21482,13 +23348,17 @@ cssRule("i-combo-box", {
       flexWrap: "wrap",
       maxWidth: "calc(100% - 32px)",
       height: "100%",
-      border: "inherit",
+      border: `0.5px solid ${Theme15.divider}`,
+      borderRight: "none !important",
       background: Theme15.combobox.background,
       borderRadius: "inherit",
+      borderTopRightRadius: "0px !important",
+      borderBottomRightRadius: "0px !important",
       padding: "2px 4px",
       transition: "all .3s cubic-bezier(.645,.045,.355,1)",
       gap: 5,
       flexGrow: 1,
+      maxHeight: "100%",
       $nest: {
         ".selection-item": {
           border: `1px solid ${Theme15.divider}`,
@@ -21665,6 +23535,16 @@ var ComboBox = class extends Control {
   }
   get isMulti() {
     return this.mode === "tags" || this.mode === "multiple";
+  }
+  set border(value) {
+    super.border = value;
+    if (this.inputWrapElm && this.border.style)
+      this.inputWrapElm.style.borderStyle = "none";
+    if (this.iconElm && this.border.style)
+      this.iconElm.style.borderStyle = "none";
+  }
+  get border() {
+    return super.border;
   }
   isValueValid(value) {
     if (!value)
@@ -21938,10 +23818,18 @@ cssRule("i-datepicker", {
       height: "100%"
     },
     "> input": {
+      borderRadius: "inherit",
       padding: "1px 0.5rem",
       border: `0.5px solid ${Theme16.divider}`,
       boxSizing: "border-box",
-      outline: "none"
+      outline: "none",
+      fontSize: "inherit",
+      color: Theme16.input.fontColor,
+      background: "transparent",
+      verticalAlign: "top",
+      borderTopRightRadius: "0px !important",
+      borderBottomRightRadius: "0px !important",
+      borderRight: "none !important"
     },
     "> input[type=text]:focus": {
       borderColor: Theme16.colors.info.main
@@ -21950,15 +23838,20 @@ cssRule("i-datepicker", {
       fill: Theme16.colors.primary.contrastText
     },
     ".datepicker-toggle": {
-      display: "inline-block",
+      display: "inline-flex",
       position: "relative",
-      verticalAlign: "middle",
-      backgroundColor: "#6c757d",
+      backgroundColor: "transparent",
+      border: `0.5px solid ${Theme16.divider}`,
       padding: "7px",
       marginLeft: "-1px",
-      marginTop: "-1px",
-      borderRadius: "0 3px 3px 0",
-      cursor: "pointer"
+      cursor: "pointer",
+      justifyContent: "center",
+      alignItems: "center",
+      verticalAlign: "top",
+      borderRadius: "inherit",
+      borderTopLeftRadius: "0px !important",
+      borderBottomLeftRadius: "0px !important",
+      height: "100%"
     },
     "> .datepicker-toggle:hover": {
       backgroundColor: "#545b62"
@@ -21998,6 +23891,13 @@ var Datepicker = class extends Control {
     });
     this._onDatePickerChange = (event) => {
       const pickerValue = this.datepickerElm.value;
+      if (!pickerValue) {
+        this.inputElm.placeholder = this._placeholder || "";
+        this.inputElm.value = "";
+        if (this.onChanged)
+          this.onChanged(this, event);
+        return;
+      }
       RequireJS.require(["@moment"], (moment2) => {
         let _moment = this._type === "time" ? moment2(pickerValue, "HH:mm") : moment2(pickerValue);
         this.updateValue(_moment);
@@ -22005,30 +23905,10 @@ var Datepicker = class extends Control {
           this.onChanged(this, event);
       });
     };
-    this._dateInputMask = (event) => {
-      const key2 = event.key;
-      const isNumeric = key2 != " " && !isNaN(Number(key2));
-      const separator = this._type === "time" ? ":" : "/";
-      if (!isNumeric) {
-        event.preventDefault();
-      }
-      var len = this.inputElm.value.length;
-      if (len === 2) {
-        this.inputElm.value += separator;
-      }
-      if (this._type !== "time" && len === 5) {
-        this.inputElm.value += separator;
-      }
-      if (this._type === "dateTime") {
-        if (len === 10) {
-          this.inputElm.value += " ";
-        }
-        if (len === 13) {
-          this.inputElm.value += ":";
-        }
-      }
-    };
     this._onBlur = (event) => {
+      if (this.onBlur) {
+        this.onBlur(this);
+      }
       if (!this.inputElm.value) {
         const oldVal = this.value;
         this.clear();
@@ -22081,9 +23961,21 @@ var Datepicker = class extends Control {
   set width(value) {
     this.setPosition("width", value);
     const width = typeof this._width === "string" ? this._width : `${this._width}px`;
-    const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    let captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
+    if (!this._caption)
+      captionWidth = "0px";
     const iconWidth = `${this._iconWidth || 0}px`;
-    this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${iconWidth})`;
+    this.inputElm.style.width = `calc(${width} - ${captionWidth} - ${iconWidth} - ${this.border.width || "0px"})`;
+  }
+  set border(value) {
+    super.border = value;
+    if (this.border.width !== void 0)
+      this.width = this._width;
+    if (this.toggleElm && this.border.style)
+      this.toggleElm.style.borderStyle = "none";
+  }
+  get border() {
+    return super.border;
   }
   get value() {
     return this._value;
@@ -22130,7 +24022,11 @@ var Datepicker = class extends Control {
         return 5;
     }
   }
+  get enabled() {
+    return super.enabled;
+  }
   set enabled(value) {
+    super.enabled = value;
     this.inputElm.disabled = !value;
     this.datepickerElm.disabled = !value;
   }
@@ -22185,17 +24081,11 @@ var Datepicker = class extends Control {
       this.inputElm.setAttribute("type", "text");
       this.inputElm.setAttribute("autocomplete", "disabled");
       this.inputElm.style.height = this.height + "px";
-      this.inputElm.onblur = (event) => {
-        event.stopPropagation();
-        event.preventDefault();
-        this._onBlur(event);
-      };
       this.inputElm.pattern = this.formatString;
       this.placeholder = this.getAttribute("placeholder", true, "");
       this.toggleElm = this.createElement("span", this);
       this.toggleElm.classList.add("datepicker-toggle");
       this.toggleElm.style.width = this._iconWidth + "px";
-      this.toggleElm.style.height = this._iconWidth + "px";
       this.toggleIconElm = new Icon(this, {
         name: this._type === "time" ? "clock" : "calendar",
         width: 12,
@@ -22207,15 +24097,21 @@ var Datepicker = class extends Control {
       const inputType = this._type === "dateTime" ? "datetime-local" : this._type;
       this.datepickerElm.setAttribute("type", inputType);
       this.datepickerElm.classList.add("datepicker");
-      this.datepickerElm.addEventListener("change", (event) => {
+      this.datepickerElm.addEventListener("input", (event) => {
         event.stopPropagation();
         this._onDatePickerChange(event);
       });
       this.toggleElm.appendChild(this.datepickerElm);
-      this.captionWidth = this.getAttribute("captionWidth", true, defaultCaptionWidth);
       this.caption = this.getAttribute("caption", true);
+      this.captionWidth = this.getAttribute("captionWidth", true, this._caption ? defaultCaptionWidth : 0);
       super.init();
     }
+  }
+  _handleBlur(event, stopPropagation) {
+    event.stopPropagation();
+    event.preventDefault();
+    this._onBlur(event);
+    return true;
   }
   static async create(options, parent) {
     let self = new this(parent, options);
@@ -22431,7 +24327,11 @@ var Range = class extends Control {
     const captionWidth = typeof this._captionWidth === "string" ? this._captionWidth : `${this._captionWidth}px`;
     this.inputContainerElm.style.width = `calc(${width} - ${captionWidth})`;
   }
+  get enabled() {
+    return super.enabled;
+  }
   set enabled(value) {
+    super.enabled = value;
     this.inputElm.disabled = !value;
   }
   get tooltipVisible() {
@@ -22872,6 +24772,9 @@ var Input = class extends Control {
   get inputControl() {
     return this._inputControl;
   }
+  get enabled() {
+    return super.enabled;
+  }
   set enabled(value) {
     super.enabled = value;
     if (this._inputControl) {
@@ -22915,6 +24818,21 @@ var Input = class extends Control {
         this.inputElm.style.height = this.inputElm.scrollHeight + 2 + "px";
       }
     }
+  }
+  set border(value) {
+    super.border = value;
+    const inputTypes = ["text", "number", "textarea", "password"];
+    if (!this.inputType || inputTypes.includes(this.inputType)) {
+      if (this.border.width !== void 0)
+        this.inputElm.style.borderWidth = this.border.width;
+      if (this.border.style)
+        this.inputElm.style.borderStyle = this.border.style;
+      if (this.border.color)
+        this.inputElm.style.borderColor = this.border.color;
+    }
+  }
+  get border() {
+    return super.border;
   }
   _createInputElement(type) {
     const value = this.getAttribute("value");
@@ -23023,7 +24941,6 @@ var Input = class extends Control {
         this.inputElm.addEventListener("input", this._handleChange.bind(this));
         this.inputElm.addEventListener("keydown", this._handleInputKeyDown.bind(this));
         this.inputElm.addEventListener("keyup", this._handleInputKeyUp.bind(this));
-        this.inputElm.addEventListener("blur", this._handleOnBlur.bind(this));
         this.inputElm.addEventListener("focus", this._handleOnFocus.bind(this));
         break;
       case "color":
@@ -23036,7 +24953,6 @@ var Input = class extends Control {
         this.inputElm.addEventListener("input", this._handleChange.bind(this));
         this.inputElm.addEventListener("keydown", this._handleInputKeyDown.bind(this));
         this.inputElm.addEventListener("keyup", this._handleInputKeyUp.bind(this));
-        this.inputElm.addEventListener("blur", this._handleOnBlur.bind(this));
         this.inputElm.addEventListener("focus", this._handleOnFocus.bind(this));
         break;
       default:
@@ -23053,7 +24969,6 @@ var Input = class extends Control {
         this.inputElm.addEventListener("input", this._handleChange.bind(this));
         this.inputElm.addEventListener("keydown", this._handleInputKeyDown.bind(this));
         this.inputElm.addEventListener("keyup", this._handleInputKeyUp.bind(this));
-        this.inputElm.addEventListener("blur", this._handleOnBlur.bind(this));
         this.inputElm.addEventListener("focus", this._handleOnFocus.bind(this));
         this._showClearButton = this.getAttribute("showClearButton", true);
         if (this._showClearButton) {
@@ -23102,11 +25017,12 @@ var Input = class extends Control {
       }
     }
   }
-  _handleOnBlur(event) {
+  _handleBlur(event, stopPropagation) {
     if (this.onBlur) {
       event.preventDefault();
       this.onBlur(this);
     }
+    return true;
   }
   _handleOnFocus(event) {
     if (this.onFocus) {
@@ -23458,24 +25374,17 @@ var DataSchemaValidator = {
   mustBeValid,
   validate
 };
-function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
-  const defaultDateFormat = "DD/MM/YYYY";
-  const defaultTimeFormat = "HH:mm:ss";
-  const defaultDateTimeFormat = "DD/MM/YYYY HH:mm:ss";
-  const inputStyle = {
-    border: {
-      top: "0",
-      left: "0",
-      right: "0"
-    }
-  };
+function renderUI(target, options, confirmCallback, valueChangedCallback) {
+  const defaultDateFormat = options.dateFormat || "DD/MM/YYYY";
+  const defaultTimeFormat = options.timeFormat || "HH:mm:ss";
+  const defaultDateTimeFormat = options.dateTimeFormat || "DD/MM/YYYY HH:mm:ss";
   const controls = {};
   const descriptions = {};
   const errorMsgs = {};
   const flatRules = [];
-  const showErrorMsg = async (idxScope) => {
-    const data2 = await getData(jsonSchema);
-    const validationResult = validate(data2, jsonSchema, { changing: false });
+  const validateOnValueChanged = async (idxScope) => {
+    const data = await getData(options.jsonSchema);
+    const validationResult = validate(data, options.jsonSchema, { changing: false });
     let showErrMsg = false;
     let errMsg = "";
     if ((validationResult == null ? void 0 : validationResult.valid) == false) {
@@ -23497,13 +25406,15 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       errorMsgs[idxScope].caption = "";
       errorMsgs[idxScope].visible = false;
     }
+    valueChangedCallback && valueChangedCallback(data, errMsg);
   };
   const renderForm = (schema, scope = "#", isArray = false, idx, schemaOptions) => {
+    var _a;
     if (!schema)
       return void 0;
     const currentField = scope.substr(scope.lastIndexOf("/") + 1);
     const labelName = schema.title || (scope != "#/" ? convertFieldNameToLabel(currentField) : "");
-    const columnWidth = options && options.columnWidth ? options.columnWidth : "100px";
+    const columnWidth = options.columnWidth ? options.columnWidth : "100px";
     const idxScope = idx !== void 0 ? `${scope}_${idx}` : scope;
     let isRequired = false;
     let arrRequired = [];
@@ -23512,10 +25423,19 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
     } else if (typeof schema.required === "object") {
       arrRequired = schema.required;
     }
-    if (schema.enum && schema.enum.length > 0) {
+    if (schema.enum && schema.enum.length > 0 || schema.oneOf && schema.oneOf.length > 0) {
       const items = [];
-      for (const item of schema.enum) {
-        items.push({ label: item, value: item });
+      if (schema.oneOf && schema.oneOf.length > 0) {
+        for (const item of schema.oneOf) {
+          items.push({
+            label: item.title,
+            value: item.const
+          });
+        }
+      } else if (schema.enum && schema.enum.length > 0) {
+        for (const item of schema.enum) {
+          items.push({ label: item, value: item });
+        }
       }
       const groupPnl = new Panel();
       const hStack = new HStack(groupPnl, { gap: 2 });
@@ -23529,42 +25449,12 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       let combobox = new ComboBox(controlPnl, {
         width: "100%",
         items,
-        icon: { name: "caret-down" }
+        icon: { name: "caret-down" },
+        readOnly: schema.readOnly
       });
       combobox.id = idxScope;
       combobox.classList.add(jsonUIComboboxStyle);
-      combobox.onChanged = () => showErrorMsg(idxScope);
-      controls[idxScope] = combobox;
-      if (isArray) {
-        controls[idxScope].setAttribute("role", "column");
-        controls[idxScope].setAttribute("field", currentField);
-      }
-      if (schema.description)
-        descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
-      errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
-      return groupPnl;
-    } else if (schema.oneOf && schema.oneOf.length > 0) {
-      const items = [];
-      for (const item of schema.oneOf) {
-        items.push({ label: item.title, value: item.const });
-      }
-      const groupPnl = new Panel();
-      const hStack = new HStack(groupPnl, { gap: 2 });
-      if (!isArray) {
-        new Label(hStack, { caption: labelName });
-        if (isRequired) {
-          new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
-        }
-      }
-      const controlPnl = new Panel(groupPnl);
-      let combobox = new ComboBox(controlPnl, {
-        width: columnWidth,
-        items,
-        icon: { name: "caret-down" }
-      });
-      combobox.id = idxScope;
-      combobox.classList.add(jsonUIComboboxStyle);
-      combobox.onChanged = () => showErrorMsg(idxScope);
+      combobox.onChanged = () => validateOnValueChanged(idxScope);
       controls[idxScope] = combobox;
       if (isArray) {
         controls[idxScope].setAttribute("role", "column");
@@ -23575,7 +25465,10 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
       return groupPnl;
     } else if (schema.type === "string") {
-      if (schema.format === "date") {
+      if (["date", "time", "date-time"].indexOf(schema.format || "") >= 0) {
+        let datePickerType = schema.format;
+        if (schema.format === "date-time")
+          datePickerType = "dateTime";
         const groupPnl = new Panel();
         const hStack = new HStack(groupPnl, { gap: 2 });
         if (!isArray) {
@@ -23585,94 +25478,27 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           }
         }
         const controlPnl = new Panel(groupPnl);
+        let dateTimeFormat;
+        if (schema.format === "date") {
+          dateTimeFormat = defaultDateFormat;
+        } else if (schema.format === "date-time") {
+          dateTimeFormat = defaultDateTimeFormat;
+        } else if (schema.format === "time") {
+          dateTimeFormat = defaultTimeFormat;
+        }
         const datePicker = new Datepicker(controlPnl, {
           width: columnWidth,
-          type: "date"
+          type: datePickerType,
+          dateTimeFormat,
+          readOnly: schema.readOnly
         });
         datePicker.id = idxScope;
-        datePicker.onChanged = () => showErrorMsg(idxScope);
+        datePicker.onChanged = () => validateOnValueChanged(idxScope);
         controls[idxScope] = datePicker;
         if (isArray) {
           controls[idxScope].setAttribute("role", "column");
           controls[idxScope].setAttribute("field", currentField);
-          controls[idxScope].setAttribute("format", schema.format);
-        }
-        if (schema.description)
-          descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
-        errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
-        return groupPnl;
-      } else if (schema.format === "time") {
-        const groupPnl = new Panel();
-        const hStack = new HStack(groupPnl, { gap: 2 });
-        if (!isArray) {
-          new Label(hStack, { caption: labelName });
-          if (isRequired) {
-            new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
-          }
-        }
-        const controlPnl = new Panel(groupPnl);
-        const timePicker = new Datepicker(controlPnl, {
-          width: columnWidth,
-          type: "time"
-        });
-        timePicker.id = idxScope;
-        timePicker.onChanged = () => showErrorMsg(idxScope);
-        controls[idxScope] = timePicker;
-        if (isArray) {
-          controls[idxScope].setAttribute("role", "column");
-          controls[idxScope].setAttribute("field", currentField);
-          controls[idxScope].setAttribute("format", schema.format);
-        }
-        if (schema.description)
-          descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
-        errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
-        return groupPnl;
-      } else if (schema.format === "date-time") {
-        const groupPnl = new Panel();
-        const hStack = new HStack(groupPnl, { gap: 2 });
-        if (!isArray) {
-          new Label(hStack, { caption: labelName });
-          if (isRequired) {
-            new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
-          }
-        }
-        const controlPnl = new Panel(groupPnl);
-        const dateTimePicker = new Datepicker(controlPnl, {
-          width: columnWidth,
-          type: "dateTime"
-        });
-        dateTimePicker.id = idxScope;
-        dateTimePicker.onChanged = () => showErrorMsg(idxScope);
-        controls[idxScope] = dateTimePicker;
-        if (isArray) {
-          controls[idxScope].setAttribute("role", "column");
-          controls[idxScope].setAttribute("field", currentField);
-          controls[idxScope].setAttribute("format", schema.format);
-        }
-        if (schema.description)
-          descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
-        errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
-        return groupPnl;
-      } else if (schema.format === "color") {
-        const groupPnl = new Panel();
-        const hStack = new HStack(groupPnl, { gap: 2 });
-        if (!isArray) {
-          new Label(hStack, { caption: labelName });
-          if (isRequired) {
-            new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
-          }
-        }
-        const controlPnl = new Panel(groupPnl);
-        let input = new Input(controlPnl, {
-          inputType: "color"
-        });
-        input.id = idxScope;
-        input.onChanged = () => showErrorMsg(idxScope);
-        controls[idxScope] = input;
-        if (isArray) {
-          controls[idxScope].setAttribute("role", "column");
-          controls[idxScope].setAttribute("field", currentField);
-          controls[idxScope].setAttribute("format", schema.format);
+          controls[idxScope].setAttribute("format", schema.format || "");
         }
         if (schema.description)
           descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
@@ -23688,9 +25514,11 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           }
         }
         const controlPnl = new Panel(groupPnl);
-        let upload = new Upload(controlPnl);
+        let upload = new Upload(controlPnl, {
+          readOnly: schema.readOnly
+        });
         upload.id = idxScope;
-        upload.onChanged = () => showErrorMsg(idxScope);
+        upload.onChanged = () => validateOnValueChanged(idxScope);
         controls[idxScope] = upload;
         if (isArray) {
           controls[idxScope].setAttribute("role", "column");
@@ -23708,14 +25536,18 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           }
         }
         const controlPnl = new Panel(groupPnl);
+        let inputType = "text";
+        if (schema.format === "color")
+          inputType = "color";
+        else if (schema.format === "multi")
+          inputType = "textarea";
         let input = new Input(controlPnl, {
           width: columnWidth,
-          inputType: schema.format === "multi" ? "textarea" : "text",
-          height: schema.format === "multi" ? 100 : 25,
-          ...inputStyle
+          inputType,
+          readOnly: schema.readOnly
         });
         input.id = idxScope;
-        input.onChanged = () => showErrorMsg(idxScope);
+        input.onBlur = () => validateOnValueChanged(idxScope);
         controls[idxScope] = input;
         if (isArray) {
           controls[idxScope].setAttribute("role", "column");
@@ -23726,7 +25558,7 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
         return groupPnl;
       }
-    } else if (schema.type === "number") {
+    } else if (["integer", "number"].indexOf(((_a = schema.type) == null ? void 0 : _a.toString()) || "") >= 0) {
       const groupPnl = new Panel();
       const hStack = new HStack(groupPnl, { gap: 2 });
       if (!isArray) {
@@ -23736,43 +25568,21 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         }
       }
       const controlPnl = new Panel(groupPnl);
+      let inputType = "number";
+      if (schema.type === "integer")
+        inputType = "integer";
       let input = new Input(controlPnl, {
         width: columnWidth,
-        inputType: "number"
+        inputType,
+        readOnly: schema.readOnly
       });
       input.id = idxScope;
-      input.onChanged = () => showErrorMsg(idxScope);
+      input.onBlur = () => validateOnValueChanged(idxScope);
       controls[idxScope] = input;
       if (isArray) {
         controls[idxScope].setAttribute("role", "column");
         controls[idxScope].setAttribute("field", currentField);
-        controls[idxScope].setAttribute("format", "number");
-      }
-      if (schema.description)
-        descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
-      errorMsgs[idxScope] = new Label(groupPnl, { visible: false, font: { color: "#ff0000" } });
-      return groupPnl;
-    } else if (schema.type === "integer") {
-      const groupPnl = new Panel();
-      const hStack = new HStack(groupPnl, { gap: 2 });
-      if (!isArray) {
-        new Label(hStack, { caption: labelName });
-        if (isRequired) {
-          new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
-        }
-      }
-      const controlPnl = new Panel(groupPnl);
-      let input = new Input(controlPnl, {
-        width: columnWidth,
-        inputType: "number"
-      });
-      input.id = idxScope;
-      input.onChanged = () => showErrorMsg(idxScope);
-      controls[idxScope] = input;
-      if (isArray) {
-        controls[idxScope].setAttribute("role", "column");
-        controls[idxScope].setAttribute("field", currentField);
-        controls[idxScope].setAttribute("format", "integer");
+        controls[idxScope].setAttribute("format", inputType);
       }
       if (schema.description)
         descriptions[idxScope] = new Label(groupPnl, { caption: schema.description });
@@ -23789,9 +25599,11 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         }
       }
       const controlPnl = new Panel(groupPnl);
-      let checkbox = new Checkbox(controlPnl);
+      let checkbox = new Checkbox(controlPnl, {
+        readOnly: schema.readOnly
+      });
       checkbox.id = idxScope;
-      checkbox.onChanged = () => showErrorMsg(idxScope);
+      checkbox.onChanged = () => validateOnValueChanged(idxScope);
       controls[idxScope] = checkbox;
       if (isArray) {
         controls[idxScope].setAttribute("role", "column");
@@ -23802,17 +25614,22 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       const properties = schema.properties;
       if (!properties)
         return void 0;
-      const borderStyle = scope === "#" ? void 0 : {
+      const groupPnl = new Panel(void 0, {
         border: {
           width: 1,
           style: "solid",
-          color: "#CCC",
-          radius: 5
+          color: "#EEE",
+          radius: "0.4rem"
+        },
+        padding: {
+          top: 16,
+          bottom: 16,
+          left: 16,
+          right: 16
         }
-      };
-      const box = new Panel(void 0, borderStyle);
+      });
       const templateColumns = [];
-      if (options && options.columnsPerRow)
+      if (options.columnsPerRow)
         for (let i = 0; i < options.columnsPerRow; i++)
           templateColumns.push("1fr");
       let form = new GridLayout(void 0, {
@@ -23829,7 +25646,7 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         }
       });
       if (scope !== "#") {
-        const pnl = new Panel(box, {
+        const pnl = new Panel(groupPnl, {
           padding: {
             top: 5,
             bottom: 5,
@@ -23846,7 +25663,7 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           }
         });
         const hStack = new HStack(pnl, { gap: 2 });
-        new Label(hStack, { caption: labelName });
+        new Label(hStack, { caption: labelName, font: { size: "1.6rem" } });
         if (isRequired) {
           new Label(hStack, { caption: "*", font: { color: "#ff0000" } });
         }
@@ -23859,9 +25676,9 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         const control = renderForm(currentSchema, `${idxScope}/properties/${propertyName}`, false, idx);
         form.append(control);
       }
-      box.append(form);
-      controls[idxScope] = box;
-      return box;
+      groupPnl.append(form);
+      controls[idxScope] = groupPnl;
+      return groupPnl;
     } else if (schema.type === "array") {
       if (!schema.items)
         return void 0;
@@ -23894,6 +25711,13 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           left: 10,
           right: 10
         },
+        border: {
+          bottom: {
+            width: 1,
+            style: "solid",
+            color: "#DADDE1"
+          }
+        },
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: "transparent"
@@ -23919,19 +25743,63 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           right: 5
         }
       });
-      let _idx = 0;
       const _items = schema.items;
       const itemsRequired = typeof (_items == null ? void 0 : _items.required) === "object" ? _items.required : [];
+      const updateIndex = (props, newIdx, currentIdx, prefixScope, newPrefix, subIdx) => {
+        var _a2, _b;
+        for (const propertyName in props) {
+          const subIndex = subIdx || 0;
+          const finalIndex = subIdx ? subIndex : newIdx;
+          const currentScope = `${prefixScope}/properties/${propertyName}_${subIdx ? subIndex : currentIdx}`;
+          const newScope = `${newPrefix || prefixScope}/properties/${propertyName}_${finalIndex}`;
+          if (props[propertyName].type === "object") {
+            updateIndex(props[propertyName].properties, newIdx, currentIdx, currentScope, newScope);
+          } else if (props[propertyName].type === "array" && ((_a2 = props[propertyName].items) == null ? void 0 : _a2.type) === "object") {
+            const rows = ((_b = controls[currentScope]) == null ? void 0 : _b.querySelectorAll(":scope > i-panel > [role='row']")) || [];
+            let _currentItemIdx = 0;
+            while (_currentItemIdx < rows.length) {
+              _currentItemIdx++;
+              updateIndex(props[propertyName].items.properties, newIdx, currentIdx, currentScope, newScope, subIndex + _currentItemIdx);
+            }
+          }
+          const tempControl = controls[currentScope];
+          controls[newScope] = tempControl;
+          if (controls[newScope].id) {
+            controls[newScope].id = newScope;
+          } else if (controls[newScope].getAttribute("object-field-idx")) {
+            controls[newScope].setAttribute("object-field-idx", `${finalIndex}`);
+            controls[newScope]["options"]["object-field-idx"] = `${finalIndex}`;
+          } else if (controls[newScope].getAttribute("array-field-idx")) {
+            controls[newScope].setAttribute("array-field-idx", `${finalIndex}`);
+            controls[newScope]["options"]["array-field-idx"] = `${finalIndex}`;
+          }
+          const parentLayout = controls[newScope].closest("[array-item-idx");
+          if (parentLayout) {
+            parentLayout.setAttribute("array-item-idx", `${newIdx}`);
+            parentLayout["options"]["array-item-idx"] = `${newIdx}`;
+          }
+          const tempErrMsg = errorMsgs[currentScope];
+          if (tempErrMsg) {
+            errorMsgs[newScope] = tempErrMsg;
+            controls[newScope].onChanged = () => validateOnValueChanged(newScope);
+          }
+          const tempDescription = descriptions[currentScope];
+          if (tempDescription) {
+            descriptions[newScope] = tempDescription;
+          }
+          delete descriptions[currentScope];
+          delete errorMsgs[currentScope];
+          delete controls[currentScope];
+        }
+      };
       if (isVertical) {
-        const addCard = (index) => {
+        const addCard = () => {
+          const index = groupPnl.querySelectorAll(":scope > i-panel > [role='row']").length + 1;
+          const arrIndex = groupPnl.getAttribute("array-field-idx") || idx;
+          const newIdxScope = idx !== void 0 ? `${scope}_${arrIndex}` : scope;
           const gridLayout = new GridLayout(pnlItems, {
             templateColumns: ["1fr", "3fr"],
             border: {
-              top: {
-                width: 1,
-                style: "solid",
-                color: "#DADDE1"
-              },
               bottom: {
                 width: 1,
                 style: "solid",
@@ -23951,13 +25819,14 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
           });
           gridLayout.position = "relative";
           gridLayout.setAttribute("role", "row");
+          gridLayout.setAttribute("array-item-idx", `${index}`);
           if (typeof _items === "object" && _items.type === "object" && _items.properties) {
             for (const propertyName in _items.properties) {
               let property = schema.items.properties[propertyName];
               if (!(property == null ? void 0 : property.required) && (arrRequired.includes(propertyName) || itemsRequired.includes(propertyName))) {
                 property.required = true;
               }
-              const control = renderForm(property, `${idxScope}/properties/${propertyName}`, true, index);
+              const control = renderForm(property, `${newIdxScope}/properties/${propertyName}`, true, index);
               if (control && (property == null ? void 0 : property.type) === "object") {
                 control.setAttribute("object-field", propertyName);
                 control.setAttribute("object-field-idx", `${index}`);
@@ -23987,14 +25856,22 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
             btnDelete.position = "absolute";
             btnDelete.classList.add("pointer");
             btnDelete.onClick = () => {
+              let currentIdx = Number(gridLayout.getAttribute("array-item-idx") || "1");
+              let newIdx = Number(gridLayout.getAttribute("array-item-idx") || "1");
+              let idxItem = groupPnl.querySelectorAll(":scope > i-panel > [role='row']").length;
+              while (newIdx < idxItem) {
+                currentIdx++;
+                updateIndex(_items.properties, newIdx, currentIdx, newIdxScope);
+                newIdx = Number(currentIdx);
+              }
               gridLayout.remove();
             };
           }
         };
         btnAdd.onClick = () => {
-          addCard(++_idx);
+          addCard();
         };
-        addCard(_idx);
+        addCard();
       } else {
         let colCount = 0;
         if (schema.items instanceof Array)
@@ -24057,7 +25934,10 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
             }
           }
         }
-        const addRow = (index) => {
+        const addRow = () => {
+          const index = groupPnl.querySelectorAll(":scope > i-panel > [role='row']").length + 1;
+          const arrIndex = groupPnl.getAttribute("array-field-idx") || idx;
+          const newIdxScope = idx !== void 0 ? `${scope}_${arrIndex}` : scope;
           const bodyColumn = new GridLayout(pnlItems, {
             templateColumns,
             gap: {
@@ -24079,13 +25959,14 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
             }
           });
           bodyColumn.setAttribute("role", "row");
+          bodyColumn.setAttribute("array-item-idx", `${index}`);
           if (typeof schema.items === "object" && _items.type === "object" && _items.properties) {
             for (const propertyName in _items.properties) {
               const property = schema.items.properties[propertyName];
               if (!(property == null ? void 0 : property.required) && (arrRequired.includes(propertyName) || itemsRequired.includes(propertyName))) {
                 property.required = true;
               }
-              const control = renderForm(property, `${idxScope}/properties/${propertyName}`, true, index);
+              const control = renderForm(property, `${newIdxScope}/properties/${propertyName}`, true, index);
               if (control && (property == null ? void 0 : property.type) === "object") {
                 control.setAttribute("object-field", propertyName);
                 control.setAttribute("object-field-idx", `${index}`);
@@ -24103,19 +25984,26 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
               width: "1em",
               height: "1em",
               margin: {
-                top: "auto",
-                bottom: "auto"
+                top: "0.75em"
               }
             });
             btnDelete.classList.add("pointer");
             btnDelete.onClick = () => {
+              let currentIdx = Number(bodyColumn.getAttribute("array-item-idx") || "1");
+              let newIdx = Number(bodyColumn.getAttribute("array-item-idx") || "1");
+              let idxItem = groupPnl.querySelectorAll(":scope > i-panel > [role='row']").length;
+              while (newIdx < idxItem) {
+                currentIdx++;
+                updateIndex(_items.properties, newIdx, currentIdx, newIdxScope);
+                newIdx = Number(currentIdx);
+              }
               bodyColumn.remove();
             };
           }
         };
-        addRow(_idx);
+        addRow();
         btnAdd.onClick = () => {
-          addRow(++_idx);
+          addRow();
         };
       }
       controls[idxScope] = groupPnl;
@@ -24198,7 +26086,7 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
     let obj = {};
     for (const segment of segments) {
       if (segment === "#")
-        obj = jsonSchema;
+        obj = options.jsonSchema;
       else
         obj = obj[segment];
     }
@@ -24340,28 +26228,26 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
     } else
       return null;
   };
-  const setData = (schema, data2, scope = "#", idx) => {
+  const setData = (schema, data, scope = "#", idx) => {
     var _a;
-    if (!schema || !data2)
+    if (!schema || !data)
       return;
     const idxScope = idx !== void 0 ? `${scope}_${idx}` : scope;
     if (schema.type === "object") {
       if (!schema.properties)
         return;
       for (const propertyName in schema.properties) {
-        setData(schema.properties[propertyName], data2[propertyName], `${idxScope}/properties/${propertyName}`, idx);
+        setData(schema.properties[propertyName], data[propertyName], `${idxScope}/properties/${propertyName}`, idx);
       }
     } else if (schema.type === "array") {
       if (typeof schema.items === "object" && schema.items.properties) {
         const grid = controls[idxScope];
         const btnAdd = grid.querySelector("[role='add']");
         let rows = grid.querySelectorAll("[role='row']");
-        if (rows)
-          for (const row of rows)
-            row.remove();
-        if (data2 instanceof Array) {
-          for (const columnData of data2) {
-            if (btnAdd)
+        if (data instanceof Array) {
+          for (let i = 0; i < data.length; i++) {
+            const columnData = data[i];
+            if (btnAdd && i > 0)
               btnAdd.onClick(btnAdd);
             if (typeof columnData === "object") {
               for (const propertyName in columnData) {
@@ -24411,13 +26297,13 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
     } else {
       const control = controls[idxScope];
       if (control.tagName === "I-CHECKBOX")
-        control.checked = data2;
+        control.checked = data;
       else if (control.tagName === "I-DATEPICKER")
-        control.value = (0, import_moment.default)(data2);
+        control.value = (0, import_moment.default)(data);
       else if (control.tagName === "I-COMBO-BOX") {
-        control.selectedItem = control.items.find((v) => v.value === data2) || void 0;
+        control.selectedItem = control.items.find((v) => v.value === data) || void 0;
       } else
-        control.value = data2;
+        control.value = data;
     }
   };
   const getData = async (schema, scope = "#", idx) => {
@@ -24429,11 +26315,11 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       const properties = schema.properties;
       if (!properties)
         return void 0;
-      const data2 = {};
+      const data = {};
       for (const propertyName in properties) {
-        data2[propertyName] = await getData(properties[propertyName], `${idxScope}/properties/${propertyName}`, idx);
+        data[propertyName] = await getData(properties[propertyName], `${idxScope}/properties/${propertyName}`, idx);
       }
-      return data2;
+      return data;
     } else if (schema.type === "array") {
       const grid = controls[idxScope];
       if (!grid)
@@ -24544,27 +26430,27 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
     }
   };
   const panel = new Panel();
-  if (jsonUISchema) {
-    renderFormBySchema(jsonSchema, jsonUISchema);
+  if (options == null ? void 0 : options.jsonUISchema) {
+    renderFormBySchema(options.jsonSchema, options.jsonUISchema);
   } else {
-    const form = renderForm(jsonSchema);
+    const form = renderForm(options.jsonSchema);
     panel.append(form);
   }
   const pnlButton = new HStack();
-  const confirmButtonCaption = options && options.confirmButtonCaption ? options.confirmButtonCaption : "Confirm";
+  const confirmButtonCaption = options.confirmButtonCaption ? options.confirmButtonCaption : "Confirm";
   const buttonStack = new HStack(void 0, {
     justifyContent: "end",
     alignItems: "center",
     width: "100%",
     padding: {
-      left: 5,
-      right: 5,
+      left: 10,
+      right: 10,
       top: 5,
       bottom: 5
     }
   });
-  if (options && options.showClearButton) {
-    const clearButtonCaption = options && options.clearButtonCaption ? options.clearButtonCaption : "Clear";
+  if (options.showClearButton) {
+    const clearButtonCaption = options.clearButtonCaption ? options.clearButtonCaption : "Clear";
     const btnClear = new Button(buttonStack, {
       caption: clearButtonCaption,
       padding: {
@@ -24577,10 +26463,10 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
         right: 5
       },
       font: {
-        color: options && options.clearButtonFontColor ? options.clearButtonFontColor : "#FFF"
+        color: options.clearButtonFontColor ? options.clearButtonFontColor : "#FFF"
       },
       background: {
-        color: options && options.clearButtonBackgroundColor ? options.clearButtonBackgroundColor : "#3F51B5"
+        color: options.clearButtonBackgroundColor ? options.clearButtonBackgroundColor : "#3F51B5"
       }
     });
     btnClear.onClick = () => {
@@ -24595,39 +26481,43 @@ function renderUI(target, jsonSchema, callback, jsonUISchema, data, options) {
       }
     };
   }
-  const btnConfirm = new Button(buttonStack, {
-    caption: confirmButtonCaption,
-    padding: {
-      top: 5,
-      bottom: 5,
-      left: 5,
-      right: 5
-    },
-    font: {
-      color: options && options.confirmButtonFontColor ? options.confirmButtonFontColor : "#FFF"
-    },
-    background: {
-      color: options && options.confirmButtonBackgroundColor ? options.confirmButtonBackgroundColor : "#3F51B5"
-    }
-  });
-  btnConfirm.onClick = async () => {
-    if (!callback)
-      return;
-    const data2 = await getData(jsonSchema);
-    const validationResult = validate(data2, jsonSchema, { changing: false });
-    if (validationResult == null ? void 0 : validationResult.valid)
-      callback(true, data2);
-    else
-      callback(false, validationResult);
-  };
-  panel.append(pnlButton);
+  if (!options.hideConfirmButton) {
+    const btnConfirm = new Button(buttonStack, {
+      caption: confirmButtonCaption,
+      padding: {
+        top: 5,
+        bottom: 5,
+        left: 5,
+        right: 5
+      },
+      font: {
+        color: options.confirmButtonFontColor ? options.confirmButtonFontColor : "#FFF"
+      },
+      background: {
+        color: options.confirmButtonBackgroundColor ? options.confirmButtonBackgroundColor : "#3F51B5"
+      }
+    });
+    btnConfirm.onClick = async () => {
+      if (!confirmCallback)
+        return;
+      const data = await getData(options.jsonSchema);
+      const validationResult = validate(data, options.jsonSchema, { changing: false });
+      if (validationResult == null ? void 0 : validationResult.valid)
+        confirmCallback(true, data);
+      else
+        confirmCallback(false, validationResult);
+    };
+    panel.append(pnlButton);
+  }
   if (target) {
     target.append(panel);
-    target.append(buttonStack);
-    if (data) {
-      const validationResult = validate(data, jsonSchema, { changing: false });
+    if (buttonStack.childNodes.length > 0) {
+      target.append(buttonStack);
+    }
+    if (options.data) {
+      const validationResult = validate(options.data, options.jsonSchema, { changing: false });
       if (validationResult == null ? void 0 : validationResult.valid)
-        setData(jsonSchema, data);
+        setData(options.jsonSchema, options.data);
       else
         console.log(validationResult);
     }
@@ -24668,6 +26558,7 @@ var Application = class {
     this.id = 0;
     this.LibHost = "";
     this.packages = {};
+    this.cidItems = {};
     this.globalEvents = new GlobalEvents();
   }
   get EventBus() {
@@ -24848,12 +26739,64 @@ var Application = class {
       ;
     });
   }
-  async verifyScript(modulePath, script) {
-    try {
-      let cid = await hashContent(script);
-    } catch (err) {
-      console.dir(err);
+  async getCidItem(host, cid, paths) {
+    if (paths.length > 0) {
+      let cidItem = this.cidItems[cid];
+      if (!cidItem) {
+        try {
+          let data = localStorage.getItem(cid);
+          if (data)
+            cidItem = JSON.parse(data);
+        } catch (err) {
+        }
+        ;
+        if (!cidItem)
+          cidItem = await (await fetch(`${host}/${cid}`)).json();
+        let id = await hashItems(cidItem.links);
+        if (id.cid != cid)
+          throw new Error("CID not match");
+        try {
+          localStorage.setItem(cid, JSON.stringify(cidItem));
+        } catch (err) {
+        }
+        this.cidItems[cid] = cidItem;
+      }
+      ;
+      if (cidItem && cidItem.links) {
+        let path = paths.shift();
+        for (let i = 0; i < cidItem.links.length; i++) {
+          if (cidItem.links[i].name == path) {
+            if (cidItem.links[i].type == "dir")
+              return await this.getCidItem(host, cidItem.links[i].cid, paths);
+            else {
+              return cidItem.links[i];
+            }
+            ;
+          }
+          ;
+        }
+        ;
+      }
+      ;
     }
+    ;
+    return;
+  }
+  async verifyScript(modulePath, script) {
+    var _a;
+    if ((_a = this._initOptions) == null ? void 0 : _a.ipfs) {
+      try {
+        let paths = modulePath.split("/");
+        let cid = await this.getCidItem("/ipfs", this._initOptions.ipfs, paths);
+        if (!cid)
+          return false;
+        let scriptCid = await hashContent(script);
+        return cid.cid == scriptCid.cid;
+      } catch (err) {
+        return false;
+      }
+    }
+    ;
     return true;
   }
   async getScript(modulePath) {
@@ -24917,9 +26860,9 @@ var Application = class {
       this.modules[modulePath] = result;
     return result;
   }
-  async loadPackage(packageName, modulePath, options) {
+  async loadPackage(packageName, modulePath) {
     var _a, _b, _c;
-    options = options || this._initOptions;
+    let options = this._initOptions;
     if (options && options.modules && options.modules[packageName]) {
       let pack = options.modules[packageName];
       for (let i = 0; i < ((_a = pack.dependencies) == null ? void 0 : _a.length); i++) {
@@ -24983,14 +26926,17 @@ var Application = class {
       modulePath += options.modules[module2].path;
       if (!modulePath.endsWith(".js"))
         modulePath += "/index.js";
-    } else if (options.dependencies && options.dependencies[module2])
+    } else if (options && options.dependencies && options.dependencies[module2])
       modulePath = `${(options == null ? void 0 : options.rootDir) ? options.rootDir + "/" : ""}libs/${module2}/index.js`;
     return modulePath;
   }
   async newModule(module2, options) {
+    var _a, _b, _c, _d;
     if (options) {
-      if (!this._initOptions)
+      if (options.main) {
         this._initOptions = options;
+      }
+      ;
       if (!this._assets && options.assets)
         this._assets = await this.loadPackage(options.assets) || {};
       if (options.dependencies) {
@@ -25003,13 +26949,38 @@ var Application = class {
       ;
     }
     ;
+    if (((_b = (_a = this._initOptions) == null ? void 0 : _a.geo) == null ? void 0 : _b.enabled) && !this.geoInfo) {
+      const apiUrl = this._initOptions.geo.apiUrl || "/api/geo/v0";
+      const geoResponse = await fetch(apiUrl);
+      const geo = await geoResponse.json();
+      this.geoInfo = geo;
+    }
+    ;
     let modulePath = module2;
-    if (this._initOptions)
-      modulePath = this.getModulePath(module2);
+    if (this._initOptions) {
+      if (modulePath != this._initOptions.main && ((_c = this._initOptions.geo) == null ? void 0 : _c.enabled)) {
+        try {
+          if (this._initOptions.geo.blockedCountries.includes((_d = this.geoInfo) == null ? void 0 : _d.country)) {
+            module2 = this._initOptions.geo.moduleOnBlocking;
+            modulePath = this.getModulePath(this._initOptions.geo.moduleOnBlocking);
+          } else {
+            modulePath = this.getModulePath(module2);
+          }
+        } catch (err) {
+          console.log(err);
+          module2 = this._initOptions.geo.moduleOnBlocking;
+          modulePath = this.getModulePath(this._initOptions.geo.moduleOnBlocking);
+        }
+      } else {
+        modulePath = this.getModulePath(module2);
+      }
+    }
+    ;
     let elmId = this.modulesId[modulePath];
     if (elmId && modulePath) {
       return document.createElement(elmId);
     }
+    ;
     let script;
     if (options && options.script)
       script = options.script;
@@ -25044,6 +27015,7 @@ var Application = class {
       if (!_currentDefineModule && this.packages[modulePath]) {
         _currentDefineModule = this.packages[modulePath];
       }
+      ;
       if (_currentDefineModule) {
         let module3 = _currentDefineModule.default || _currentDefineModule;
         if (module3) {
@@ -25058,6 +27030,7 @@ var Application = class {
         }
         ;
       }
+      ;
     }
     ;
     return null;
@@ -25085,9 +27058,10 @@ var Application = class {
       console.log("debug: copy", err);
       return false;
     }
+    ;
   }
   xssSanitize(value) {
-    return value;
+    return DOMPurify.sanitize(value);
   }
 };
 window["application"] = Application.Instance;

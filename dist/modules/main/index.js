@@ -43,7 +43,7 @@ define("@pageblock-gem-token/main/index.css.ts", ["require", "exports", "@ijstec
         textAlign: 'center'
     });
 });
-define("@pageblock-gem-token/main/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/gem-token-contract", "@pageblock-gem-token/utils"], function (require, exports, eth_wallet_1, gem_token_contract_1, utils_1) {
+define("@pageblock-gem-token/main/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/gem-token-contract", "@scom/scom-commission-proxy-contract", "@pageblock-gem-token/utils", "@pageblock-gem-token/store"], function (require, exports, eth_wallet_1, gem_token_contract_1, scom_commission_proxy_contract_1, utils_1, store_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getGemBalance = exports.redeemToken = exports.buyToken = exports.transfer = exports.getFee = exports.deployContract = void 0;
@@ -99,15 +99,44 @@ define("@pageblock-gem-token/main/API.ts", ["require", "exports", "@ijstech/eth-
         };
     }
     exports.transfer = transfer;
-    async function buyToken(address, backerCoinAmount, callback, confirmationCallback) {
+    async function buyToken(contractAddress, backerCoinAmount, token, feeTo, callback, confirmationCallback) {
         try {
             utils_1.registerSendTxEvents({
                 transactionHash: callback,
                 confirmation: confirmationCallback
             });
             const wallet = eth_wallet_1.Wallet.getInstance();
-            const contract = new gem_token_contract_1.Contracts.GEM(wallet, address);
-            const receipt = await contract.buy(eth_wallet_1.Utils.toDecimals(backerCoinAmount).dp(0));
+            const commissionFee = store_1.getCommissionFee();
+            const tokenDecimals = (token === null || token === void 0 ? void 0 : token.decimals) || 18;
+            const amount = eth_wallet_1.Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
+            const _commissions = [
+                {
+                    to: feeTo,
+                    amount: new eth_wallet_1.BigNumber(amount).times(commissionFee)
+                }
+            ];
+            const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new eth_wallet_1.BigNumber(0);
+            const contract = new gem_token_contract_1.Contracts.GEM(wallet, contractAddress);
+            let receipt;
+            if (commissionsAmount.isZero()) {
+                receipt = await contract.buy(amount);
+            }
+            else {
+                let proxyAddress = store_1.getContractAddress('Proxy');
+                const proxy = new scom_commission_proxy_contract_1.Contracts.Proxy(wallet, proxyAddress);
+                const txData = await contract.buy.txData(amount);
+                const tokensIn = {
+                    token: token.address,
+                    amount: commissionsAmount.plus(amount),
+                    directTransfer: false,
+                    commissions: _commissions
+                };
+                receipt = await proxy.tokenIn({
+                    target: contractAddress,
+                    tokensIn,
+                    data: txData
+                });
+            }
             if (receipt) {
                 const data = contract.parseBuyEvent(receipt)[0];
                 return {
@@ -148,7 +177,7 @@ define("@pageblock-gem-token/main/API.ts", ["require", "exports", "@ijstech/eth-
     }
     exports.redeemToken = redeemToken;
 });
-define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@pageblock-gem-token/utils", "@pageblock-gem-token/store", "@pageblock-gem-token/wallet", "@pageblock-gem-token/main/index.css.ts", "@pageblock-gem-token/assets", "@pageblock-gem-token/main/API.ts"], function (require, exports, components_2, eth_wallet_2, utils_2, store_1, wallet_1, index_css_1, assets_1, API_1) {
+define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@pageblock-gem-token/utils", "@pageblock-gem-token/store", "@pageblock-gem-token/wallet", "@pageblock-gem-token/main/index.css.ts", "@pageblock-gem-token/assets", "@pageblock-gem-token/main/API.ts"], function (require, exports, components_2, eth_wallet_2, utils_2, store_2, wallet_1, index_css_1, assets_1, API_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_2.Styles.Theme.ThemeVars;
@@ -191,13 +220,13 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 if (!this._data.token)
                     return;
                 let chainId = wallet_1.getChainId();
-                const _tokenList = store_1.getTokenList(chainId);
+                const _tokenList = store_2.getTokenList(chainId);
                 const token = _tokenList.find(t => { var _a; return (t.address && t.address == ((_a = this._data.token) === null || _a === void 0 ? void 0 : _a.address)) || (t.symbol == this.tokenSymbol); });
                 const symbol = (token === null || token === void 0 ? void 0 : token.symbol) || '';
                 this.lblBalance.caption = `${(await this.getBalance(token)).toFixed(2)} ${symbol}`;
             };
             this.onDeploy = async (callback, confirmationCallback) => {
-                if (this._contract || !this._data.name)
+                if (this._gemTokenContract || !this._data.name)
                     return;
                 const params = {
                     name: this._data.name,
@@ -208,8 +237,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     redemptionFee: this._data.redemptionFee
                 };
                 const result = await API_1.deployContract(params, this._data.token, callback, confirmationCallback);
-                this._contract = result;
-                this._data.contract = this._contract;
+                this._gemTokenContract = result;
+                this._data.contract = this._gemTokenContract;
             };
             this.onBuyToken = async (quantity) => {
                 this.mdAlert.closeModal();
@@ -224,7 +253,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                         this.mdAlert.showModal();
                     }
                 };
-                await API_1.buyToken(this._contract, quantity, callback, async (result) => {
+                await API_1.buyToken(this._gemTokenContract, quantity, this._data.token, this._data.feeTo, callback, async (result) => {
                     console.log('buyToken: ', result);
                     this.edtGemQty.value = '';
                     this.edtAmount.value = '';
@@ -246,7 +275,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     }
                 };
                 const gemAmount = this.edtAmount.value;
-                await API_1.redeemToken(this._contract, gemAmount, callback, async (result) => {
+                await API_1.redeemToken(this._gemTokenContract, gemAmount, callback, async (result) => {
                     console.log('redeemToken: ', result);
                     this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
                     this.edtAmount.value = '';
@@ -254,7 +283,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 });
             };
             if (options) {
-                store_1.setDataFromSCConfig(options);
+                store_2.setDataFromSCConfig(options);
             }
             this.$eventBus = components_2.application.EventBus;
             this.registerEvent();
@@ -279,8 +308,15 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             const propertiesSchema = {
                 type: 'object',
                 properties: {
-                    "contract": {
-                        type: 'string'
+                    "chainId": {
+                        title: 'Chain ID',
+                        type: 'number',
+                        readOnly: true
+                    },
+                    "feeTo": {
+                        type: 'string',
+                        default: eth_wallet_2.Wallet.getClientInstance().address,
+                        format: "wallet-address"
                     }
                 }
             };
@@ -398,8 +434,11 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                 if (userInputData.contract != undefined)
                                     this._data.contract = userInputData.contract;
                                 this.configDApp.data = this._data;
-                                this._contract = this._data.contract;
-                                await this.initApprovalAction();
+                                const commissionFee = store_2.getCommissionFee();
+                                if (new eth_wallet_2.BigNumber(commissionFee).gt(0) && userInputData.feeTo != undefined) {
+                                    this._data.feeTo = userInputData.feeTo;
+                                }
+                                this._gemTokenContract = this._data.contract;
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
@@ -407,8 +446,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             undo: async () => {
                                 this._data = Object.assign({}, this._oldData);
                                 this.configDApp.data = this._data;
-                                this._contract = this.configDApp.data.contract;
-                                await this.initApprovalAction();
+                                this._gemTokenContract = this.configDApp.data.contract;
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
@@ -454,9 +492,19 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
         }
         async setData(data) {
             this._data = data;
-            this._contract = data.contract;
+            this._gemTokenContract = data.contract;
             this.configDApp.data = data;
-            await this.initApprovalAction();
+            const commissionFee = store_2.getCommissionFee();
+            this.lbSubtotal.caption = `Subtotal (+${new eth_wallet_2.BigNumber(commissionFee).times(100)}% Commission Fee)`;
+            if (this.approvalModelAction) {
+                if (new eth_wallet_2.BigNumber(commissionFee).gt(0) && this._data.feeTo != undefined) {
+                    this._entryContract = store_2.getContractAddress('Proxy');
+                }
+                else {
+                    this._entryContract = this._gemTokenContract;
+                }
+                this.approvalModelAction.setSpenderAddress(this._entryContract);
+            }
             this.refreshDApp();
         }
         getTag() {
@@ -493,7 +541,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             this.gridDApp.visible = true;
             this.configDApp.visible = false;
             this._data = this.configDApp.data;
-            this._data.contract = this._contract;
+            this._data.contract = this._gemTokenContract;
             this.refreshDApp();
         }
         async confirm() {
@@ -512,9 +560,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                             reject(error);
                         }
                     }, (receipt) => {
-                        this._contract = receipt.contractAddress;
-                        this._data.contract = this._contract;
-                        this.initApprovalAction();
+                        this._gemTokenContract = receipt.contractAddress;
+                        this._data.contract = this._gemTokenContract;
                         this.refreshDApp();
                     });
                 }
@@ -526,7 +573,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     this.mdAlert.showModal();
                     reject(error);
                 }
-                if (!this._contract && !this._data)
+                if (!this._gemTokenContract && !this._data)
                     reject(new Error('Data missing'));
                 resolve();
                 if (this.loadingElm)
@@ -584,7 +631,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             this.backerStack.visible = !this.isBuy;
             this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
             this.pnlQty.visible = this.isBuy;
-            this.edtGemQty.readOnly = !this._contract;
+            this.edtGemQty.readOnly = !this._gemTokenContract;
             this.edtGemQty.value = "";
             if (!this.isBuy) {
                 this.btnSubmit.enabled = false;
@@ -593,9 +640,10 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 this.backerTokenBalanceLb.caption = '0.00';
             }
             const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-            this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
-            const total = new eth_wallet_2.BigNumber(this.edtAmount.value || 0).plus(feeValue).toFixed();
-            this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
+            this.feeLb.caption = `${feeValue || ''} ${this._data.name}`;
+            const qty = Number(this.edtGemQty.value);
+            const totalGemTokens = new eth_wallet_2.BigNumber(qty).minus(new eth_wallet_2.BigNumber(qty).times(feeValue)).toFixed();
+            this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
             this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
             this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
         }
@@ -612,7 +660,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                     backgroundColor: '#ffffff'
                 });
             }
-            this.$eventBus.dispatch('embedInitialized', this);
+            // this.$eventBus.dispatch('embedInitialized', this);
         }
         async initWalletData() {
             const selectedProvider = localStorage.getItem('walletProvider');
@@ -622,8 +670,9 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             }
         }
         async initApprovalAction() {
-            if (!this.approvalModelAction && wallet_1.isWalletConnected() && this._contract) {
-                this.approvalModelAction = utils_2.getERC20ApprovalModelAction(this._contract, {
+            if (!this.approvalModelAction) {
+                this._entryContract = store_2.getContractAddress('Proxy');
+                this.approvalModelAction = utils_2.getERC20ApprovalModelAction(this._entryContract, {
                     sender: this,
                     payAction: async () => {
                         await this.doSubmitAction();
@@ -718,13 +767,14 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
         async onQtyChanged() {
             const qty = Number(this.edtGemQty.value);
             const backerCoinAmount = this.getBackerCoinAmount(qty);
-            this.edtAmount.value = backerCoinAmount;
+            const commissionFee = store_2.getCommissionFee();
+            this.edtAmount.value = new eth_wallet_2.BigNumber(qty).times(commissionFee).plus(qty).toFixed();
             const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-            const total = new eth_wallet_2.BigNumber(backerCoinAmount).plus(feeValue).toFixed();
-            this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
+            const totalGemTokens = new eth_wallet_2.BigNumber(qty).minus(new eth_wallet_2.BigNumber(qty).times(feeValue)).toFixed();
+            this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
             this.btnApprove.enabled = new eth_wallet_2.BigNumber(this.edtGemQty.value).gt(0);
             if (this.approvalModelAction)
-                this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
+                this.approvalModelAction.checkAllowance(this._data.token, eth_wallet_2.Utils.toDecimals(backerCoinAmount, this._data.token.decimals).toFixed());
         }
         async onAmountChanged() {
             const gemAmount = Number(this.edtAmount.value);
@@ -744,14 +794,14 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             if (this.isBuy && tokenData) {
                 balance = await utils_2.getTokenBalance(tokenData);
             }
-            else if (!this.isBuy && this._contract) {
-                balance = await API_1.getGemBalance(this._contract);
+            else if (!this.isBuy && this._gemTokenContract) {
+                balance = await API_1.getGemBalance(this._gemTokenContract);
                 balance = eth_wallet_2.Utils.fromDecimals(balance);
             }
             return balance;
         }
         async doSubmitAction() {
-            if (!this._data || !this._contract)
+            if (!this._data || !this._gemTokenContract)
                 return;
             this.updateSubmitButton(true);
             // if (!this.tokenElm.token) {
@@ -818,12 +868,12 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             await this.onAmountChanged();
         }
         renderTokenInput() {
-            this.edtAmount.readOnly = this.isBuy || !this._contract;
+            this.edtAmount.readOnly = this.isBuy || !this._gemTokenContract;
             this.edtAmount.value = "";
             if (this.isBuy) {
                 this.tokenElm.token = this._data.token;
                 this.tokenElm.visible = true;
-                this.tokenElm.readonly = !!this._contract;
+                this.tokenElm.readonly = !!this._gemTokenContract;
                 this.gemLogoStack.visible = false;
                 this.maxStack.visible = false;
                 this.gridTokenInput.templateColumns = ['60%', 'auto'];
@@ -833,7 +883,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                 this.gemLogoStack.visible = true;
                 this.gemLogoStack.clearInnerHTML();
                 this.gemLogoStack.append(this.$render("i-image", { url: this._data.logo, class: index_css_1.imageStyle, width: 30, height: 30, fallbackUrl: assets_1.default.fullPath('img/gem-logo.svg') }));
-                this.maxStack.visible = !!this._contract;
+                this.maxStack.visible = !!this._gemTokenContract;
                 this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
             }
         }
@@ -865,7 +915,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                         this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_1.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4 } })),
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
-                                        this.$render("i-label", { caption: 'Subtotal', font: { size: '1rem' } }),
+                                        this.$render("i-label", { id: "lbSubtotal", caption: 'Subtotal', font: { size: '1rem' } }),
                                         this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                             this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                             this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
@@ -888,8 +938,8 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                         this.$render("i-icon", { id: "feeTooltip", name: "question-circle", fill: Theme.text.primary, width: 14, height: 14 })),
                                     this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })),
                                 this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
-                                    this.$render("i-label", { caption: "Total", font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                    this.$render("i-label", { id: "lbTotal", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })))))),
+                                    this.$render("i-label", { caption: "You will get", font: { size: '1rem', bold: true }, opacity: 0.6 }),
+                                    this.$render("i-label", { id: "lbYouWillGet", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })))))),
                 this.$render("gem-token-config", { id: 'configDApp', visible: false }),
                 this.$render("gem-token-alert", { id: 'mdAlert' })));
         }

@@ -38,25 +38,26 @@ export interface IContractDetailInfo {
   address: string;
 }
 
-export type ContractType = 'ProductInfo' | 'Proxy';
+export type ContractType = 'Proxy';
 
 export interface IContractInfo {
-  TriplayERC20Vault: IContractDetailInfo;
-  TriplayERC721Vault: IContractDetailInfo;
-  TriplayERC1155Vault: IContractDetailInfo;
-  TriplayPolicy: IContractDetailInfo;
+  Proxy: IContractDetailInfo;
 }
 
 export type ContractInfoByChainType = { [key: number]: IContractInfo };
 
 export const state = {
-  contractInfoByChain: {} as ContractInfoByChainType
+  contractInfoByChain: {} as ContractInfoByChainType,
+  commissionFee: "0"
 }
 
 export const setDataFromSCConfig = (options: any) => {
   if (options.contractInfo) {
     setContractInfo(options.contractInfo);
   }
+  if (options.commissionFee) {
+    setCommissionFee(options.commissionFee);
+  }  
 }
 
 const setContractInfo = (data: ContractInfoByChainType) => {
@@ -65,6 +66,20 @@ const setContractInfo = (data: ContractInfoByChainType) => {
 
 const getContractInfo = (chainId: number) => {
   return state.contractInfoByChain[chainId];
+}
+
+const setCommissionFee = (fee: string) => {
+  state.commissionFee = fee;
+}
+
+export const getCommissionFee = () => {
+  return state.commissionFee;
+}
+
+export const getContractAddress = (type: ContractType) => {
+  const chainId = Wallet.getInstance().chainId;
+  const contracts = getContractInfo(chainId) || {};
+  return contracts[type]?.address;
 }
 
 export * from './tokens/index';

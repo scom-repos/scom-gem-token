@@ -17,10 +17,10 @@ import {
   VStack,
   IDataSchema
 } from '@ijstech/components';
-import { BigNumber, Utils, WalletPlugin } from '@ijstech/eth-wallet';
+import { BigNumber, Utils, WalletPlugin, Wallet } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from '@pageblock-gem-token/interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from '@pageblock-gem-token/utils';
-import { EventId, getTokenList, setDataFromSCConfig } from '@pageblock-gem-token/store';
+import { EventId, getCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from '@pageblock-gem-token/store';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from '@pageblock-gem-token/wallet';
 import Config from '@pageblock-gem-token/config';
 import { TokenSelection } from '@pageblock-gem-token/token-selection';
@@ -45,7 +45,7 @@ export default class Main extends Module implements PageBlock {
   private toTokenLb: Label;
   private fromTokenLb: Label;
   private feeLb: Label;
-  private lbTotal: Label;
+  private lbYouWillGet: Label;
   private feeTooltip: Icon;
   private pnlQty: HStack;
   private edtGemQty: Input;
@@ -65,9 +65,11 @@ export default class Main extends Module implements PageBlock {
   private maxStack: Panel;
   private loadingElm: Panel;
   private pnlDescription: VStack;
+  private lbSubtotal: Label;
 
   private _type: DappType | undefined;
-  private _contract: string | undefined;
+  private _gemTokenContract: string | undefined;
+  private _entryContract: string;
   private _oldData: IConfig = {};
   private _data: IConfig = {
     name: '',
@@ -96,7 +98,7 @@ export default class Main extends Module implements PageBlock {
     this.$eventBus = application.EventBus;
     this.registerEvent();
   }
-  
+
   private registerEvent() {
     this.$eventBus.register(this, EventId.IsWalletConnected, () => this.onWalletConnect(true));
     this.$eventBus.register(this, EventId.IsWalletDisconnected, () => this.onWalletConnect(false));
@@ -128,7 +130,7 @@ export default class Main extends Module implements PageBlock {
   private get tokenSymbol() {
     return this._data?.token?.symbol || '';
   }
-  
+
   private updateTokenBalance = async () => {
     if (!this._data.token) return;
     let chainId = getChainId();
@@ -146,17 +148,24 @@ export default class Main extends Module implements PageBlock {
   getEmbedderActions() {
     const propertiesSchema: IDataSchema = {
       type: 'object',
-      properties: {         
-        "contract": {
-          type: 'string'
-        }            
+      properties: {
+        "chainId": {
+          title: 'Chain ID',
+          type: 'number',
+          readOnly: true
+        },                  
+        "feeTo": {
+          type: 'string',
+          default: Wallet.getClientInstance().address,
+          format: "wallet-address"
+        }
       }
     }
     if (!this._data.hideDescription) {
       propertiesSchema.properties['description'] = {
         type: 'string',
         format: 'multi'
-      };     
+      };
     }
     const themeSchema: IDataSchema = {
       type: 'object',
@@ -194,17 +203,17 @@ export default class Main extends Module implements PageBlock {
   getActions() {
     const propertiesSchema: IDataSchema = {
       type: 'object',
-      properties: {         
+      properties: {
         "contract": {
           type: 'string'
-        }            
+        }
       }
     }
     if (!this._data.hideDescription) {
       propertiesSchema.properties['description'] = {
         type: 'string',
         format: 'multi'
-      };     
+      };
     }
     const themeSchema: IDataSchema = {
       type: 'object',
@@ -242,7 +251,7 @@ export default class Main extends Module implements PageBlock {
         command: (builder: any, userInputData: any) => {
           return {
             execute: async () => {
-              this._oldData = {...this._data};
+              this._oldData = { ...this._data };
               if (userInputData.name != undefined) this._data.name = userInputData.name;
               if (userInputData.symbol != undefined) this._data.symbol = userInputData.symbol;
               if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
@@ -256,20 +265,22 @@ export default class Main extends Module implements PageBlock {
               if (userInputData.token != undefined) this._data.token = userInputData.token;
               if (userInputData.contract != undefined) this._data.contract = userInputData.contract;
               this.configDApp.data = this._data;
-              this._contract = this._data.contract;
-              await this.initApprovalAction();
+              const commissionFee = getCommissionFee();
+              if (new BigNumber(commissionFee).gt(0) && userInputData.feeTo != undefined) {
+                this._data.feeTo = userInputData.feeTo;
+              }
+              this._gemTokenContract = this._data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
-              this._data = {...this._oldData};
+              this._data = { ...this._oldData };
               this.configDApp.data = this._data;
-              this._contract = this.configDApp.data.contract;
-              await this.initApprovalAction();
+              this._gemTokenContract = this.configDApp.data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
-            redo: () => {}
+            redo: () => { }
           }
         },
         userInputDataSchema: propertiesSchema
@@ -281,34 +292,44 @@ export default class Main extends Module implements PageBlock {
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = {...this.tag};
+              this.oldTag = { ...this.tag };
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = {...this.oldTag};
+              this.tag = { ...this.oldTag };
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.oldTag);
             },
-            redo: () => {}
+            redo: () => { }
           }
         },
         userInputDataSchema: themeSchema
       }
     ]
-    return actions   
+    return actions
   }
-  
+
   getData() {
     return this._data;
   }
 
   async setData(data: IConfig) {
     this._data = data;
-    this._contract = data.contract;
+    this._gemTokenContract = data.contract;
     this.configDApp.data = data;
-    await this.initApprovalAction();
+    const commissionFee = getCommissionFee();
+    this.lbSubtotal.caption = `Subtotal (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
+    if (this.approvalModelAction) {
+      if (new BigNumber(commissionFee).gt(0) && this._data.feeTo != undefined) {
+        this._entryContract = getContractAddress('Proxy');
+      }
+      else {
+        this._entryContract = this._gemTokenContract;
+      }
+      this.approvalModelAction.setSpenderAddress(this._entryContract);
+    }
     this.refreshDApp();
   }
 
@@ -350,7 +371,7 @@ export default class Main extends Module implements PageBlock {
     this.gridDApp.visible = true;
     this.configDApp.visible = false;
     this._data = this.configDApp.data;
-    this._data.contract = this._contract;
+    this._data.contract = this._gemTokenContract;
     this.refreshDApp();
   }
 
@@ -369,9 +390,8 @@ export default class Main extends Module implements PageBlock {
             reject(error);
           }
         }, (receipt: any) => {
-          this._contract = receipt.contractAddress;
-          this._data.contract = this._contract;
-          this.initApprovalAction();
+          this._gemTokenContract = receipt.contractAddress;
+          this._data.contract = this._gemTokenContract;
           this.refreshDApp();
         });
       } catch (error) {
@@ -382,15 +402,15 @@ export default class Main extends Module implements PageBlock {
         this.mdAlert.showModal();
         reject(error);
       }
-      if (!this._contract && !this._data)
+      if (!this._gemTokenContract && !this._data)
         reject(new Error('Data missing'));
       resolve();
       if (this.loadingElm) this.loadingElm.visible = false;
     })
   }
-  
+
   private onDeploy = async (callback?: any, confirmationCallback?: any) => {
-    if (this._contract || !this._data.name) return;
+    if (this._gemTokenContract || !this._data.name) return;
     const params = {
       name: this._data.name,
       symbol: this._data.symbol,
@@ -405,8 +425,8 @@ export default class Main extends Module implements PageBlock {
       callback,
       confirmationCallback
     );
-    this._contract = result;
-    this._data.contract = this._contract;
+    this._gemTokenContract = result;
+    this._data.contract = this._gemTokenContract;
   }
 
   async discard() {
@@ -419,8 +439,8 @@ export default class Main extends Module implements PageBlock {
   validate() {
     const data = this.configDApp.data;
     if (
-      !data || 
-      !data.token || 
+      !data ||
+      !data.token ||
       !data.name ||
       !data.symbol ||
       data.cap === undefined ||
@@ -463,9 +483,9 @@ export default class Main extends Module implements PageBlock {
     this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
     this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
     this.backerStack.visible = !this.isBuy;
-    this.balanceLayout.templateAreas = [['qty'],['balance'], ['tokenInput'],['redeem']];
+    this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
     this.pnlQty.visible = this.isBuy;
-    this.edtGemQty.readOnly = !this._contract;
+    this.edtGemQty.readOnly = !this._gemTokenContract;
     this.edtGemQty.value = "";
     if (!this.isBuy) {
       this.btnSubmit.enabled = false;
@@ -474,9 +494,10 @@ export default class Main extends Module implements PageBlock {
       this.backerTokenBalanceLb.caption = '0.00';
     }
     const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-    this.feeLb.caption = `${feeValue || ''} ${this.tokenSymbol}`;
-    const total = new BigNumber(this.edtAmount.value || 0).plus(feeValue).toFixed();
-    this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
+    this.feeLb.caption = `${feeValue || ''} ${this._data.name}`;
+    const qty = Number(this.edtGemQty.value);
+    const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
+    this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
     this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
     this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
@@ -495,7 +516,7 @@ export default class Main extends Module implements PageBlock {
         backgroundColor: '#ffffff'
       });
     }
-    this.$eventBus.dispatch('embedInitialized', this);
+    // this.$eventBus.dispatch('embedInitialized', this);
   }
 
   private async initWalletData() {
@@ -507,8 +528,9 @@ export default class Main extends Module implements PageBlock {
   }
 
   private async initApprovalAction() {
-    if (!this.approvalModelAction && isWalletConnected() && this._contract) {
-      this.approvalModelAction = getERC20ApprovalModelAction(this._contract, {
+    if (!this.approvalModelAction) {
+      this._entryContract = getContractAddress('Proxy');
+      this.approvalModelAction = getERC20ApprovalModelAction(this._entryContract, {
         sender: this,
         payAction: async () => {
           await this.doSubmitAction();
@@ -557,7 +579,7 @@ export default class Main extends Module implements PageBlock {
           this.mdAlert.showModal();
           this.btnApprove.caption = 'Approve';
           this.btnApprove.rightIcon.visible = false;
-        },      
+        },
         onPaying: async (receipt?: string) => {
           if (receipt) {
             this.mdAlert.message = {
@@ -603,17 +625,19 @@ export default class Main extends Module implements PageBlock {
     this.mdAlert.showModal();
     this.approvalModelAction.doApproveAction(this._data.token, this.edtAmount.value);
   }
-  
+
   private async onQtyChanged() {
     const qty = Number(this.edtGemQty.value);
     const backerCoinAmount = this.getBackerCoinAmount(qty);
-    this.edtAmount.value = backerCoinAmount;
+    const commissionFee = getCommissionFee();
+    this.edtAmount.value = new BigNumber(qty).times(commissionFee).plus(qty).toFixed();
     const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-    const total = new BigNumber(backerCoinAmount).plus(feeValue).toFixed();
-    this.lbTotal.caption = `${total} ${this.tokenSymbol}`;
+    const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
+    this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
+    
     if (this.approvalModelAction)
-      this.approvalModelAction.checkAllowance(this._data.token, this.edtAmount.value);
+      this.approvalModelAction.checkAllowance(this._data.token, Utils.toDecimals(backerCoinAmount, this._data.token.decimals).toFixed());
   }
 
   private async onAmountChanged() {
@@ -636,15 +660,15 @@ export default class Main extends Module implements PageBlock {
     const tokenData = token || this._data.token;
     if (this.isBuy && tokenData) {
       balance = await getTokenBalance(tokenData);
-    } else if (!this.isBuy && this._contract) {
-      balance = await getGemBalance(this._contract);
+    } else if (!this.isBuy && this._gemTokenContract) {
+      balance = await getGemBalance(this._gemTokenContract);
       balance = Utils.fromDecimals(balance);
     }
     return balance;
   }
 
   private async doSubmitAction() {
-    if (!this._data || !this._contract) return;
+    if (!this._data || !this._gemTokenContract) return;
     this.updateSubmitButton(true);
     // if (!this.tokenElm.token) {
     //   this.mdAlert.message = {
@@ -717,7 +741,8 @@ export default class Main extends Module implements PageBlock {
         this.mdAlert.showModal();
       }
     };
-    await buyToken(this._contract, quantity, callback,
+
+    await buyToken(this._gemTokenContract, quantity, this._data.token, this._data.feeTo, callback,
       async (result: any) => {
         console.log('buyToken: ', result);
         this.edtGemQty.value = '';
@@ -741,7 +766,7 @@ export default class Main extends Module implements PageBlock {
       }
     };
     const gemAmount = this.edtAmount.value;
-    await redeemToken(this._contract, gemAmount, callback,
+    await redeemToken(this._gemTokenContract, gemAmount, callback,
       async (result: any) => {
         console.log('redeemToken: ', result);
         this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
@@ -757,12 +782,12 @@ export default class Main extends Module implements PageBlock {
   }
 
   private renderTokenInput() {
-    this.edtAmount.readOnly = this.isBuy || !this._contract;
+    this.edtAmount.readOnly = this.isBuy || !this._gemTokenContract;
     this.edtAmount.value = "";
     if (this.isBuy) {
       this.tokenElm.token = this._data.token;
       this.tokenElm.visible = true;
-      this.tokenElm.readonly = !!this._contract;
+      this.tokenElm.readonly = !!this._gemTokenContract;
       this.gemLogoStack.visible = false;
       this.maxStack.visible = false;
       this.gridTokenInput.templateColumns = ['60%', 'auto'];
@@ -777,18 +802,18 @@ export default class Main extends Module implements PageBlock {
           fallbackUrl={assets.fullPath('img/gem-logo.svg')}
         ></i-image>
       )
-      this.maxStack.visible = !!this._contract;
+      this.maxStack.visible = !!this._gemTokenContract;
       this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
     }
   }
 
   render() {
     return (
-      <i-panel background={{color: Theme.background.main}}>
+      <i-panel background={{ color: Theme.background.main }}>
         <i-panel>
           <i-vstack id="loadingElm" class="i-loading-overlay" visible={false}>
             <i-vstack class="i-loading-spinner" horizontalAlignment="center" verticalAlignment="center">
-              <i-icon 
+              <i-icon
                 class="i-loading-spinner_icon"
                 width={24} height={24}
                 name="spinner"
@@ -805,7 +830,7 @@ export default class Main extends Module implements PageBlock {
             width='100%'
             height='100%'
             templateColumns={['repeat(2, 1fr)']}
-            padding={{bottom: '1.563rem'}}
+            padding={{ bottom: '1.563rem' }}
           >
             <i-vstack
               id="pnlDescription"
@@ -815,13 +840,13 @@ export default class Main extends Module implements PageBlock {
               <i-hstack>
                 <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
               </i-hstack>
-              <i-label id="lblTitle" font={{bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase'}}></i-label>
+              <i-label id="lblTitle" font={{ bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' }}></i-label>
               <i-markdown
                 id='markdownViewer'
                 class={markdownStyle}
                 width='100%'
                 height='100%'
-                font={{size: '1rem'}}
+                font={{ size: '1rem' }}
               ></i-markdown>
             </i-vstack>
             <i-vstack
@@ -831,20 +856,20 @@ export default class Main extends Module implements PageBlock {
             >
               <i-vstack horizontalAlignment='center' id="pnlLogoTitle" gap='0.5rem'>
                 <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
-                <i-label id="lblTitle2" font={{bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase'}}></i-label>
+                <i-label id="lblTitle2" font={{ bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' }}></i-label>
               </i-vstack>
-              <i-label caption="Price" font={{size: '1rem'}} opacity={0.6}></i-label>
-              <i-hstack gap="4px" class={centerStyle} margin={{bottom: '1rem'}}>
-                <i-label id="fromTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>
-                <i-label caption="=" font={{bold: true, size: '1.5rem'}}></i-label>
-                <i-label id="toTokenLb" font={{bold: true, size: '1.5rem'}}></i-label>
+              <i-label caption="Price" font={{ size: '1rem' }} opacity={0.6}></i-label>
+              <i-hstack gap="4px" class={centerStyle} margin={{ bottom: '1rem' }}>
+                <i-label id="fromTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
+                <i-label caption="=" font={{ bold: true, size: '1.5rem' }}></i-label>
+                <i-label id="toTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
               </i-hstack>
               <i-vstack gap="0.5rem">
                 <i-grid-layout
                   id="balanceLayout"
-                  gap={{column: '0.5rem', row: '0.25rem'}}
+                  gap={{ column: '0.5rem', row: '0.25rem' }}
                 >
-                  <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{area: 'qty'}}>
+                  <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{ area: 'qty' }}>
                     <i-label
                       caption='Qty'
                       font={{ size: '1rem', bold: true }}
@@ -864,12 +889,12 @@ export default class Main extends Module implements PageBlock {
                     horizontalAlignment="space-between"
                     verticalAlignment='center'
                     gap="0.5rem"
-                    grid={{area: 'balance'}}
+                    grid={{ area: 'balance' }}
                   >
-                    <i-label caption='Subtotal' font={{size: '1rem'}}></i-label>
+                    <i-label id="lbSubtotal" caption='Subtotal' font={{ size: '1rem' }}></i-label>
                     <i-hstack verticalAlignment='center' gap="0.5rem">
-                      <i-label caption='Balance:' font={{size: '1rem'}} opacity={0.6}></i-label>
-                      <i-label id='lblBalance' font={{size: '1rem'}} opacity={0.6}></i-label>
+                      <i-label caption='Balance:' font={{ size: '1rem' }} opacity={0.6}></i-label>
+                      <i-label id='lblBalance' font={{ size: '1rem' }} opacity={0.6}></i-label>
                     </i-hstack>
                   </i-hstack>
                   <i-grid-layout
@@ -877,12 +902,12 @@ export default class Main extends Module implements PageBlock {
                     verticalAlignment="center"
                     templateColumns={['60%', 'auto']}
                     border={{ radius: 16 }} overflow="hidden"
-                    background={{color: Theme.input.background}}
-                    font={{color: Theme.input.fontColor}}
+                    background={{ color: Theme.input.background }}
+                    font={{ color: Theme.input.fontColor }}
                     height={56} width="100%"
-                    grid={{area: 'tokenInput'}}
+                    grid={{ area: 'tokenInput' }}
                   >
-                    <i-panel id="gemLogoStack" padding={{left: 10}} visible={false}/>
+                    <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
                     <gem-token-selection
                       id="tokenElm"
                       class={tokenSelectionStyle}
@@ -914,8 +939,8 @@ export default class Main extends Module implements PageBlock {
                     id="backerStack"
                     horizontalAlignment="space-between"
                     verticalAlignment="center"
-                    grid={{area: 'redeem'}}
-                    margin={{top: '1rem', bottom: '1rem'}}
+                    grid={{ area: 'redeem' }}
+                    margin={{ top: '1rem', bottom: '1rem' }}
                     maxWidth="50%"
                     visible={false}
                   >
@@ -924,7 +949,7 @@ export default class Main extends Module implements PageBlock {
                     <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '1rem' }}></i-label>
                   </i-hstack>
                 </i-grid-layout>
-                <i-vstack horizontalAlignment="center" verticalAlignment='center' gap="8px" margin={{bottom: '1.313rem'}}>
+                <i-vstack horizontalAlignment="center" verticalAlignment='center' gap="8px" margin={{ bottom: '1.313rem' }}>
                   <i-button
                     id="btnApprove"
                     minWidth='100%'
@@ -932,26 +957,26 @@ export default class Main extends Module implements PageBlock {
                     padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
                     font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
-                    border={{radius: 12}}
+                    border={{ radius: 12 }}
                     visible={false}
                     onClick={this.onApprove.bind(this)}
-                  ></i-button>                
+                  ></i-button>
                   <i-button
                     id='btnSubmit'
                     minWidth='100%'
                     caption='Submit'
                     padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
                     font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
-                    background={{color: Theme.colors.primary.main}}
+                    background={{ color: Theme.colors.primary.main }}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
-                    border={{radius: 12}}
+                    border={{ radius: 12 }}
                     onClick={this.onSubmit.bind(this)}
                     enabled={false}
                   ></i-button>
                 </i-vstack>
                 <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem">
                   <i-hstack horizontalAlignment="end" verticalAlignment="center" gap={4}>
-                    <i-label caption="Transaction Fee" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
+                    <i-label caption="Transaction Fee" font={{ size: '1rem', bold: true }} opacity={0.6}></i-label>
                     <i-icon
                       id="feeTooltip"
                       name="question-circle"
@@ -962,9 +987,9 @@ export default class Main extends Module implements PageBlock {
                   <i-label id="feeLb" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
                 </i-hstack>
                 <i-hstack horizontalAlignment="space-between" verticalAlignment="center" gap="0.5rem">
-                  <i-label caption="Total" font={{size: '1rem', bold: true}} opacity={0.6}></i-label>
-                  <i-label id="lbTotal" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
-                </i-hstack>                
+                  <i-label caption="You will get" font={{ size: '1rem', bold: true }} opacity={0.6}></i-label>
+                  <i-label id="lbYouWillGet" font={{ size: '1rem', bold: true }} opacity={0.6} caption="0"></i-label>
+                </i-hstack>
                 {/* <i-label
                   caption='Terms & Condition'
                   font={{ size: '0.75rem' }}

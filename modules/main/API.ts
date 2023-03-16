@@ -1,7 +1,9 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
 import { DappType, IDeploy, ITokenObject } from '@pageblock-gem-token/interface';
 import { Contracts, deploy } from '@scom/gem-token-contract';
+import { Contracts as ProxyContracts } from '@scom/scom-commission-proxy-contract';
 import { registerSendTxEvents } from '@pageblock-gem-token/utils';
+import { getCommissionFee, getContractAddress } from '@pageblock-gem-token/store';
 
 async function getFee(contractAddress: string, type: DappType) {
   const wallet = Wallet.getInstance();
@@ -63,8 +65,10 @@ async function transfer(contractAddress: string, to: string, amount: string) {
 }
 
 async function buyToken(
-  address: string,
+  contractAddress: string,
   backerCoinAmount: number,
+  token: ITokenObject,
+  feeTo: string,
   callback?: any,
   confirmationCallback?: any
 ) {
@@ -74,8 +78,40 @@ async function buyToken(
       confirmation: confirmationCallback
     });
     const wallet = Wallet.getInstance();
-    const contract = new Contracts.GEM(wallet, address);
-    const receipt = await contract.buy(Utils.toDecimals(backerCoinAmount).dp(0));
+    const commissionFee = getCommissionFee();
+    const tokenDecimals = token?.decimals || 18;
+    const amount = Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
+    const _commissions = [
+      {
+        to: feeTo,
+        amount: new BigNumber(amount).times(commissionFee)
+      }
+    ]
+    const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new BigNumber(0);
+    const contract = new Contracts.GEM(wallet, contractAddress);
+
+    let receipt;
+    if (commissionsAmount.isZero()) {
+      receipt = await contract.buy(amount);
+    }
+    else {
+      let proxyAddress = getContractAddress('Proxy');
+      const proxy = new ProxyContracts.Proxy(wallet, proxyAddress);
+      const txData = await contract.buy.txData(amount);
+      const tokensIn =
+      {
+          token: token.address,
+          amount: commissionsAmount.plus(amount),
+          directTransfer: false,
+          commissions: _commissions
+      };
+      receipt = await proxy.tokenIn({
+        target: contractAddress,
+        tokensIn,
+        data: txData
+      })
+    }
+
     if (receipt) {
       const data = contract.parseBuyEvent(receipt)[0];
       return {

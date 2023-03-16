@@ -39,6 +39,7 @@ export interface IConfig extends Partial<IDeploy> {
   hideDescription?: boolean;
   chainId?: number;
   token?: ITokenObject;
+  feeTo?: string;
   contract?: string;
 }
 

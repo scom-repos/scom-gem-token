@@ -99,8 +99,13 @@ define("@scom/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/E
                 let result = await this.call('approve', approveParams(params), options);
                 return result;
             };
+            let approve_txData = async (params, options) => {
+                let result = await this.txData('approve', approveParams(params), options);
+                return result;
+            };
             this.approve = Object.assign(approve_send, {
-                call: approve_call
+                call: approve_call,
+                txData: approve_txData
             });
             let decreaseAllowanceParams = (params) => [params.spender, this.wallet.utils.toString(params.subtractedValue)];
             let decreaseAllowance_send = async (params, options) => {
@@ -111,8 +116,13 @@ define("@scom/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/E
                 let result = await this.call('decreaseAllowance', decreaseAllowanceParams(params), options);
                 return result;
             };
+            let decreaseAllowance_txData = async (params, options) => {
+                let result = await this.txData('decreaseAllowance', decreaseAllowanceParams(params), options);
+                return result;
+            };
             this.decreaseAllowance = Object.assign(decreaseAllowance_send, {
-                call: decreaseAllowance_call
+                call: decreaseAllowance_call,
+                txData: decreaseAllowance_txData
             });
             let increaseAllowanceParams = (params) => [params.spender, this.wallet.utils.toString(params.addedValue)];
             let increaseAllowance_send = async (params, options) => {
@@ -123,8 +133,13 @@ define("@scom/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/E
                 let result = await this.call('increaseAllowance', increaseAllowanceParams(params), options);
                 return result;
             };
+            let increaseAllowance_txData = async (params, options) => {
+                let result = await this.txData('increaseAllowance', increaseAllowanceParams(params), options);
+                return result;
+            };
             this.increaseAllowance = Object.assign(increaseAllowance_send, {
-                call: increaseAllowance_call
+                call: increaseAllowance_call,
+                txData: increaseAllowance_txData
             });
             let transferParams = (params) => [params.to, this.wallet.utils.toString(params.amount)];
             let transfer_send = async (params, options) => {
@@ -135,8 +150,13 @@ define("@scom/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/E
                 let result = await this.call('transfer', transferParams(params), options);
                 return result;
             };
+            let transfer_txData = async (params, options) => {
+                let result = await this.txData('transfer', transferParams(params), options);
+                return result;
+            };
             this.transfer = Object.assign(transfer_send, {
-                call: transfer_call
+                call: transfer_call,
+                txData: transfer_txData
             });
             let transferFromParams = (params) => [params.from, params.to, this.wallet.utils.toString(params.amount)];
             let transferFrom_send = async (params, options) => {
@@ -147,8 +167,13 @@ define("@scom/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/E
                 let result = await this.call('transferFrom', transferFromParams(params), options);
                 return result;
             };
+            let transferFrom_txData = async (params, options) => {
+                let result = await this.txData('transferFrom', transferFromParams(params), options);
+                return result;
+            };
             this.transferFrom = Object.assign(transferFrom_send, {
-                call: transferFrom_call
+                call: transferFrom_call,
+                txData: transferFrom_txData
             });
         }
     }
@@ -546,8 +571,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('approve', approveParams(params), options);
                 return result;
             };
+            let approve_txData = async (params, options) => {
+                let result = await this.txData('approve', approveParams(params), options);
+                return result;
+            };
             this.approve = Object.assign(approve_send, {
-                call: approve_call
+                call: approve_call,
+                txData: approve_txData
             });
             let buy_send = async (amount, options) => {
                 let result = await this.send('buy', [this.wallet.utils.toString(amount)], options);
@@ -557,8 +587,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('buy', [this.wallet.utils.toString(amount)], options);
                 return;
             };
+            let buy_txData = async (amount, options) => {
+                let result = await this.txData('buy', [this.wallet.utils.toString(amount)], options);
+                return result;
+            };
             this.buy = Object.assign(buy_send, {
-                call: buy_call
+                call: buy_call,
+                txData: buy_txData
             });
             let decreaseAllowanceParams = (params) => [params.spender, this.wallet.utils.toString(params.subtractedValue)];
             let decreaseAllowance_send = async (params, options) => {
@@ -569,8 +604,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('decreaseAllowance', decreaseAllowanceParams(params), options);
                 return result;
             };
+            let decreaseAllowance_txData = async (params, options) => {
+                let result = await this.txData('decreaseAllowance', decreaseAllowanceParams(params), options);
+                return result;
+            };
             this.decreaseAllowance = Object.assign(decreaseAllowance_send, {
-                call: decreaseAllowance_call
+                call: decreaseAllowance_call,
+                txData: decreaseAllowance_txData
             });
             let deny_send = async (user, options) => {
                 let result = await this.send('deny', [user], options);
@@ -580,8 +620,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('deny', [user], options);
                 return;
             };
+            let deny_txData = async (user, options) => {
+                let result = await this.txData('deny', [user], options);
+                return result;
+            };
             this.deny = Object.assign(deny_send, {
-                call: deny_call
+                call: deny_call,
+                txData: deny_txData
             });
             let increaseAllowanceParams = (params) => [params.spender, this.wallet.utils.toString(params.addedValue)];
             let increaseAllowance_send = async (params, options) => {
@@ -592,8 +637,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('increaseAllowance', increaseAllowanceParams(params), options);
                 return result;
             };
+            let increaseAllowance_txData = async (params, options) => {
+                let result = await this.txData('increaseAllowance', increaseAllowanceParams(params), options);
+                return result;
+            };
             this.increaseAllowance = Object.assign(increaseAllowance_send, {
-                call: increaseAllowance_call
+                call: increaseAllowance_call,
+                txData: increaseAllowance_txData
             });
             let pause_send = async (options) => {
                 let result = await this.send('pause', [], options);
@@ -603,8 +653,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('pause', [], options);
                 return;
             };
+            let pause_txData = async (options) => {
+                let result = await this.txData('pause', [], options);
+                return result;
+            };
             this.pause = Object.assign(pause_send, {
-                call: pause_call
+                call: pause_call,
+                txData: pause_txData
             });
             let permit_send = async (user, options) => {
                 let result = await this.send('permit', [user], options);
@@ -614,8 +669,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('permit', [user], options);
                 return;
             };
+            let permit_txData = async (user, options) => {
+                let result = await this.txData('permit', [user], options);
+                return result;
+            };
             this.permit = Object.assign(permit_send, {
-                call: permit_call
+                call: permit_call,
+                txData: permit_txData
             });
             let redeem_send = async (amount, options) => {
                 let result = await this.send('redeem', [this.wallet.utils.toString(amount)], options);
@@ -625,8 +685,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('redeem', [this.wallet.utils.toString(amount)], options);
                 return;
             };
+            let redeem_txData = async (amount, options) => {
+                let result = await this.txData('redeem', [this.wallet.utils.toString(amount)], options);
+                return result;
+            };
             this.redeem = Object.assign(redeem_send, {
-                call: redeem_call
+                call: redeem_call,
+                txData: redeem_txData
             });
             let redeemFee_send = async (amount, options) => {
                 let result = await this.send('redeemFee', [this.wallet.utils.toString(amount)], options);
@@ -636,8 +701,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('redeemFee', [this.wallet.utils.toString(amount)], options);
                 return;
             };
+            let redeemFee_txData = async (amount, options) => {
+                let result = await this.txData('redeemFee', [this.wallet.utils.toString(amount)], options);
+                return result;
+            };
             this.redeemFee = Object.assign(redeemFee_send, {
-                call: redeemFee_call
+                call: redeemFee_call,
+                txData: redeemFee_txData
             });
             let sync_send = async (options) => {
                 let result = await this.send('sync', [], options);
@@ -647,8 +717,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('sync', [], options);
                 return;
             };
+            let sync_txData = async (options) => {
+                let result = await this.txData('sync', [], options);
+                return result;
+            };
             this.sync = Object.assign(sync_send, {
-                call: sync_call
+                call: sync_call,
+                txData: sync_txData
             });
             let takeOwnership_send = async (options) => {
                 let result = await this.send('takeOwnership', [], options);
@@ -658,8 +733,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('takeOwnership', [], options);
                 return;
             };
+            let takeOwnership_txData = async (options) => {
+                let result = await this.txData('takeOwnership', [], options);
+                return result;
+            };
             this.takeOwnership = Object.assign(takeOwnership_send, {
-                call: takeOwnership_call
+                call: takeOwnership_call,
+                txData: takeOwnership_txData
             });
             let transferParams = (params) => [params.to, this.wallet.utils.toString(params.amount)];
             let transfer_send = async (params, options) => {
@@ -670,8 +750,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('transfer', transferParams(params), options);
                 return result;
             };
+            let transfer_txData = async (params, options) => {
+                let result = await this.txData('transfer', transferParams(params), options);
+                return result;
+            };
             this.transfer = Object.assign(transfer_send, {
-                call: transfer_call
+                call: transfer_call,
+                txData: transfer_txData
             });
             let transferFromParams = (params) => [params.from, params.to, this.wallet.utils.toString(params.amount)];
             let transferFrom_send = async (params, options) => {
@@ -682,8 +767,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('transferFrom', transferFromParams(params), options);
                 return result;
             };
+            let transferFrom_txData = async (params, options) => {
+                let result = await this.txData('transferFrom', transferFromParams(params), options);
+                return result;
+            };
             this.transferFrom = Object.assign(transferFrom_send, {
-                call: transferFrom_call
+                call: transferFrom_call,
+                txData: transferFrom_txData
             });
             let transferOwnership_send = async (newOwner, options) => {
                 let result = await this.send('transferOwnership', [newOwner], options);
@@ -693,8 +783,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('transferOwnership', [newOwner], options);
                 return;
             };
+            let transferOwnership_txData = async (newOwner, options) => {
+                let result = await this.txData('transferOwnership', [newOwner], options);
+                return result;
+            };
             this.transferOwnership = Object.assign(transferOwnership_send, {
-                call: transferOwnership_call
+                call: transferOwnership_call,
+                txData: transferOwnership_txData
             });
             let unpause_send = async (options) => {
                 let result = await this.send('unpause', [], options);
@@ -704,8 +799,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('unpause', [], options);
                 return;
             };
+            let unpause_txData = async (options) => {
+                let result = await this.txData('unpause', [], options);
+                return result;
+            };
             this.unpause = Object.assign(unpause_send, {
-                call: unpause_call
+                call: unpause_call,
+                txData: unpause_txData
             });
             let updateCap_send = async (cap, options) => {
                 let result = await this.send('updateCap', [this.wallet.utils.toString(cap)], options);
@@ -715,8 +815,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('updateCap', [this.wallet.utils.toString(cap)], options);
                 return;
             };
+            let updateCap_txData = async (cap, options) => {
+                let result = await this.txData('updateCap', [this.wallet.utils.toString(cap)], options);
+                return result;
+            };
             this.updateCap = Object.assign(updateCap_send, {
-                call: updateCap_call
+                call: updateCap_call,
+                txData: updateCap_txData
             });
             let updateMintingFee_send = async (mintingFee, options) => {
                 let result = await this.send('updateMintingFee', [this.wallet.utils.toString(mintingFee)], options);
@@ -726,8 +831,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('updateMintingFee', [this.wallet.utils.toString(mintingFee)], options);
                 return;
             };
+            let updateMintingFee_txData = async (mintingFee, options) => {
+                let result = await this.txData('updateMintingFee', [this.wallet.utils.toString(mintingFee)], options);
+                return result;
+            };
             this.updateMintingFee = Object.assign(updateMintingFee_send, {
-                call: updateMintingFee_call
+                call: updateMintingFee_call,
+                txData: updateMintingFee_txData
             });
             let updateRedemptionFee_send = async (redemptionFee, options) => {
                 let result = await this.send('updateRedemptionFee', [this.wallet.utils.toString(redemptionFee)], options);
@@ -737,8 +847,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('updateRedemptionFee', [this.wallet.utils.toString(redemptionFee)], options);
                 return;
             };
+            let updateRedemptionFee_txData = async (redemptionFee, options) => {
+                let result = await this.txData('updateRedemptionFee', [this.wallet.utils.toString(redemptionFee)], options);
+                return result;
+            };
             this.updateRedemptionFee = Object.assign(updateRedemptionFee_send, {
-                call: updateRedemptionFee_call
+                call: updateRedemptionFee_call,
+                txData: updateRedemptionFee_txData
             });
             let updateTreasury_send = async (treasury, options) => {
                 let result = await this.send('updateTreasury', [treasury], options);
@@ -748,8 +863,13 @@ define("@scom/gem-token-contract/contracts/GEM.ts", ["require", "exports", "@ijs
                 let result = await this.call('updateTreasury', [treasury], options);
                 return;
             };
+            let updateTreasury_txData = async (treasury, options) => {
+                let result = await this.txData('updateTreasury', [treasury], options);
+                return result;
+            };
             this.updateTreasury = Object.assign(updateTreasury_send, {
-                call: updateTreasury_call
+                call: updateTreasury_call,
+                txData: updateTreasury_txData
             });
         }
     }
