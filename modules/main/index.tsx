@@ -14,7 +14,8 @@ import {
   application,
   Panel,
   Icon,
-  VStack
+  VStack,
+  IDataSchema
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from '@pageblock-gem-token/interface';
@@ -142,8 +143,8 @@ export default class Main extends Module implements PageBlock {
       await this.initApprovalAction();
   }
 
-  getActions() {
-    const userInputDataSchema = {
+  getEmbedderActions() {
+    const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {         
         "contract": {
@@ -152,11 +153,88 @@ export default class Main extends Module implements PageBlock {
       }
     }
     if (!this._data.hideDescription) {
-      userInputDataSchema.properties['description'] = {
+      propertiesSchema.properties['description'] = {
         type: 'string',
         format: 'multi'
       };     
     }
+    const themeSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        backgroundColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        },
+        fontColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        },
+        inputBackgroundColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        },
+        inputFontColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        },
+        buttonBackgroundColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        }
+      }
+    };
+    return this._getActions(propertiesSchema, themeSchema);
+  }
+
+  getActions() {
+    const propertiesSchema: IDataSchema = {
+      type: 'object',
+      properties: {         
+        "contract": {
+          type: 'string'
+        }            
+      }
+    }
+    if (!this._data.hideDescription) {
+      propertiesSchema.properties['description'] = {
+        type: 'string',
+        format: 'multi'
+      };     
+    }
+    const themeSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        backgroundColor: {
+          type: 'string',
+          format: 'color'
+        },
+        fontColor: {
+          type: 'string',
+          format: 'color'
+        },
+        inputBackgroundColor: {
+          type: 'string',
+          format: 'color'
+        },
+        inputFontColor: {
+          type: 'string',
+          format: 'color'
+        },
+        buttonBackgroundColor: {
+          type: 'string',
+          format: 'color'
+        }
+      }
+    };
+    return this._getActions(propertiesSchema, themeSchema);
+  }
+
+  _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
         name: 'Settings',
@@ -194,7 +272,7 @@ export default class Main extends Module implements PageBlock {
             redo: () => {}
           }
         },
-        userInputDataSchema: userInputDataSchema
+        userInputDataSchema: propertiesSchema
       },
       {
         name: 'Theme Settings',
@@ -216,36 +294,12 @@ export default class Main extends Module implements PageBlock {
             redo: () => {}
           }
         },
-        userInputDataSchema: {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputBackgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputFontColor: {
-              type: 'string',
-              format: 'color'
-            },
-            buttonBackgroundColor: {
-              type: 'string',
-              format: 'color'
-            }
-          }
-        }
+        userInputDataSchema: themeSchema
       }
     ]
-    return actions
+    return actions   
   }
-
+  
   getData() {
     return this._data;
   }
