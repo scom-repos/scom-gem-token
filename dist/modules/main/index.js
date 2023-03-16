@@ -495,7 +495,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
             this._gemTokenContract = data.contract;
             this.configDApp.data = data;
             const commissionFee = store_2.getCommissionFee();
-            this.lbSubtotal.caption = `Subtotal (+${new eth_wallet_2.BigNumber(commissionFee).times(100)}% Commission Fee)`;
+            this.lbOrderTotal.caption = `Total (+${new eth_wallet_2.BigNumber(commissionFee).times(100)}% Commission Fee)`;
             if (this.approvalModelAction) {
                 if (new eth_wallet_2.BigNumber(commissionFee).gt(0) && this._data.feeTo != undefined) {
                     this._entryContract = store_2.getContractAddress('Proxy');
@@ -915,7 +915,7 @@ define("@pageblock-gem-token/main", ["require", "exports", "@ijstech/components"
                                         this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_1.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4 } })),
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
-                                        this.$render("i-label", { id: "lbSubtotal", caption: 'Subtotal', font: { size: '1rem' } }),
+                                        this.$render("i-label", { id: "lbOrderTotal", caption: 'Total', font: { size: '1rem' } }),
                                         this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                             this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                             this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),

@@ -65,7 +65,7 @@ export default class Main extends Module implements PageBlock {
   private maxStack: Panel;
   private loadingElm: Panel;
   private pnlDescription: VStack;
-  private lbSubtotal: Label;
+  private lbOrderTotal: Label;
 
   private _type: DappType | undefined;
   private _gemTokenContract: string | undefined;
@@ -320,7 +320,7 @@ export default class Main extends Module implements PageBlock {
     this._gemTokenContract = data.contract;
     this.configDApp.data = data;
     const commissionFee = getCommissionFee();
-    this.lbSubtotal.caption = `Subtotal (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
+    this.lbOrderTotal.caption = `Total (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
     if (this.approvalModelAction) {
       if (new BigNumber(commissionFee).gt(0) && this._data.feeTo != undefined) {
         this._entryContract = getContractAddress('Proxy');
@@ -891,7 +891,7 @@ export default class Main extends Module implements PageBlock {
                     gap="0.5rem"
                     grid={{ area: 'balance' }}
                   >
-                    <i-label id="lbSubtotal" caption='Subtotal' font={{ size: '1rem' }}></i-label>
+                    <i-label id="lbOrderTotal" caption='Total' font={{ size: '1rem' }}></i-label>
                     <i-hstack verticalAlignment='center' gap="0.5rem">
                       <i-label caption='Balance:' font={{ size: '1rem' }} opacity={0.6}></i-label>
                       <i-label id='lblBalance' font={{ size: '1rem' }} opacity={0.6}></i-label>
