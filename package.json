@@ -1,6 +1,10 @@
 {
-    "name": "@scom/pageblock-gem-token",
+    "name": "@scom/scom-gem-token",
     "version": "0.1.1",
+    "main": "dist/index.js",
+    "plugin": "dist",
+    "pluginTypes": "pluginTypes/index.d.ts",
+    "types": "types/index.d.ts",
     "engines": {
         "node": ">=18.0.0"
     },
@@ -14,8 +18,10 @@
         "@scom/scom-commission-proxy-contract": "^0.1.2"
     },
     "scripts": {
+        "postinstall": "npm run copy",
+        "copy": "sh ./scripts/copy.sh",
         "build": "rm -rf dist && npx @ijstech/compiler",
         "serve": "npx @ijstech/cli serve 8080",
-        "test": "npm run build && npm run serve"
+        "test": "cd test && npm run test && cd .."
     }
 }

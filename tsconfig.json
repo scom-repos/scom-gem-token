@@ -11,10 +11,10 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@pageblock-gem-token/*":["modules/*"],
+            "@pageblock-gem-token/*":["src/*"],
             "@scom/gem-token-contract": ["repos/gem-token-contract"]
         }
     },
-    "include": ["modules/**/*.ts","modules/**/*.tsx"],
+    "include": ["src/**/*.ts","src/**/*.tsx"],
     "exclude": ["node_modules"]
 }
