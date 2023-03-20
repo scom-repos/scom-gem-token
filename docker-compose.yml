@@ -6,6 +6,18 @@ services:
     volumes:
       - .:/app
     command: bash -c "cd /app && rm -rf node_modules && rm -f package-lock.json && npm i"
+  copy: 
+    user: node
+    image: node:18
+    volumes:
+      - .:/app
+    command: bash -c "cd /app && npm run copy"    
+  installTest:
+    user: node
+    image: node:18
+    volumes:
+      - .:/app
+    command: bash -c "cd /app/test && rm -rf node_modules && rm -f package-lock.json && npm i"       
   build: 
     user: node
     image: node:18
@@ -24,7 +36,7 @@ services:
     user: node
     image: node:18
     ports:
-      - "8080:8080"
+      - "8033:8080"
     volumes:
       - .:/app
     command: bash -c "cd /app && npm run test"         

@@ -1,4 +1,5 @@
 node_modules
 package-lock.json
-
-repos
+test/dist
+test/ref
+repos/
