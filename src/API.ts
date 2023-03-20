@@ -68,7 +68,7 @@ async function buyToken(
   contractAddress: string,
   backerCoinAmount: number,
   token: ITokenObject,
-  feeTo: string,
+  feeTo?: string,
   callback?: any,
   confirmationCallback?: any
 ) {
@@ -81,12 +81,14 @@ async function buyToken(
     const commissionFee = getCommissionFee();
     const tokenDecimals = token?.decimals || 18;
     const amount = Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
-    const _commissions = [
-      {
+    const _commissions = [];
+    if (feeTo) {
+      _commissions.push(        {
         to: feeTo,
         amount: new BigNumber(amount).times(commissionFee)
-      }
-    ]
+      })
+    }
+
     const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new BigNumber(0);
     const contract = new Contracts.GEM(wallet, contractAddress);
 

@@ -4920,12 +4920,13 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
             const commissionFee = index_10.getCommissionFee();
             const tokenDecimals = (token === null || token === void 0 ? void 0 : token.decimals) || 18;
             const amount = eth_wallet_8.Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
-            const _commissions = [
-                {
+            const _commissions = [];
+            if (feeTo) {
+                _commissions.push({
                     to: feeTo,
                     amount: new eth_wallet_8.BigNumber(amount).times(commissionFee)
-                }
-            ];
+                });
+            }
             const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new eth_wallet_8.BigNumber(0);
             const contract = new index_7.Contracts.GEM(wallet, contractAddress);
             let receipt;
@@ -5082,8 +5083,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.onChainChanged = async () => {
                 this.onSetupPage(true);
                 await this.updateTokenBalance();
-                if (this.tokenElm)
-                    this.tokenElm.token = undefined;
+                // if (this.tokenElm)
+                //   this.tokenElm.token = undefined;
             };
             this.updateTokenBalance = async () => {
                 if (!this._data.token)
@@ -5523,6 +5524,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         }
         async init() {
             var _a;
+            this.isReadyCallbackQueued = true;
             super.init();
             await this.initWalletData();
             await this.onSetupPage(index_13.isWalletConnected());
@@ -5560,7 +5562,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this._data.feeTo = feeTo;
             }
             this._gemTokenContract = this._data.contract;
-            this.refreshDApp();
+            await this.refreshDApp();
+            this.isReadyCallbackQueued = false;
+            this.executeReadyCallback();
         }
         get chainId() {
             var _a;

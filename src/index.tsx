@@ -537,6 +537,7 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   async init() {
+    this.isReadyCallbackQueued = true;
     super.init();
     await this.initWalletData();
     await this.onSetupPage(isWalletConnected());
@@ -575,7 +576,9 @@ export default class ScomGemToken extends Module implements PageBlock {
       this._data.feeTo = feeTo;
     }
     this._gemTokenContract = this._data.contract;
-    this.refreshDApp();
+    await this.refreshDApp();
+    this.isReadyCallbackQueued = false;
+    this.executeReadyCallback();
   }
 
   get chainId() {

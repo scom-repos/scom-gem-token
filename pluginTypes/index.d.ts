@@ -1752,7 +1752,7 @@ declare module "@scom/scom-gem-token/API.ts" {
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         value: any;
     }>;
-    function buyToken(contractAddress: string, backerCoinAmount: number, token: ITokenObject, feeTo: string, callback?: any, confirmationCallback?: any): Promise<any>;
+    function buyToken(contractAddress: string, backerCoinAmount: number, token: ITokenObject, feeTo?: string, callback?: any, confirmationCallback?: any): Promise<any>;
     function redeemToken(address: string, gemAmount: string, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt | {
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         data: Contracts.GEM.RedeemEvent;
