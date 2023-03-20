@@ -1,5 +1,5 @@
 import { application } from '@ijstech/components';
-import { ITokenObject } from '../interface';
+import { ITokenObject } from './interface';
 
 const moduleDir = application.currentModuleDir;
 

@@ -12,10 +12,10 @@ import {
   Icon
 } from '@ijstech/components';
 import { ITokenObject } from '../interface';
-import { getTokenList, ChainNativeTokenByChainId, EventId } from '../store';
+import { getTokenList, ChainNativeTokenByChainId, EventId } from '../store/index';
 import { } from '@ijstech/eth-wallet';
 import Assets from '../assets';
-import { isWalletConnected, getChainId } from '../wallet';
+import { isWalletConnected, getChainId } from '../wallet/index';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;

@@ -52,10 +52,12 @@ export default class Config extends Module {
   private comboDappType: ComboBox;
   private _logo: any;
   private _contract: string = '';
+  private _isInited: boolean = false;
   
   init() {
     super.init();
     this.onChangedAction();
+    this._isInited = true;
   }
 
   get data(): IConfig {
@@ -77,6 +79,7 @@ export default class Config extends Module {
   }
 
   set data(config: IConfig) {
+    if (!this._isInited) this.init();
     this.uploadLogo.clear();
     if (config.logo)
       this.uploadLogo.preview(config.logo);

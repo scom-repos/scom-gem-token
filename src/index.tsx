@@ -21,21 +21,35 @@ import {
 import { BigNumber, Utils, WalletPlugin, Wallet } from '@ijstech/eth-wallet';
 import { IConfig, ITokenObject, PageBlock, DappType } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { EventId, getCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from './store/index';
+import { DefaultTokens, EventId, getCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from './store/index';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { Alert } from './alert/index';
-import assets from './assets/index';
+import assets from './assets';
 import { deployContract, buyToken, redeemToken, getGemBalance } from './API';
+import scconfig from './scconfig.json';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
 const redeemTooltip = 'The spread the project owner will receive for redemptions';
 
 interface ScomGemTokenElement extends ControlElement {
-
+  dappType?: DappType;
+  logo?: string;
+  description?: string;
+  hideDescription?: boolean;
+  chainId?: number;
+  tokenAddress?: string;
+  feeTo?: string;
+  contract?: string;
+  name: string;
+  symbol: string;
+  cap: string;
+  price: string;
+  mintingFee: string;
+  redemptionFee: string;
 }
 
 declare global {
@@ -105,11 +119,17 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
-    if (options) {
-      setDataFromSCConfig(options);
+    if (scconfig) {
+      setDataFromSCConfig(scconfig);
     }
     this.$eventBus = application.EventBus;
     this.registerEvent();
+  }
+
+  static async create(options?: ScomGemTokenElement, parent?: Container){
+    let self = new this(parent, options);
+    await self.ready();
+    return self;
   }
 
   private registerEvent() {
@@ -127,13 +147,14 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
     if (connected)
       await this.updateTokenBalance();
+    else this.lblBalance.caption = '0.00';
   }
 
   onChainChanged = async () => {
     this.onSetupPage(true);
     await this.updateTokenBalance();
-    if (this.tokenElm)
-      this.tokenElm.token = undefined;
+    // if (this.tokenElm)
+    //   this.tokenElm.token = undefined;
   }
 
   private get isBuy() {
@@ -530,6 +551,129 @@ export default class ScomGemToken extends Module implements PageBlock {
       });
     }
     // this.$eventBus.dispatch('embedInitialized', this);
+    
+    this._data.name = this.getAttribute('name', true);
+    this._data.symbol = this.getAttribute('symbol', true);
+    this._data.cap = this.getAttribute('cap', true);
+    this._data.price = this.getAttribute('price', true);
+    this._data.mintingFee = this.getAttribute('mintingFee', true);
+    this._data.redemptionFee = this.getAttribute('redemptionFee', true);
+    this._data.chainId = this.getAttribute('chainId', true);
+    const tokenAddress = this.getAttribute('tokenAddress', true);
+    if (tokenAddress) {
+      this._data.token = DefaultTokens[this.chainId]?.find(t => t.address?.toLowerCase() == tokenAddress.toLowerCase());
+    }
+    this._data.dappType = this.getAttribute('dappType', true);
+    this._data.description = this.getAttribute('description', true);
+    this._data.hideDescription = this.getAttribute('hideDescription', true);
+    this._data.logo = this.getAttribute('logo', true);
+    this._data.contract = this.getAttribute('contract', true);
+    if (this.configDApp) this.configDApp.data = this._data;
+    const feeTo = this.getAttribute('feeTo', true)
+    const commissionFee = getCommissionFee();
+    if (new BigNumber(commissionFee).gt(0) && feeTo != undefined) {
+      this._data.feeTo = feeTo;
+    }
+    this._gemTokenContract = this._data.contract;
+    this.refreshDApp();
+  }
+
+  get chainId() {
+    return this._data.chainId ?? 0;
+  }
+  set chainId(value: number) {
+    this._data.chainId = value;
+  }
+
+  get name() {
+    return this._data.name ?? '';
+  }
+  set name(value: string) {
+    this._data.name = value;
+  }
+
+  get symbol() {
+    return this._data.symbol ?? '';
+  }
+  set symbol(value: string) {
+    this._data.symbol = value;
+  }
+
+  get cap() {
+    return this._data.cap ?? '';
+  }
+  set cap(value: string) {
+    this._data.cap = value;
+  }
+
+  get mintingFee() {
+    return this._data.mintingFee ?? '';
+  }
+  set mintingFee(value: string) {
+    this._data.mintingFee = value;
+  }
+
+  get redemptionFee() {
+    return this._data.redemptionFee ?? '';
+  }
+  set redemptionFee(value: string) {
+    this._data.redemptionFee = value;
+  }
+
+  get feeTo() {
+    return this._data.feeTo ?? '';
+  }
+  set feeTo(value: string) {
+    this._data.feeTo = value;
+  }
+
+  get contract() {
+    return this._data.contract ?? '';
+  }
+  set contract(value: string) {
+    this._data.contract = value;
+  }
+
+  get price() {
+    return this._data.price ?? "0";
+  }
+  set price(value: string) {
+    this._data.price = value;
+  }
+
+  get tokenAddress() {
+    return this._data.token?.address ?? '';
+  }
+  set tokenAddress(value: string) {
+    this._data.token = DefaultTokens[this.chainId]?.find(t => t.address?.toLowerCase() == value.toLowerCase());
+  }
+
+  get dappType(): DappType {
+    return this._data.dappType ?? "buy";
+  }
+  set dappType(value: DappType) {
+    this._data.dappType = value;
+  }
+
+  get description() {
+    return this._data.description ?? '';
+  }
+  set description(value: string) {
+    this._data.description = value;
+  }
+
+  get hideDescription() {
+    return this._data.hideDescription ?? false;
+  }
+  set hideDescription(value: boolean) {
+    this._data.hideDescription = value;
+  }
+
+  get logo() {
+    return this._data.logo ?? '';
+  }
+  set logo(value: string) {
+    this._data.logo = value;
   }
 
   private async initWalletData() {
