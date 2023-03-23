@@ -5528,15 +5528,15 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             super.init();
             await this.initWalletData();
             await this.onSetupPage(index_13.isWalletConnected());
-            if (!this.tag || (typeof this.tag === 'object' && !Object.keys(this.tag).length)) {
-                this.setTag({
-                    fontColor: '#000000',
-                    inputFontColor: '#ffffff',
-                    inputBackgroundColor: '#333333',
-                    buttonBackgroundColor: '#FE6502',
-                    backgroundColor: '#ffffff'
-                });
-            }
+            // if (!this.tag || (typeof this.tag === 'object' && !Object.keys(this.tag).length)) {
+            //   this.setTag({
+            //     fontColor: '#000000',
+            //     inputFontColor: '#ffffff',
+            //     inputBackgroundColor: '#333333',
+            //     buttonBackgroundColor: '#FE6502',
+            //     backgroundColor: '#ffffff'
+            //   });
+            // }
             // this.$eventBus.dispatch('embedInitialized', this);
             this._data.name = this.getAttribute('name', true);
             this._data.symbol = this.getAttribute('symbol', true);
