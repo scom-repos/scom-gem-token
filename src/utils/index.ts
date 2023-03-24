@@ -54,6 +54,10 @@ export function parseContractError(oMessage: any): string {
   return staticMessageMap[message] ?? `Unknown Error: ${message}`;
 }
 
+export function isWalletAddress(address: string) {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+}
+
 export {
   getERC20Amount,
   getTokenBalance,

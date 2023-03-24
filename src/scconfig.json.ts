@@ -1,38 +1,38 @@
 export default {
     "env": "testnet",
     "logo": "logo",
-    "main": "@pageblock-gem-token/main",
-    "assets": "@pageblock-gem-token/assets",
+    "main": "@scom-gem-token/main",
+    "assets": "@scom-gem-token/assets",
     "moduleDir": "modules",
     "modules": {
-        "@pageblock-gem-token/assets": {
+        "@scom-gem-token/assets": {
             "path": "assets"
         },
-        "@pageblock-gem-token/interface": {
+        "@scom-gem-token/interface": {
             "path": "interface"
         },
-        "@pageblock-gem-token/utils": {
+        "@scom-gem-token/utils": {
             "path": "utils"
         },
-        "@pageblock-gem-token/store": {
+        "@scom-gem-token/store": {
             "path": "store"
         },
-        "@pageblock-gem-token/wallet": {
+        "@scom-gem-token/wallet": {
             "path": "wallet"
         },
-        "@pageblock-gem-token/token-selection": {
+        "@scom-gem-token/token-selection": {
             "path": "token-selection"
         },
-        "@pageblock-gem-token/alert": {
+        "@scom-gem-token/alert": {
             "path": "alert"
         },
-        "@pageblock-gem-token/config": {
+        "@scom-gem-token/config": {
             "path": "config"
         },
-        "@pageblock-gem-token/main": {
+        "@scom-gem-token/main": {
             "path": "main"
         },
-        "@pageblock-gem-token/loading": {
+        "@scom-gem-token/loading": {
             "path": "loading"
         }
     },
@@ -47,5 +47,5 @@ export default {
             }
         }
     },
-    "commissionFee": "0.01"
+    "embedderCommissionFee": "0.01"
 }

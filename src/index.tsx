@@ -19,9 +19,9 @@ import {
   ControlElement
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin, Wallet } from '@ijstech/eth-wallet';
-import { IConfig, ITokenObject, PageBlock, DappType } from './interface';
+import { IEmbedData, ITokenObject, PageBlock, DappType } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { DefaultTokens, EventId, getCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from './store/index';
+import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from './store/index';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
@@ -42,7 +42,6 @@ interface ScomGemTokenElement extends ControlElement {
   hideDescription?: boolean;
   chainId?: number;
   tokenAddress?: string;
-  feeTo?: string;
   contract?: string;
   name: string;
   symbol: string;
@@ -97,8 +96,8 @@ export default class ScomGemToken extends Module implements PageBlock {
   private _type: DappType | undefined;
   private _gemTokenContract: string | undefined;
   private _entryContract: string;
-  private _oldData: IConfig = {};
-  private _data: IConfig = {
+  private _oldData: IEmbedData = {};
+  private _data: IEmbedData = {
     name: '',
     symbol: '',
     cap: '',
@@ -183,16 +182,6 @@ export default class ScomGemToken extends Module implements PageBlock {
     const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {
-        "chainId": {
-          title: 'Chain ID',
-          type: 'number',
-          readOnly: true
-        },                  
-        "feeTo": {
-          type: 'string',
-          default: Wallet.getClientInstance().address,
-          format: "wallet-address"
-        }
       }
     }
     if (!this._data.hideDescription) {
@@ -299,10 +288,7 @@ export default class ScomGemToken extends Module implements PageBlock {
               if (userInputData.token != undefined) this._data.token = userInputData.token;
               if (userInputData.contract != undefined) this._data.contract = userInputData.contract;
               this.configDApp.data = this._data;
-              const commissionFee = getCommissionFee();
-              if (new BigNumber(commissionFee).gt(0) && userInputData.feeTo != undefined) {
-                this._data.feeTo = userInputData.feeTo;
-              }
+              const commissionFee = getEmbedderCommissionFee();
               this._gemTokenContract = this._data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
@@ -345,25 +331,55 @@ export default class ScomGemToken extends Module implements PageBlock {
     return actions
   }
 
+  getConfigurators() {
+    let self = this;
+    return [
+      {
+        name: 'Commissions',
+        target: 'Embedders',
+        elementName: 'i-scom-gem-token-config',
+        getLinkParams: () => {
+          const commissions = self._data.commissions || [];
+          return {
+            data: window.btoa(JSON.stringify(commissions))
+          }
+        },
+        setLinkParams: async (params: any) => {
+          if (params.data) {
+            const decodedString = window.atob(params.data);
+            const commissions = JSON.parse(decodedString);
+            let resultingData = {
+              ...self._data,
+              commissions
+            };
+            await self.setData(resultingData);
+          }
+        },        
+        bindOnChanged: (element: Config, callback: (data: any) => Promise<void>) => {
+          element.onCustomCommissionsChanged = async (data: any) => {
+            let resultingData = {
+              ...self._data,
+              ...data
+            };
+            await self.setData(resultingData);
+            await callback(data);
+          }
+        }
+      }
+    ]
+  }
+
   getData() {
     return this._data;
   }
 
-  async setData(data: IConfig) {
+  async setData(data: IEmbedData) {
     this._data = data;
     this._gemTokenContract = data.contract;
     this.configDApp.data = data;
-    const commissionFee = getCommissionFee();
+    const commissionFee = getEmbedderCommissionFee();
     this.lbOrderTotal.caption = `Total (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
-    if (this.approvalModelAction) {
-      if (new BigNumber(commissionFee).gt(0) && this._data.feeTo != undefined) {
-        this._entryContract = getContractAddress('Proxy');
-      }
-      else {
-        this._entryContract = this._gemTokenContract;
-      }
-      this.approvalModelAction.setSpenderAddress(this._entryContract);
-    }
+    this.updateContractAddress();
     this.refreshDApp();
   }
 
@@ -570,12 +586,8 @@ export default class ScomGemToken extends Module implements PageBlock {
     this._data.logo = this.getAttribute('logo', true);
     this._data.contract = this.getAttribute('contract', true);
     if (this.configDApp) this.configDApp.data = this._data;
-    const feeTo = this.getAttribute('feeTo', true)
-    const commissionFee = getCommissionFee();
-    if (new BigNumber(commissionFee).gt(0) && feeTo != undefined) {
-      this._data.feeTo = feeTo;
-    }
     this._gemTokenContract = this._data.contract;
+    this.updateContractAddress();
     await this.refreshDApp();
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
@@ -621,13 +633,6 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
   set redemptionFee(value: string) {
     this._data.redemptionFee = value;
-  }
-
-  get feeTo() {
-    return this._data.feeTo ?? '';
-  }
-  set feeTo(value: string) {
-    this._data.feeTo = value;
   }
 
   get contract() {
@@ -765,6 +770,18 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
   }
 
+  updateContractAddress() {
+    if (this.approvalModelAction) {
+      if (!this._data.commissions || this._data.commissions.length == 0) {
+        this._entryContract = this._gemTokenContract;     
+      }
+      else {
+        this._entryContract = getContractAddress('Proxy');
+      }
+      this.approvalModelAction.setSpenderAddress(this._entryContract);
+    }
+  }
+
   private async selectToken(token: ITokenObject) {
     this._data.token = token;
     this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
@@ -789,7 +806,7 @@ export default class ScomGemToken extends Module implements PageBlock {
   private async onQtyChanged() {
     const qty = Number(this.edtGemQty.value);
     const backerCoinAmount = this.getBackerCoinAmount(qty);
-    const commissionFee = getCommissionFee();
+    const commissionFee = getEmbedderCommissionFee();
     this.edtAmount.value = new BigNumber(qty).times(commissionFee).plus(qty).toFixed();
     const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
     const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
@@ -902,7 +919,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       }
     };
 
-    await buyToken(this._gemTokenContract, quantity, this._data.token, this._data.feeTo, callback,
+    await buyToken(this._gemTokenContract, quantity, this._data.token, this._data.commissions, callback,
       async (result: any) => {
         console.log('buyToken: ', result);
         this.edtGemQty.value = '';
@@ -1068,12 +1085,12 @@ export default class ScomGemToken extends Module implements PageBlock {
                     grid={{ area: 'tokenInput' }}
                   >
                     <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
-                    <gem-token-selection
+                    <i-scom-gem-token-selection
                       id="tokenElm"
                       class={tokenSelectionStyle}
                       width="100%"
                       onSelectToken={this.selectToken.bind(this)}
-                    ></gem-token-selection>
+                    ></i-scom-gem-token-selection>
                     <i-input
                       id="edtAmount"
                       width='100%'
@@ -1159,8 +1176,8 @@ export default class ScomGemToken extends Module implements PageBlock {
             </i-vstack>
           </i-grid-layout>
         </i-panel>
-        <gem-token-config id='configDApp' visible={false}></gem-token-config>
-        <gem-token-alert id='mdAlert'></gem-token-alert>
+        <i-scom-gem-token-config id='configDApp' visible={false}></i-scom-gem-token-config>
+        <i-scom-gem-token-alert id='mdAlert'></i-scom-gem-token-alert>
       </i-panel>
     )
   }

@@ -12,7 +12,7 @@ const Theme = Styles.Theme.ThemeVars;
 declare global {
 	namespace JSX {
 		interface IntrinsicElements {
-			['gem-token-alert']: ControlElement;
+			['i-scom-gem-token-alert']: ControlElement;
 		}
 	}
 };
@@ -24,7 +24,7 @@ export interface IAlertMessage {
   onClose?: any;
 }
 
-@customElements('gem-token-alert')
+@customElements('i-scom-gem-token-alert')
 export class Alert extends Module {
   private mdAlert: Modal;
   private pnlMain: Panel;

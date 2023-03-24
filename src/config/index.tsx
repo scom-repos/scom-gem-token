@@ -9,18 +9,25 @@ import {
   Upload,
   Markdown,
   IComboItem,
-  ComboBox
+  ComboBox,
+  Table,
+  Modal,
+  Label,
+  Icon,
+  Button
 } from '@ijstech/components';
-import { DappType, IConfig } from '../interface';
-import { textareaStyle } from './index.css';
-import { TokenSelection } from '../token-selection/index';
+import { ICommissionInfo, IEmbedData } from '../interface';
+import { BigNumber } from '@ijstech/eth-wallet';
+import { formatNumber, isWalletAddress } from '../utils/index';
+import ScomNetworkPicker from '../network-picker/index';
+import { getEmbedderCommissionFee, getNetworkName, INetwork, SupportedNetworks } from '../store/index';
 
 const Theme = Styles.Theme.ThemeVars;
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      ['gem-token-config']: ControlElement;
+      ['i-scom-gem-token-config']: ControlElement;
     }
   }
 }
@@ -37,187 +44,238 @@ const actionOptions = [
 
 
 @customModule
-@customElements("gem-token-config")
+@customElements("i-scom-gem-token-config")
 export default class Config extends Module {
-  private uploadLogo: Upload;
-  private edtDescription: Input;
-  private markdownViewer: Markdown;
-  private edtName: Input;
-  private edtSymbol: Input;
-  private edtCap: Input;
-  private edtMintingFee: Input;
-  private edtRedemptionFee: Input;
-  private edtPrice: Input;
-  private tokenSelection: TokenSelection;
-  private comboDappType: ComboBox;
-  private _logo: any;
-  private _contract: string = '';
-  private _isInited: boolean = false;
-  
-  init() {
+  private tableCommissions: Table;
+  private modalAddCommission: Modal;
+  private networkPicker: ScomNetworkPicker;
+  private inputWalletAddress: Input;
+  private lbCommissionShare: Label;
+  private commissionInfoList: ICommissionInfo[];
+  private commissionsTableColumns = [
+    {
+      title: 'Network',
+      fieldName: 'chainId',
+      key: 'chainId',
+      onRenderCell: function (source: Control, columnData: number, rowData: any) {
+        return getNetworkName(columnData);
+      }
+    },
+    {
+      title: 'Wallet Address',
+      fieldName: 'walletAddress',
+      key: 'walletAddress'
+    },
+    {
+      title: '',
+      fieldName: '',
+      key: '',
+      textAlign: 'center' as any,
+      onRenderCell: async (source: Control, data: any, rowData: any) => {
+        const icon = new Icon(undefined, {
+          name: "edit",
+          fill: "#03a9f4",
+          height: 18,
+          width: 18
+        })
+        icon.onClick = async (source: Control) => {
+          this.networkPicker.setNetworkByChainId(rowData.chainId);
+          this.inputWalletAddress.value = rowData.walletAddress;
+          this.modalAddCommission.visible = true;
+        }
+        return icon;
+      }
+    },
+    {
+      title: '',
+      fieldName: '',
+      key: '',
+      textAlign: 'center' as any,
+      onRenderCell: async (source: Control, data: any, rowData: any) => {
+        const icon = new Icon(undefined, {
+          name: "times",
+          fill: "#ed5748",
+          height: 18,
+          width: 18
+        })
+        icon.onClick = async (source: Control) => {
+          const index = this.commissionInfoList.findIndex(v => v.walletAddress == rowData.walletAddress && v.chainId == rowData.chainId);
+          if (index >= 0) {
+            this.commissionInfoList.splice(index, 1);
+            this.tableCommissions.data = this.commissionInfoList;
+            if (this._onCustomCommissionsChanged) {
+              await this._onCustomCommissionsChanged({
+                commissions: this.commissionInfoList
+              });
+            }
+          }
+        }
+        return icon;
+      }
+    }
+  ]
+  private btnConfirm: Button;
+  private lbErrMsg: Label;
+  private _onCustomCommissionsChanged: (data: any) => Promise<void>;
+
+  async init() {
     super.init();
-    this.onChangedAction();
-    this._isInited = true;
+    this.commissionInfoList = [];
+    const embedderFee = getEmbedderCommissionFee();
+    this.lbCommissionShare.caption = `${formatNumber(new BigNumber(embedderFee).times(100).toFixed(), 4)} %`;
   }
 
-  get data(): IConfig {
-    const config: IConfig = {
-      name: this.edtName.value || "",
-      dappType: (this.comboDappType.selectedItem as IComboItem).value as DappType,
-      description: this.edtDescription.value || "",
-      symbol: this.edtSymbol.value || "",
-      cap: this.edtCap.value || "",
-      redemptionFee: this.edtRedemptionFee.value || "0",
-      price: this.edtPrice.value || "",
-      mintingFee: this.edtMintingFee.value || "0"
+  get data(): IEmbedData {
+    const config: IEmbedData = {
     };
-    if (this._logo)
-      config.logo = this._logo;
-    if (this.tokenSelection.token)
-      config.token = this.tokenSelection.token;
+    config.commissions = this.tableCommissions.data || [];
     return config;
   }
 
-  set data(config: IConfig) {
-    if (!this._isInited) this.init();
-    this.uploadLogo.clear();
-    if (config.logo)
-      this.uploadLogo.preview(config.logo);
-    this._logo = config.logo;
-    this.comboDappType.selectedItem = actionOptions.find(v => v.value == config.dappType);
-    this.onChangedAction();
-    this.edtName.value = config.name || "";
-    this.edtPrice.value = config.price || "";
-    this.edtSymbol.value = config.symbol || "";
-    this.edtCap.value = config.cap || "";
-    this.edtRedemptionFee.value = config.redemptionFee || "";
-    this.edtMintingFee.value = config.mintingFee || "";
-    this.edtDescription.value = config.description || "";
-    this.tokenSelection.token = config.token;
-    this.onMarkdownChanged();
-    this._contract = config.contract || '';
-    this.updateInputs();
+  set data(config: IEmbedData) {
+    this.tableCommissions.data = config.commissions || [];
   }
 
-  private async onChangeFile(source: Control, files: File[]) {
-    this._logo = files.length ? await this.uploadLogo.toBase64(files[0]) : undefined;
+  get onCustomCommissionsChanged(): (data: any) => Promise<void> {
+    return this._onCustomCommissionsChanged;
   }
 
-  private onRemove(source: Control, file: File) {
-    this._logo = undefined;
+  set onCustomCommissionsChanged(value: (data: any) => Promise<void>) {
+    this._onCustomCommissionsChanged = value;
   }
 
-  private onMarkdownChanged() {
-    this.markdownViewer.load(this.edtDescription.value || "");
-  }
-  
-  private onChangedAction() {}
-
-  private get isDeployed() {
-    return !!this._contract;
+  onModalAddCommissionClosed() {
+    this.networkPicker.clearNetwork();
+    this.inputWalletAddress.value = '';
+    this.lbErrMsg.caption = '';
   }
 
-  private updateInputs() {
-    this.edtName.readOnly = this.isDeployed;
-    this.edtSymbol.readOnly = this.isDeployed;
-    this.edtCap.readOnly = this.isDeployed;
-    this.edtMintingFee.readOnly = this.isDeployed;
-    this.edtRedemptionFee.readOnly = this.isDeployed;
-    this.edtPrice.readOnly = this.isDeployed;
-    this.tokenSelection.readonly = this.isDeployed;
+  onAddCommissionClicked() {
+    this.modalAddCommission.visible = true;
+  }
+
+  async onConfirmCommissionClicked() {
+    const embedderFee = getEmbedderCommissionFee();
+    this.commissionInfoList.push({
+      chainId: this.networkPicker.selectedNetwork?.chainId,
+      walletAddress: this.inputWalletAddress.value,
+      share: embedderFee
+    })
+    this.tableCommissions.data = this.commissionInfoList;
+    this.modalAddCommission.visible = false;
+
+    if (this._onCustomCommissionsChanged) {
+      await this._onCustomCommissionsChanged({
+        commissions: this.commissionInfoList
+      });
+    }
+  }
+
+  validateModalFields() {
+    if (!this.networkPicker.selectedNetwork) {
+      this.lbErrMsg.caption = 'Please select network';
+    }
+    else if (this.commissionInfoList.find(v => v.chainId == this.networkPicker.selectedNetwork.chainId)) {
+      this.lbErrMsg.caption = 'This network already exists';
+    }
+    else if (!this.inputWalletAddress.value) {
+      this.lbErrMsg.caption = 'Please enter wallet address';
+    }
+    else if (!isWalletAddress(this.inputWalletAddress.value)) {
+      this.lbErrMsg.caption = 'Please enter valid wallet address';
+    }
+    else {
+      this.lbErrMsg.caption = '';
+    }
+
+    if (this.lbErrMsg.caption) {
+      this.btnConfirm.enabled = false;
+      return false;
+    }
+    else {
+      this.btnConfirm.enabled = true;
+      return true;
+    }
+  }
+
+  onNetworkSelected(network: INetwork) {
+    this.validateModalFields();
+  }
+
+  onInputWalletAddressChanged() {
+    this.validateModalFields();
   }
 
   render() {
     return (
       <i-vstack gap='0.5rem' padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}>
-        <i-label caption='Action Type:'></i-label>
-        <i-combo-box
-          id='comboDappType'
-          width='100%'
-          icon={{ width: 14, height: 14, name: 'angle-down' }}
-          items={actionOptions}
-          selectedItem={actionOptions[0]}
-          onChanged={this.onChangedAction.bind(this)}
-        ></i-combo-box>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='GEM Token Name'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
+        <i-hstack gap={4} verticalAlignment="center" horizontalAlignment="space-between">
+          <i-hstack gap="1rem">
+            <i-label caption="Commission Fee:" font={{ bold: true }} />
+            <i-label id="lbCommissionShare" font={{ bold: true }} />
+          </i-hstack>
+          <i-button
+            caption="Add"
+            background={{ color: '#03a9f4' }}
+            font={{ color: '#fff' }}
+            padding={{ top: '0.4rem', bottom: '0.4rem', left: '2rem', right: '2rem' }}
+            onClick={this.onAddCommissionClicked.bind(this)}>
+          </i-button>
         </i-hstack>
-        <i-input id='edtName' width='100%'></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='GEM Token Symbol'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtSymbol' width='100%'></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Maximum Mint Cap'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtCap' inputType="number" width='100%'></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Minting Fee'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtMintingFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Redemption Fee'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtRedemptionFee' value={0} inputType="number" width='100%' min={0} max={1}></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Price'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtPrice' width='100%' inputType='number'></i-input>
-        <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Token'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-panel>
-          <gem-token-selection
-            id='tokenSelection'
+        <i-table
+          id='tableCommissions'
+          data={this.commissionInfoList}
+          columns={this.commissionsTableColumns}
+        ></i-table>
+        <i-modal
+          id='modalAddCommission' maxWidth='600px' closeIcon={{ name: 'times-circle' }} onClose={this.onModalAddCommissionClosed}>
+          <i-grid-layout
             width='100%'
-            background={{ color: Theme.input.background }}
-            border={{ width: 1, style: 'solid', color: Theme.divider }}
-          ></gem-token-selection>
-        </i-panel>
-        {/* <i-hstack gap={4} verticalAlignment="center">
-          <i-label caption='Qty'></i-label>
-          <i-label caption="*" font={{ color: Theme.colors.error.main }} />
-        </i-hstack>
-        <i-input id='edtQty' width='100%' inputType='number'></i-input> */}
-        <i-label caption='Logo:'></i-label>
-        <i-upload
-          id='uploadLogo'
-          margin={{ top: 8, bottom: 0 }}
-          accept='image/*'
-          draggable
-          caption='Drag and drop image here'
-          showFileList={false}
-          onChanged={this.onChangeFile.bind(this)}
-          onRemoved={this.onRemove.bind(this)}
-        ></i-upload>
-        <i-label caption='Descriptions:'></i-label>
-        <i-grid-layout templateColumns={['50%', '50%']}>
-          <i-input
-            id='edtDescription'
-            class={textareaStyle}
-            width='100%'
-            height='100%'
-            display='flex'
-            stack={{ grow: '1' }}
-            resize="none"
-            inputType='textarea'
-            font={{ size: Theme.typography.fontSize, name: Theme.typography.fontFamily }}
-            onChanged={this.onMarkdownChanged.bind(this)}
-          ></i-input>
-          <i-markdown
-            id='markdownViewer'
-            width='100%'
-            height='100%'
-            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-          ></i-markdown>
-        </i-grid-layout>
+            verticalAlignment='center' gap={{ row: '1rem' }}
+            padding={{ top: '1rem', bottom: '1rem', left: '2rem', right: '2rem' }}
+            templateColumns={['1fr', '3fr']}
+            templateRows={['auto', 'auto', 'auto', 'auto']}
+            templateAreas={
+              [
+                ['title', 'title'],
+                ['lbNetwork', 'network'],
+                ["lbWalletAddress", "walletAddress"],
+                ["lbErrMsg", "errMsg"],
+                ['btnConfirm', 'btnConfirm']
+              ]
+            }>
+
+            <i-hstack width='100%' horizontalAlignment='center' grid={{ area: 'title' }}>
+              <i-label caption="Add Commission"></i-label>
+            </i-hstack>
+
+            <i-label caption="Network" grid={{ area: 'lbNetwork' }} />
+            <i-scom-nft-minter-network-picker
+              id='networkPicker'
+              grid={{ area: 'network' }}
+              networks={SupportedNetworks}
+              onCustomNetworkSelected={this.onNetworkSelected}
+            />
+
+            <i-label caption="Wallet Address" grid={{ area: 'lbWalletAddress' }} />
+            <i-input id='inputWalletAddress' grid={{ area: 'walletAddress' }} width='100%' onChanged={this.onInputWalletAddressChanged} />
+
+            <i-label id='lbErrMsg' font={{ color: '#ed5748' }} grid={{ area: 'errMsg' }}></i-label>
+
+            <i-hstack width='100%' horizontalAlignment='center' grid={{ area: 'btnConfirm' }}>
+              <i-button
+                id="btnConfirm"
+                enabled={false}
+                caption="Confirm"
+                background={{ color: '#03a9f4' }}
+                font={{ color: '#fff' }}
+                padding={{ top: '0.4rem', bottom: '0.4rem', left: '2rem', right: '2rem' }}
+                onClick={this.onConfirmCommissionClicked.bind(this)}
+              />
+            </i-hstack>
+
+          </i-grid-layout>
+        </i-modal>
       </i-vstack>
     )
   }

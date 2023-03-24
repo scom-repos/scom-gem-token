@@ -12,12 +12,12 @@ export interface LoadingDialogElement extends ControlElement {}
 declare global {
     namespace JSX {
         interface IntrinsicElements {
-            ['gem-token-loading']: LoadingDialogElement;
+            ['i-scom-gem-token-loading']: LoadingDialogElement;
         }
     }
 }
 
-@customElements('gem-token-loading')
+@customElements('i-scom-gem-token-loading')
 export class LoadingDialog extends Module {
 
     private lbMessage: Label;

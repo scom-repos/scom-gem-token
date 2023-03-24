@@ -30,12 +30,12 @@ interface TokenSelectionElement extends ControlElement {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      ['gem-token-selection']: TokenSelectionElement;
+      ['i-scom-gem-token-selection']: TokenSelectionElement;
     }
   }
 };
 
-@customElements('gem-token-selection')
+@customElements('i-scom-gem-token-selection')
 export class TokenSelection extends Module {
   private btnTokens: Button;
   private mdTokenSelection: Modal;

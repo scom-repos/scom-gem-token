@@ -32,7 +32,7 @@ export interface IDeploy {
   mintingFee: string;
   redemptionFee: string;
 }
-export interface IConfig extends Partial<IDeploy> {
+export interface IEmbedData extends Partial<IDeploy> {
   dappType?: DappType;
   logo?: string;
   description?: string;
@@ -41,6 +41,7 @@ export interface IConfig extends Partial<IDeploy> {
   token?: ITokenObject;
   feeTo?: string;
   contract?: string;
+  commissions?: ICommissionInfo[];
 }
 
 export interface ITokenObject {
@@ -56,3 +57,9 @@ export interface ITokenObject {
   isWETH?: boolean | null;
   isNew?: boolean | null;
 };
+
+export interface ICommissionInfo {
+  chainId: number;
+  walletAddress: string;
+  share: string;
+}

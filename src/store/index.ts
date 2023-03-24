@@ -1,4 +1,6 @@
-import { Wallet } from "@ijstech/eth-wallet";
+import { application } from "@ijstech/components";
+import { Wallet, WalletPlugin } from "@ijstech/eth-wallet";
+import { isWalletConnected } from "../wallet/index";
 import { DefaultTokens } from "./tokens/index";
 
 export const getTokenList = (chainId: number) => {
@@ -13,26 +15,36 @@ export const enum EventId {
   chainChanged = 'chainChanged'
 }
 
-const Networks: { [chainId: number]: string } = {
-  1: 'Ethereuem',
-  25: 'Cronos Mainnet',
-  42: 'Kovan Test Network',
-  56: 'Binance Smart Chain',
-  97: 'BSC Testnet',
-  137: 'Polygon',
-  338: 'Cronos Testnet',
-  31337: 'Amino Testnet',
-  80001: 'Mumbai',
-  43113: 'Avalanche FUJI C-Chain',
-  43114: 'Avalanche Mainnet C-Chain',
-  250: 'Fantom Opera',
-  4002: 'Fantom Testnet',
-  13370: 'AminoX Testnet'
-}
+export interface INetwork {
+  chainId: number;
+  name: string;
+  img?: string;
+  rpc?: string;
+	symbol?: string;
+	env?: string;
+  explorerName?: string;
+  explorerTxUrl?: string;
+  explorerAddressUrl?: string;
+  isDisabled?: boolean;
+};
+
+export const SupportedNetworks: INetwork[] = [
+  {
+    name: "BSC Testnet",
+    chainId: 97,
+    img: "bsc"
+  },
+  {
+    name: "Avalanche FUJI C-Chain",
+    chainId: 43113,
+    img: "avax"
+  }
+];
 
 export const getNetworkName = (chainId: number) => {
-  return Networks[chainId] || ""
+  return SupportedNetworks.find(v => v.chainId === chainId)?.name || ""
 }
+
 
 export interface IContractDetailInfo {
   address: string;
@@ -48,15 +60,15 @@ export type ContractInfoByChainType = { [key: number]: IContractInfo };
 
 export const state = {
   contractInfoByChain: {} as ContractInfoByChainType,
-  commissionFee: "0"
+  embedderCommissionFee: "0"
 }
 
 export const setDataFromSCConfig = (options: any) => {
   if (options.contractInfo) {
     setContractInfo(options.contractInfo);
   }
-  if (options.commissionFee) {
-    setCommissionFee(options.commissionFee);
+  if (options.embedderCommissionFee) {
+    setEmbedderCommissionFee(options.embedderCommissionFee);
   }  
 }
 
@@ -68,18 +80,29 @@ const getContractInfo = (chainId: number) => {
   return state.contractInfoByChain[chainId];
 }
 
-const setCommissionFee = (fee: string) => {
-  state.commissionFee = fee;
+const setEmbedderCommissionFee = (fee: string) => {
+  state.embedderCommissionFee = fee;
 }
 
-export const getCommissionFee = () => {
-  return state.commissionFee;
+export const getEmbedderCommissionFee = () => {
+  return state.embedderCommissionFee;
 }
 
 export const getContractAddress = (type: ContractType) => {
   const chainId = Wallet.getInstance().chainId;
   const contracts = getContractInfo(chainId) || {};
   return contracts[type]?.address;
+}
+
+export async function switchNetwork(chainId: number) {
+  if (!isWalletConnected()) {
+    application.EventBus.dispatch(EventId.chainChanged, chainId);
+    return;
+  }
+  const wallet = Wallet.getClientInstance();
+  if (wallet?.clientSideProvider?.walletPlugin === WalletPlugin.MetaMask) {
+    await wallet.switchNetwork(chainId);
+  }
 }
 
 export * from './tokens/index';

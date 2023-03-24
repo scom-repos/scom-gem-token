@@ -1,9 +1,10 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
-import { DappType, IDeploy, ITokenObject } from './interface';
+import { DappType, ICommissionInfo, IDeploy, ITokenObject } from './interface';
 import { Contracts } from './contracts/gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getCommissionFee, getContractAddress } from './store/index';
+import { getEmbedderCommissionFee, getContractAddress } from './store/index';
+import { getChainId } from './wallet/index';
 
 async function getFee(contractAddress: string, type: DappType) {
   const wallet = Wallet.getInstance();
@@ -61,14 +62,14 @@ async function transfer(contractAddress: string, to: string, amount: string) {
   return {
     receipt,
     value
-};
+  };
 }
 
 async function buyToken(
   contractAddress: string,
   backerCoinAmount: number,
   token: ITokenObject,
-  feeTo?: string,
+  commissions: ICommissionInfo[],
   callback?: any,
   confirmationCallback?: any
 ) {
@@ -78,17 +79,14 @@ async function buyToken(
       confirmation: confirmationCallback
     });
     const wallet = Wallet.getInstance();
-    const commissionFee = getCommissionFee();
     const tokenDecimals = token?.decimals || 18;
     const amount = Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
-    const _commissions = [];
-    if (feeTo) {
-      _commissions.push(        {
-        to: feeTo,
-        amount: new BigNumber(amount).times(commissionFee)
-      })
-    }
-
+    const _commissions = (commissions || []).filter(v => v.chainId === getChainId()).map(v => {
+      return {
+        to: v.walletAddress,
+        amount: amount.times(v.share)
+      }
+    })
     const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new BigNumber(0);
     const contract = new Contracts.GEM(wallet, contractAddress);
 
@@ -102,10 +100,10 @@ async function buyToken(
       const txData = await contract.buy.txData(amount);
       const tokensIn =
       {
-          token: token.address,
-          amount: commissionsAmount.plus(amount),
-          directTransfer: false,
-          commissions: _commissions
+        token: token.address,
+        amount: commissionsAmount.plus(amount),
+        directTransfer: false,
+        commissions: _commissions
       };
       receipt = await proxy.tokenIn({
         target: contractAddress,
@@ -141,7 +139,7 @@ async function redeemToken(
       confirmation: confirmationCallback
     });
     const wallet = Wallet.getInstance();
-    const contract = new Contracts.GEM(wallet, address);  
+    const contract = new Contracts.GEM(wallet, address);
     const receipt = await contract.redeem(Utils.toDecimals(gemAmount).dp(0));
     if (receipt) {
       const data = contract.parseRedeemEvent(receipt)[0];

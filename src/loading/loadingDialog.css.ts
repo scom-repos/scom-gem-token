@@ -9,7 +9,7 @@ const spin = Styles.keyframes({
 })
 
 
-Styles.cssRule('gem-token-loading', {
+Styles.cssRule('i-scom-gem-token-loading', {
     $nest: {
         'i-modal .modal': {
             borderRadius: '5px',
