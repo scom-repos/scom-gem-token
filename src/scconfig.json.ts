@@ -38,7 +38,7 @@ export default {
     },
     "dependencies": {
         "@ijstech/eth-contract": "*",
-        "@scom/gem-token-contract": "*"
+        "@scom/scom-gem-token-contract": "*"
     },
     "contractInfo": {
         "43113": {

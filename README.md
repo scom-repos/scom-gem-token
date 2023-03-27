@@ -1,9 +1,4 @@
 ## Step 1: Install packages
-Create a new directory named `repos`, go into it and run the following commands:
-```
-git clone https://github.com/scom-repos/gem-token-contract.git
-```
-Go back to the base directory and run the following command:
 ```sh
 docker-compose up install
 ```

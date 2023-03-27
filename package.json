@@ -14,7 +14,7 @@
         "@ijstech/components": "^0.1.29",
         "@ijstech/eth-contract": "^0.1.10",
         "@ijstech/eth-wallet": "^0.1.35",
-        "@scom/gem-token-contract": "file:./repos/gem-token-contract",
+        "@scom/scom-gem-token-contract": "^0.1.0",
         "@scom/scom-commission-proxy-contract": "^0.1.2"
     },
     "scripts": {

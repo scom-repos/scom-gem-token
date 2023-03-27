@@ -740,8 +740,8 @@ declare module "@scom/scom-gem-token/alert/index.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" {
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" {
     const _default_2: {
         abi: ({
             inputs: {
@@ -786,8 +786,8 @@ declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/@ope
     };
     export default _default_2;
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" {
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" {
     import { IWallet, Contract as _Contract, TransactionReceipt, BigNumber, Event, TransactionOptions } from "@ijstech/eth-contract";
     export interface IDeployParams {
         name: string;
@@ -886,8 +886,8 @@ declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/@ope
         }
     }
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.json.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.json.ts" {
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.json.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.json.ts" {
     const _default_3: {
         abi: ({
             inputs: {
@@ -932,8 +932,8 @@ declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.
     };
     export default _default_3;
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.ts" {
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.ts" {
     import { IWallet, Contract as _Contract, TransactionReceipt, BigNumber, Event, TransactionOptions } from "@ijstech/eth-contract";
     export interface IDeployParams {
         name: string;
@@ -1255,14 +1255,14 @@ declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.
         }
     }
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/contracts/index.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/contracts/index.ts" {
-    export { ERC20 } from "@scom/scom-gem-token/contracts/gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts";
-    export { GEM } from "@scom/scom-gem-token/contracts/gem-token-contract/contracts/GEM.ts";
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/index.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/index.ts" {
+    export { ERC20 } from "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts";
+    export { GEM } from "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.ts";
 }
-/// <amd-module name="@scom/scom-gem-token/contracts/gem-token-contract/index.ts" />
-declare module "@scom/scom-gem-token/contracts/gem-token-contract/index.ts" {
-    import * as Contracts from "@scom/scom-gem-token/contracts/gem-token-contract/contracts/index.ts";
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts" {
+    import * as Contracts from "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/index.ts";
     export { Contracts };
     import { IWallet, BigNumber } from '@ijstech/eth-wallet';
     export interface IDeployOptions {
@@ -1823,7 +1823,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
 declare module "@scom/scom-gem-token/API.ts" {
     import { BigNumber } from '@ijstech/eth-wallet';
     import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from "@scom/scom-gem-token/interface.tsx";
-    import { Contracts } from "@scom/scom-gem-token/contracts/gem-token-contract/index.ts";
+    import { Contracts } from "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts";
     function getFee(contractAddress: string, type: DappType): Promise<BigNumber>;
     function getGemBalance(contractAddress: string): Promise<BigNumber>;
     function deployContract(options: IDeploy, token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<string>;
@@ -1881,7 +1881,7 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
         };
         dependencies: {
             "@ijstech/eth-contract": string;
-            "@scom/gem-token-contract": string;
+            "@scom/scom-gem-token-contract": string;
         };
         contractInfo: {
             "43113": {

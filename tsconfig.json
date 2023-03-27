@@ -11,8 +11,7 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@scom-gem-token/*":["src/*"],
-            "@scom/gem-token-contract": ["repos/gem-token-contract"]
+            "@scom-gem-token/*":["src/*"]
         }
     },
     "include": ["src/**/*.ts","src/**/*.tsx"],
