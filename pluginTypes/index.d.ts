@@ -23,13 +23,16 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         mintingFee: string;
         redemptionFee: string;
     }
+    export interface IChainSpecificProperties {
+        contract: string;
+    }
     export interface IEmbedData extends Partial<IDeploy> {
         dappType?: DappType;
         logo?: string;
         description?: string;
         hideDescription?: boolean;
-        contract?: string;
         commissions?: ICommissionInfo[];
+        chainSpecificProperties?: Record<number, IChainSpecificProperties>;
     }
     export interface ITokenObject {
         address?: string;
@@ -1894,20 +1897,14 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
     import { Module, Container, IDataSchema, ControlElement } from '@ijstech/components';
-    import { IEmbedData, PageBlock, DappType } from "@scom/scom-gem-token/interface.tsx";
+    import { IEmbedData, PageBlock, DappType, IChainSpecificProperties } from "@scom/scom-gem-token/interface.tsx";
     import Config from "@scom/scom-gem-token/config/index.tsx";
     interface ScomGemTokenElement extends ControlElement {
         dappType?: DappType;
         logo?: string;
         description?: string;
         hideDescription?: boolean;
-        contract?: string;
-        name: string;
-        symbol: string;
-        cap: string;
-        price: string;
-        mintingFee: string;
-        redemptionFee: string;
+        chainSpecificProperties?: Record<number, IChainSpecificProperties>;
     }
     global {
         namespace JSX {
@@ -1952,7 +1949,6 @@ declare module "@scom/scom-gem-token" {
         private pnlInputFields;
         private pnlUnsupportedNetwork;
         private _type;
-        private _gemTokenContract;
         private _entryContract;
         private _oldData;
         private _data;
@@ -2025,20 +2021,7 @@ declare module "@scom/scom-gem-token" {
         private onDeploy;
         private refreshDApp;
         init(): Promise<void>;
-        get name(): string;
-        set name(value: string);
-        get symbol(): string;
-        set symbol(value: string);
-        get cap(): string;
-        set cap(value: string);
-        get mintingFee(): string;
-        set mintingFee(value: string);
-        get redemptionFee(): string;
-        set redemptionFee(value: string);
         get contract(): string;
-        set contract(value: string);
-        get price(): string;
-        set price(value: string);
         get dappType(): DappType;
         set dappType(value: DappType);
         get description(): string;
@@ -2047,6 +2030,8 @@ declare module "@scom/scom-gem-token" {
         set hideDescription(value: boolean);
         get logo(): string;
         set logo(value: string);
+        get chainSpecificProperties(): any;
+        set chainSpecificProperties(value: any);
         private initWalletData;
         private initApprovalAction;
         updateContractAddress(): void;

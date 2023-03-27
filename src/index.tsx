@@ -19,7 +19,7 @@ import {
   ControlElement
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin, Wallet } from '@ijstech/eth-wallet';
-import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo } from './interface';
+import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo, IChainSpecificProperties } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
 import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig, SupportedNetworks, INetwork } from './store/index';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from './wallet/index';
@@ -41,13 +41,7 @@ interface ScomGemTokenElement extends ControlElement {
   logo?: string;
   description?: string;
   hideDescription?: boolean;
-  contract?: string;
-  name: string;
-  symbol: string;
-  cap: string;
-  price: string;
-  mintingFee: string;
-  redemptionFee: string;
+  chainSpecificProperties?: Record<number, IChainSpecificProperties>;
 }
 
 declare global {
@@ -96,16 +90,9 @@ export default class ScomGemToken extends Module implements PageBlock {
   private pnlUnsupportedNetwork: VStack;
 
   private _type: DappType | undefined;
-  private _gemTokenContract: string | undefined;
   private _entryContract: string;
   private _oldData: IEmbedData = {};
   private _data: IEmbedData = {
-    name: '',
-    symbol: '',
-    cap: '',
-    redemptionFee: '',
-    price: '',
-    mintingFee: ''
   };
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
@@ -278,25 +265,16 @@ export default class ScomGemToken extends Module implements PageBlock {
           return {
             execute: async () => {
               this._oldData = { ...this._data };
-              if (userInputData.name != undefined) this._data.name = userInputData.name;
-              if (userInputData.symbol != undefined) this._data.symbol = userInputData.symbol;
               if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
               if (userInputData.description != undefined) this._data.description = userInputData.description;
-              if (userInputData.cap != undefined) this._data.cap = userInputData.cap;
-              if (userInputData.price != undefined) this._data.price = userInputData.price;
-              if (userInputData.redemptionFee != undefined) this._data.redemptionFee = userInputData.redemptionFee;
-              if (userInputData.mintingFee != undefined) this._data.mintingFee = userInputData.mintingFee;
-              if (userInputData.contract != undefined) this._data.contract = userInputData.contract;
               this.configDApp.data = this._data;
-              this._gemTokenContract = this._data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
               this._data = { ...this._oldData };
               this.configDApp.data = this._data;
-              this._gemTokenContract = this.configDApp.data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
@@ -375,7 +353,6 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   async setData(data: IEmbedData) {
     this._data = data;
-    this._gemTokenContract = data.contract;
     this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
     this.lbOrderTotal.caption = `Total (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
@@ -424,8 +401,6 @@ export default class ScomGemToken extends Module implements PageBlock {
             reject(error);
           }
         }, (receipt: any) => {
-          this._gemTokenContract = receipt.contractAddress;
-          this._data.contract = this._gemTokenContract;
           this.refreshDApp();
         });
       } catch (error) {
@@ -436,7 +411,7 @@ export default class ScomGemToken extends Module implements PageBlock {
         this.mdAlert.showModal();
         reject(error);
       }
-      if (!this._gemTokenContract && !this._data)
+      if (!this.contract && !this._data)
         reject(new Error('Data missing'));
       resolve();
       if (this.loadingElm) this.loadingElm.visible = false;
@@ -444,14 +419,14 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private onDeploy = async (callback?: any, confirmationCallback?: any) => {
-    if (this._gemTokenContract || !this._data.name) return;
+    if (this.contract || !this.gemInfo.name) return;
     const params = {
-      name: this._data.name,
-      symbol: this._data.symbol,
-      cap: this._data.cap,
-      price: this._data.price,
-      mintingFee: this._data.mintingFee,
-      redemptionFee: this._data.redemptionFee
+      name: this.gemInfo.name,
+      symbol: this.gemInfo.symbol,
+      cap: this.gemInfo.cap.toFixed(),
+      price: this.gemInfo.price.toFixed(),
+      mintingFee: this.gemInfo.mintingFee.toFixed(),
+      redemptionFee: this.gemInfo.redemptionFee.toFixed()
     }
     const result = await deployContract(
       params,
@@ -459,8 +434,6 @@ export default class ScomGemToken extends Module implements PageBlock {
       callback,
       confirmationCallback
     );
-    this._gemTokenContract = result;
-    this._data.contract = this._gemTokenContract;
   }
 
   private async refreshDApp() {
@@ -476,7 +449,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       this.pnlLogoTitle.visible = false;
     }
 
-    this.gemInfo = this._gemTokenContract ? await getGemInfo(this._gemTokenContract) : null;
+    this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
     console.log('this.gemInfo', this.gemInfo);
     if (this.gemInfo) {
       this.pnlInputFields.visible = true;
@@ -484,17 +457,17 @@ export default class ScomGemToken extends Module implements PageBlock {
 
       this.renderTokenInput();
       this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
-      const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
-      const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
+      const buyDesc = `Use ${this.gemInfo.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
+      const redeemDesc = `Redeem your ${this.gemInfo.name || ''} Tokens for the underlying token.`;
       const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
       this.markdownViewer.load(description);
-      this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
+      this.fromTokenLb.caption = `1 ${this.gemInfo.name || ''}`;
       this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-      this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
+      this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this.gemInfo.name || ''} - GEM Tokens`;
       this.backerStack.visible = !this.isBuy;
       this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
       this.pnlQty.visible = this.isBuy;
-      this.edtGemQty.readOnly = !this._gemTokenContract;
+      this.edtGemQty.readOnly = !this.contract;
       this.edtGemQty.value = "";
       if (!this.isBuy) {
         this.btnSubmit.enabled = false;
@@ -502,11 +475,11 @@ export default class ScomGemToken extends Module implements PageBlock {
         this.backerTokenImg.url = assets.tokenPath(this.gemInfo.baseToken, getChainId());
         this.backerTokenBalanceLb.caption = '0.00';
       }
-      const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-      this.feeLb.caption = `${feeValue || ''} ${this._data.name}`;
+      const feeValue = this.isBuy ? Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+      this.feeLb.caption = `${feeValue || ''} ${this.gemInfo.name}`;
       const qty = Number(this.edtGemQty.value);
       const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
-      this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
+      this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
       this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
       this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
       this.updateTokenBalance();
@@ -534,72 +507,21 @@ export default class ScomGemToken extends Module implements PageBlock {
     // }
     // this.$eventBus.dispatch('embedInitialized', this);
 
-    this._data.name = this.getAttribute('name', true);
-    this._data.symbol = this.getAttribute('symbol', true);
-    this._data.cap = this.getAttribute('cap', true);
-    this._data.price = this.getAttribute('price', true);
-    this._data.mintingFee = this.getAttribute('mintingFee', true);
-    this._data.redemptionFee = this.getAttribute('redemptionFee', true);
     this._data.dappType = this.getAttribute('dappType', true);
     this._data.description = this.getAttribute('description', true);
     this._data.hideDescription = this.getAttribute('hideDescription', true);
     this._data.logo = this.getAttribute('logo', true);
-    this._data.contract = this.getAttribute('contract', true);
+    this._data.chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
+
     if (this.configDApp) this.configDApp.data = this._data;
-    this._gemTokenContract = this._data.contract;
     this.updateContractAddress();
     await this.refreshDApp();
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
   }
 
-  get name() {
-    return this._data.name ?? '';
-  }
-  set name(value: string) {
-    this._data.name = value;
-  }
-
-  get symbol() {
-    return this._data.symbol ?? '';
-  }
-  set symbol(value: string) {
-    this._data.symbol = value;
-  }
-
-  get cap() {
-    return this._data.cap ?? '';
-  }
-  set cap(value: string) {
-    this._data.cap = value;
-  }
-
-  get mintingFee() {
-    return this._data.mintingFee ?? '';
-  }
-  set mintingFee(value: string) {
-    this._data.mintingFee = value;
-  }
-
-  get redemptionFee() {
-    return this._data.redemptionFee ?? '';
-  }
-  set redemptionFee(value: string) {
-    this._data.redemptionFee = value;
-  }
-
   get contract() {
-    return this._data.contract ?? '';
-  }
-  set contract(value: string) {
-    this._data.contract = value;
-  }
-
-  get price() {
-    return this._data.price ?? "0";
-  }
-  set price(value: string) {
-    this._data.price = value;
+    return this._data.chainSpecificProperties?.[getChainId()]?.contract ?? '';
   }
 
   get dappType(): DappType {
@@ -628,6 +550,14 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
   set logo(value: string) {
     this._data.logo = value;
+  }
+
+  get chainSpecificProperties() {
+    return this._data.chainSpecificProperties ?? {};
+  }
+
+  set chainSpecificProperties(value: any) {
+    this._data.chainSpecificProperties = value;
   }
 
   private async initWalletData() {
@@ -719,7 +649,7 @@ export default class ScomGemToken extends Module implements PageBlock {
   updateContractAddress() {
     if (this.approvalModelAction) {
       if (!this._data.commissions || this._data.commissions.length == 0) {
-        this._entryContract = this._gemTokenContract;
+        this._entryContract = this.contract;
       }
       else {
         this._entryContract = getContractAddress('Proxy');
@@ -747,9 +677,9 @@ export default class ScomGemToken extends Module implements PageBlock {
     const backerCoinAmount = this.getBackerCoinAmount(qty);
     const commissionFee = getEmbedderCommissionFee();
     this.edtAmount.value = new BigNumber(qty).times(commissionFee).plus(qty).toFixed();
-    const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+    const feeValue = this.isBuy ? Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
     const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
-    this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
+    this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
 
     if (this.approvalModelAction)
@@ -764,11 +694,15 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private getBackerCoinAmount(gemAmount: number) {
-    return gemAmount / Number(this._data.price) - (gemAmount / Number(this._data.price) * Number(this._data.redemptionFee));
+    const redemptionFee = Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+    const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
+    return gemAmount / Number(price) - (gemAmount / Number(price) * Number(redemptionFee));
   }
 
   private getGemAmount(backerCoinAmount: number) {
-    return (backerCoinAmount - (backerCoinAmount * Number(this._data.mintingFee))) * Number(this._data.price);
+    const mintingFee = Utils.fromDecimals(this.gemInfo.mintingFee).toFixed();
+    const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
+    return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
   }
 
   private async getBalance(token?: ITokenObject) {
@@ -776,15 +710,15 @@ export default class ScomGemToken extends Module implements PageBlock {
     const tokenData = token || this.gemInfo.baseToken;
     if (this.isBuy && tokenData) {
       balance = await getTokenBalance(tokenData);
-    } else if (!this.isBuy && this._gemTokenContract) {
-      balance = await getGemBalance(this._gemTokenContract);
+    } else if (!this.isBuy && this.contract) {
+      balance = await getGemBalance(this.contract);
       balance = Utils.fromDecimals(balance);
     }
     return balance;
   }
 
   private async doSubmitAction() {
-    if (!this._data || !this._gemTokenContract) return;
+    if (!this._data || !this.contract) return;
     this.updateSubmitButton(true);
     // if (!this.tokenElm.token) {
     //   this.mdAlert.message = {
@@ -821,7 +755,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       if (balance.lt(this.edtAmount.value)) {
         this.mdAlert.message = {
           status: 'error',
-          content: `Insufficient ${this._data.name} Balance`
+          content: `Insufficient ${this.gemInfo.name} Balance`
         };
         this.mdAlert.showModal();
         this.updateSubmitButton(false);
@@ -847,7 +781,7 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   onBuyToken = async (quantity: number) => {
     this.mdAlert.closeModal();
-    if (!this._data.name) return;
+    if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
         this.mdAlert.message = {
@@ -858,7 +792,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       }
     };
 
-    await buyToken(this._gemTokenContract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
+    await buyToken(this.contract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
       async (result: any) => {
         console.log('buyToken: ', result);
         this.edtGemQty.value = '';
@@ -871,7 +805,7 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   onRedeemToken = async () => {
     this.mdAlert.closeModal();
-    if (!this._data.name) return;
+    if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
         this.mdAlert.message = {
@@ -882,7 +816,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       }
     };
     const gemAmount = this.edtAmount.value;
-    await redeemToken(this._gemTokenContract, gemAmount, callback,
+    await redeemToken(this.contract, gemAmount, callback,
       async (result: any) => {
         console.log('redeemToken: ', result);
         this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
@@ -898,12 +832,12 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private renderTokenInput() {
-    this.edtAmount.readOnly = this.isBuy || !this._gemTokenContract;
+    this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
       this.tokenElm.token = this.gemInfo.baseToken;
       this.tokenElm.visible = true;
-      this.tokenElm.readonly = !!this._gemTokenContract;
+      this.tokenElm.readonly = !!this.contract;
       this.gemLogoStack.visible = false;
       this.maxStack.visible = false;
       this.gridTokenInput.templateColumns = ['60%', 'auto'];
@@ -918,7 +852,7 @@ export default class ScomGemToken extends Module implements PageBlock {
           fallbackUrl={assets.fullPath('img/gem-logo.svg')}
         ></i-image>
       )
-      this.maxStack.visible = !!this._gemTokenContract;
+      this.maxStack.visible = !!this.contract;
       this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
     }
   }

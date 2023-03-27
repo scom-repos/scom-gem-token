@@ -29,13 +29,18 @@ export interface IDeploy {
   mintingFee: string;
   redemptionFee: string;
 }
+
+export interface IChainSpecificProperties {
+  contract: string;
+}
+
 export interface IEmbedData extends Partial<IDeploy> {
   dappType?: DappType;
   logo?: string;
   description?: string;
   hideDescription?: boolean;
-  contract?: string;
   commissions?: ICommissionInfo[];
+  chainSpecificProperties?: Record<number, IChainSpecificProperties>;
 }
 
 export interface ITokenObject {
