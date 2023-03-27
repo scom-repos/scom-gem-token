@@ -1,10 +1,11 @@
+import { BigNumber } from "@ijstech/eth-wallet";
+
 export interface PageBlock {
   // Properties
   getData: () => any;
   setData: (data: any) => Promise<void>;
   getTag: () => any;
   setTag: (tag: any) => Promise<void>
-  validate?: () => boolean;
   defaultEdit?: boolean;
   tag?: any;
 
@@ -15,11 +16,7 @@ export interface PageBlock {
   // onClear: () => void;
 
   // Page Block Events
-  edit: () => Promise<void>;
-  preview: () => Promise<void>;
   confirm: () => Promise<void>;
-  discard: () => Promise<void>;
-  config: () => Promise<void>;
 }
 
 export type DappType = 'buy' | 'redeem';
@@ -37,9 +34,6 @@ export interface IEmbedData extends Partial<IDeploy> {
   logo?: string;
   description?: string;
   hideDescription?: boolean;
-  chainId?: number;
-  token?: ITokenObject;
-  feeTo?: string;
   contract?: string;
   commissions?: ICommissionInfo[];
 }
@@ -62,4 +56,15 @@ export interface ICommissionInfo {
   chainId: number;
   walletAddress: string;
   share: string;
+}
+
+export interface IGemInfo {
+  price: BigNumber;
+  mintingFee: BigNumber;
+  redemptionFee: BigNumber;
+  decimals: BigNumber;
+  cap: BigNumber;
+  baseToken: ITokenObject;
+  name: string;
+  symbol: string;
 }

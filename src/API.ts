@@ -1,9 +1,9 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
-import { DappType, ICommissionInfo, IDeploy, ITokenObject } from './interface';
+import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from './interface';
 import { Contracts } from './contracts/gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getEmbedderCommissionFee, getContractAddress } from './store/index';
+import { getEmbedderCommissionFee, getContractAddress, DefaultTokens } from './store/index';
 import { getChainId } from './wallet/index';
 
 async function getFee(contractAddress: string, type: DappType) {
@@ -63,6 +63,40 @@ async function transfer(contractAddress: string, to: string, amount: string) {
     receipt,
     value
   };
+}
+
+async function getGemInfo(contractAddress: string): Promise<IGemInfo> {
+  const wallet = Wallet.getInstance();
+  const gem = new Contracts.GEM(wallet, contractAddress);
+
+  try {
+    const [priceValue, mintingFeeValue, redemptionFeeValue, decimalsValue, capValue, baseTokenValue, nameValue, symbolValue] = await Promise.all([
+      gem.price(),
+      gem.mintingFee(),
+      gem.redemptionFee(),
+      gem.decimals(),
+      gem.cap(),
+      gem.baseToken(),
+      gem.name(),
+      gem.symbol()
+    ]);
+    const chainId = wallet.chainId;
+    const baseToken = DefaultTokens[chainId]?.find(t => t.address?.toLowerCase() == baseTokenValue.toLowerCase());
+    return {
+      price: priceValue,
+      mintingFee: mintingFeeValue,
+      redemptionFee: redemptionFeeValue,
+      decimals: decimalsValue,
+      cap: capValue,
+      baseToken,
+      name: nameValue,
+      symbol: symbolValue
+    };
+  } 
+  catch (e) {
+    console.error(e);
+  }
+  return null;
 }
 
 async function buyToken(
@@ -161,5 +195,6 @@ export {
   transfer,
   buyToken,
   redeemToken,
-  getGemBalance
+  getGemBalance,
+  getGemInfo
 }

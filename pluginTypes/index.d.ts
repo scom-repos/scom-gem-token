@@ -1,22 +1,18 @@
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
+    import { BigNumber } from "@ijstech/eth-wallet";
     export interface PageBlock {
         getData: () => any;
         setData: (data: any) => Promise<void>;
         getTag: () => any;
         setTag: (tag: any) => Promise<void>;
-        validate?: () => boolean;
         defaultEdit?: boolean;
         tag?: any;
         readonly onEdit: () => Promise<void>;
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;
-        edit: () => Promise<void>;
-        preview: () => Promise<void>;
         confirm: () => Promise<void>;
-        discard: () => Promise<void>;
-        config: () => Promise<void>;
     }
     export type DappType = 'buy' | 'redeem';
     export interface IDeploy {
@@ -32,9 +28,6 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         logo?: string;
         description?: string;
         hideDescription?: boolean;
-        chainId?: number;
-        token?: ITokenObject;
-        feeTo?: string;
         contract?: string;
         commissions?: ICommissionInfo[];
     }
@@ -55,6 +48,16 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         chainId: number;
         walletAddress: string;
         share: string;
+    }
+    export interface IGemInfo {
+        price: BigNumber;
+        mintingFee: BigNumber;
+        redemptionFee: BigNumber;
+        decimals: BigNumber;
+        cap: BigNumber;
+        baseToken: ITokenObject;
+        name: string;
+        symbol: string;
     }
 }
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
@@ -1816,7 +1819,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {
     import { BigNumber } from '@ijstech/eth-wallet';
-    import { DappType, ICommissionInfo, IDeploy, ITokenObject } from "@scom/scom-gem-token/interface.tsx";
+    import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from "@scom/scom-gem-token/interface.tsx";
     import { Contracts } from "@scom/scom-gem-token/contracts/gem-token-contract/index.ts";
     function getFee(contractAddress: string, type: DappType): Promise<BigNumber>;
     function getGemBalance(contractAddress: string): Promise<BigNumber>;
@@ -1825,12 +1828,13 @@ declare module "@scom/scom-gem-token/API.ts" {
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         value: any;
     }>;
+    function getGemInfo(contractAddress: string): Promise<IGemInfo>;
     function buyToken(contractAddress: string, backerCoinAmount: number, token: ITokenObject, commissions: ICommissionInfo[], callback?: any, confirmationCallback?: any): Promise<any>;
     function redeemToken(address: string, gemAmount: string, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt | {
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         data: Contracts.GEM.RedeemEvent;
     }>;
-    export { deployContract, getFee, transfer, buyToken, redeemToken, getGemBalance };
+    export { deployContract, getFee, transfer, buyToken, redeemToken, getGemBalance, getGemInfo };
 }
 /// <amd-module name="@scom/scom-gem-token/scconfig.json.ts" />
 declare module "@scom/scom-gem-token/scconfig.json.ts" {
@@ -1897,8 +1901,6 @@ declare module "@scom/scom-gem-token" {
         logo?: string;
         description?: string;
         hideDescription?: boolean;
-        chainId?: number;
-        tokenAddress?: string;
         contract?: string;
         name: string;
         symbol: string;
@@ -1946,6 +1948,9 @@ declare module "@scom/scom-gem-token" {
         private loadingElm;
         private pnlDescription;
         private lbOrderTotal;
+        private networkPicker;
+        private pnlInputFields;
+        private pnlUnsupportedNetwork;
         private _type;
         private _gemTokenContract;
         private _entryContract;
@@ -1954,6 +1959,7 @@ declare module "@scom/scom-gem-token" {
         private $eventBus;
         private approvalModelAction;
         private isApproving;
+        private gemInfo;
         tag: any;
         private oldTag;
         defaultEdit: boolean;
@@ -2015,17 +2021,10 @@ declare module "@scom/scom-gem-token" {
         setTag(value: any): Promise<void>;
         private updateStyle;
         private updateTheme;
-        edit(): Promise<void>;
-        preview(): Promise<void>;
         confirm(): Promise<void>;
         private onDeploy;
-        discard(): Promise<void>;
-        config(): Promise<void>;
-        validate(): boolean;
         private refreshDApp;
         init(): Promise<void>;
-        get chainId(): number;
-        set chainId(value: number);
         get name(): string;
         set name(value: string);
         get symbol(): string;
@@ -2040,8 +2039,6 @@ declare module "@scom/scom-gem-token" {
         set contract(value: string);
         get price(): string;
         set price(value: string);
-        get tokenAddress(): string;
-        set tokenAddress(value: string);
         get dappType(): DappType;
         set dappType(value: DappType);
         get description(): string;
@@ -2053,7 +2050,6 @@ declare module "@scom/scom-gem-token" {
         private initWalletData;
         private initApprovalAction;
         updateContractAddress(): void;
-        private selectToken;
         private updateSubmitButton;
         private onApprove;
         private onQtyChanged;
@@ -2067,6 +2063,7 @@ declare module "@scom/scom-gem-token" {
         onRedeemToken: () => Promise<void>;
         private onSetMaxBalance;
         private renderTokenInput;
+        private onNetworkSelected;
         render(): any;
     }
 }

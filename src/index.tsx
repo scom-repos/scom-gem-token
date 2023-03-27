@@ -19,17 +19,18 @@ import {
   ControlElement
 } from '@ijstech/components';
 import { BigNumber, Utils, WalletPlugin, Wallet } from '@ijstech/eth-wallet';
-import { IEmbedData, ITokenObject, PageBlock, DappType } from './interface';
+import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig } from './store/index';
+import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig, SupportedNetworks, INetwork } from './store/index';
 import { connectWallet, getChainId, hasWallet, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { Alert } from './alert/index';
 import assets from './assets';
-import { deployContract, buyToken, redeemToken, getGemBalance } from './API';
+import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import scconfig from './scconfig.json';
+import ScomNetworkPicker from './network-picker/index';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -40,8 +41,6 @@ interface ScomGemTokenElement extends ControlElement {
   logo?: string;
   description?: string;
   hideDescription?: boolean;
-  chainId?: number;
-  tokenAddress?: string;
   contract?: string;
   name: string;
   symbol: string;
@@ -92,6 +91,9 @@ export default class ScomGemToken extends Module implements PageBlock {
   private loadingElm: Panel;
   private pnlDescription: VStack;
   private lbOrderTotal: Label;
+  private networkPicker: ScomNetworkPicker;
+  private pnlInputFields: VStack;
+  private pnlUnsupportedNetwork: VStack;
 
   private _type: DappType | undefined;
   private _gemTokenContract: string | undefined;
@@ -108,6 +110,7 @@ export default class ScomGemToken extends Module implements PageBlock {
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
+  private gemInfo: IGemInfo;
 
   tag: any = {}
   private oldTag: any = {};
@@ -125,7 +128,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.registerEvent();
   }
 
-  static async create(options?: ScomGemTokenElement, parent?: Container){
+  static async create(options?: ScomGemTokenElement, parent?: Container) {
     let self = new this(parent, options);
     await self.ready();
     return self;
@@ -151,9 +154,8 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   onChainChanged = async () => {
     this.onSetupPage(true);
-    await this.updateTokenBalance();
-    // if (this.tokenElm)
-    //   this.tokenElm.token = undefined;
+    this.updateContractAddress();
+    this.refreshDApp();
   }
 
   private get isBuy() {
@@ -161,21 +163,22 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private get tokenSymbol() {
-    return this._data?.token?.symbol || '';
+    return this.gemInfo?.baseToken?.symbol || '';
   }
 
   private updateTokenBalance = async () => {
-    if (!this._data.token) return;
-    let chainId = getChainId();
-    const _tokenList = getTokenList(chainId);
-    const token = _tokenList.find(t => (t.address && t.address == this._data.token?.address) || (t.symbol == this.tokenSymbol))
-    const symbol = token?.symbol || '';
-    this.lblBalance.caption = `${(await this.getBalance(token)).toFixed(2)} ${symbol}`;
+    const token = this.gemInfo?.baseToken;
+    if (!token) return;
+    try {
+      const symbol = token?.symbol || '';
+      this.lblBalance.caption = token ? `${(await getTokenBalance(token)).toFixed(2)} ${symbol}` : `0 ${symbol}`;
+    } catch { }
   }
 
   private async onSetupPage(isWalletConnected: boolean) {
     if (isWalletConnected)
-      await this.initApprovalAction();
+      this.networkPicker.setNetworkByChainId(getChainId());
+    await this.initApprovalAction();
   }
 
   getEmbedderActions() {
@@ -281,14 +284,11 @@ export default class ScomGemToken extends Module implements PageBlock {
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
               if (userInputData.description != undefined) this._data.description = userInputData.description;
               if (userInputData.cap != undefined) this._data.cap = userInputData.cap;
-              if (userInputData.chainId != undefined) this._data.chainId = userInputData.chainId;
               if (userInputData.price != undefined) this._data.price = userInputData.price;
               if (userInputData.redemptionFee != undefined) this._data.redemptionFee = userInputData.redemptionFee;
               if (userInputData.mintingFee != undefined) this._data.mintingFee = userInputData.mintingFee;
-              if (userInputData.token != undefined) this._data.token = userInputData.token;
               if (userInputData.contract != undefined) this._data.contract = userInputData.contract;
               this.configDApp.data = this._data;
-              const commissionFee = getEmbedderCommissionFee();
               this._gemTokenContract = this._data.contract;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
@@ -354,7 +354,7 @@ export default class ScomGemToken extends Module implements PageBlock {
             };
             await self.setData(resultingData);
           }
-        },        
+        },
         bindOnChanged: (element: Config, callback: (data: any) => Promise<void>) => {
           element.onCustomCommissionsChanged = async (data: any) => {
             let resultingData = {
@@ -410,24 +410,8 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.updateStyle('--colors-primary-main', this.tag?.buttonBackgroundColor);
   }
 
-  async edit() {
-    this.gridDApp.visible = false;
-    // TODO: update data later
-    this.configDApp.data = this._data;
-    this.configDApp.visible = true;
-  }
-
-  async preview() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-    this._data = this.configDApp.data;
-    this._data.contract = this._gemTokenContract;
-    this.refreshDApp();
-  }
-
   async confirm() {
     return new Promise<void>(async (resolve, reject) => {
-      await this.preview();
       try {
         if (this.loadingElm) this.loadingElm.visible = true;
         await this.onDeploy((error: Error, receipt?: string) => {
@@ -471,44 +455,12 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
     const result = await deployContract(
       params,
-      this._data.token,
+      this.gemInfo.baseToken,
       callback,
       confirmationCallback
     );
     this._gemTokenContract = result;
     this._data.contract = this._gemTokenContract;
-  }
-
-  async discard() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-  }
-
-  async config() { }
-
-  validate() {
-    const data = this.configDApp.data;
-    if (
-      !data ||
-      !data.token ||
-      !data.name ||
-      !data.symbol ||
-      data.cap === undefined ||
-      data.cap === null ||
-      data.mintingFee === undefined ||
-      data.mintingFee === null ||
-      data.redemptionFee === undefined ||
-      data.redemptionFee === null ||
-      !data.price
-    ) {
-      this.mdAlert.message = {
-        status: 'error',
-        content: 'Required field is missing.'
-      };
-      this.mdAlert.showModal();
-      return false;
-    }
-    return true;
   }
 
   private async refreshDApp() {
@@ -523,33 +475,46 @@ export default class ScomGemToken extends Module implements PageBlock {
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
       this.pnlLogoTitle.visible = false;
     }
-    this.renderTokenInput();
-    this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
-    const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
-    const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
-    const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
-    this.markdownViewer.load(description);
-    this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
-    this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-    this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
-    this.backerStack.visible = !this.isBuy;
-    this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
-    this.pnlQty.visible = this.isBuy;
-    this.edtGemQty.readOnly = !this._gemTokenContract;
-    this.edtGemQty.value = "";
-    if (!this.isBuy) {
-      this.btnSubmit.enabled = false;
-      this.btnApprove.visible = false;
-      this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
-      this.backerTokenBalanceLb.caption = '0.00';
+
+    this.gemInfo = this._gemTokenContract ? await getGemInfo(this._gemTokenContract) : null;
+    console.log('this.gemInfo', this.gemInfo);
+    if (this.gemInfo) {
+      this.pnlInputFields.visible = true;
+      this.pnlUnsupportedNetwork.visible = false;
+
+      this.renderTokenInput();
+      this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
+      const buyDesc = `Use ${this._data.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
+      const redeemDesc = `Redeem your ${this._data.name || ''} Tokens for the underlying token.`;
+      const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
+      this.markdownViewer.load(description);
+      this.fromTokenLb.caption = `1 ${this._data.name || ''}`;
+      this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
+      this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this._data.name || ''} - GEM Tokens`;
+      this.backerStack.visible = !this.isBuy;
+      this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
+      this.pnlQty.visible = this.isBuy;
+      this.edtGemQty.readOnly = !this._gemTokenContract;
+      this.edtGemQty.value = "";
+      if (!this.isBuy) {
+        this.btnSubmit.enabled = false;
+        this.btnApprove.visible = false;
+        this.backerTokenImg.url = assets.tokenPath(this.gemInfo.baseToken, getChainId());
+        this.backerTokenBalanceLb.caption = '0.00';
+      }
+      const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
+      this.feeLb.caption = `${feeValue || ''} ${this._data.name}`;
+      const qty = Number(this.edtGemQty.value);
+      const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
+      this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
+      this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
+      this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
+      this.updateTokenBalance();
     }
-    const feeValue = this.isBuy ? this._data.mintingFee : this._data.redemptionFee;
-    this.feeLb.caption = `${feeValue || ''} ${this._data.name}`;
-    const qty = Number(this.edtGemQty.value);
-    const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
-    this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
-    this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
-    this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
+    else {
+      this.pnlInputFields.visible = false;
+      this.pnlUnsupportedNetwork.visible = true;
+    }
   }
 
   async init() {
@@ -568,18 +533,13 @@ export default class ScomGemToken extends Module implements PageBlock {
     //   });
     // }
     // this.$eventBus.dispatch('embedInitialized', this);
-    
+
     this._data.name = this.getAttribute('name', true);
     this._data.symbol = this.getAttribute('symbol', true);
     this._data.cap = this.getAttribute('cap', true);
     this._data.price = this.getAttribute('price', true);
     this._data.mintingFee = this.getAttribute('mintingFee', true);
     this._data.redemptionFee = this.getAttribute('redemptionFee', true);
-    this._data.chainId = this.getAttribute('chainId', true);
-    const tokenAddress = this.getAttribute('tokenAddress', true);
-    if (tokenAddress) {
-      this._data.token = DefaultTokens[this.chainId]?.find(t => t.address?.toLowerCase() == tokenAddress.toLowerCase());
-    }
     this._data.dappType = this.getAttribute('dappType', true);
     this._data.description = this.getAttribute('description', true);
     this._data.hideDescription = this.getAttribute('hideDescription', true);
@@ -591,13 +551,6 @@ export default class ScomGemToken extends Module implements PageBlock {
     await this.refreshDApp();
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
-  }
-
-  get chainId() {
-    return this._data.chainId ?? 0;
-  }
-  set chainId(value: number) {
-    this._data.chainId = value;
   }
 
   get name() {
@@ -647,13 +600,6 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
   set price(value: string) {
     this._data.price = value;
-  }
-
-  get tokenAddress() {
-    return this._data.token?.address ?? '';
-  }
-  set tokenAddress(value: string) {
-    this._data.token = DefaultTokens[this.chainId]?.find(t => t.address?.toLowerCase() == value.toLowerCase());
   }
 
   get dappType(): DappType {
@@ -773,20 +719,13 @@ export default class ScomGemToken extends Module implements PageBlock {
   updateContractAddress() {
     if (this.approvalModelAction) {
       if (!this._data.commissions || this._data.commissions.length == 0) {
-        this._entryContract = this._gemTokenContract;     
+        this._entryContract = this._gemTokenContract;
       }
       else {
         this._entryContract = getContractAddress('Proxy');
       }
       this.approvalModelAction.setSpenderAddress(this._entryContract);
     }
-  }
-
-  private async selectToken(token: ITokenObject) {
-    this._data.token = token;
-    this.backerTokenImg.url = assets.tokenPath(this._data.token, getChainId());
-    this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
-    this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
   }
 
   private updateSubmitButton(submitting: boolean) {
@@ -800,7 +739,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       content: 'Approving'
     };
     this.mdAlert.showModal();
-    this.approvalModelAction.doApproveAction(this._data.token, this.edtAmount.value);
+    this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, this.edtAmount.value);
   }
 
   private async onQtyChanged() {
@@ -812,9 +751,9 @@ export default class ScomGemToken extends Module implements PageBlock {
     const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
     this.lbYouWillGet.caption = `${totalGemTokens} ${this._data.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
-    
+
     if (this.approvalModelAction)
-      this.approvalModelAction.checkAllowance(this._data.token, Utils.toDecimals(backerCoinAmount, this._data.token.decimals).toFixed());
+      this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, Utils.toDecimals(backerCoinAmount, this.gemInfo.baseToken.decimals).toFixed());
   }
 
   private async onAmountChanged() {
@@ -834,7 +773,7 @@ export default class ScomGemToken extends Module implements PageBlock {
 
   private async getBalance(token?: ITokenObject) {
     let balance = new BigNumber(0);
-    const tokenData = token || this._data.token;
+    const tokenData = token || this.gemInfo.baseToken;
     if (this.isBuy && tokenData) {
       balance = await getTokenBalance(tokenData);
     } else if (!this.isBuy && this._gemTokenContract) {
@@ -919,7 +858,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       }
     };
 
-    await buyToken(this._gemTokenContract, quantity, this._data.token, this._data.commissions, callback,
+    await buyToken(this._gemTokenContract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
       async (result: any) => {
         console.log('buyToken: ', result);
         this.edtGemQty.value = '';
@@ -962,7 +901,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.edtAmount.readOnly = this.isBuy || !this._gemTokenContract;
     this.edtAmount.value = "";
     if (this.isBuy) {
-      this.tokenElm.token = this._data.token;
+      this.tokenElm.token = this.gemInfo.baseToken;
       this.tokenElm.visible = true;
       this.tokenElm.readonly = !!this._gemTokenContract;
       this.gemLogoStack.visible = false;
@@ -982,6 +921,10 @@ export default class ScomGemToken extends Module implements PageBlock {
       this.maxStack.visible = !!this._gemTokenContract;
       this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
     }
+  }
+
+  private onNetworkSelected(network: INetwork) {
+    console.log('network selected', network);
   }
 
   render() {
@@ -1041,7 +984,28 @@ export default class ScomGemToken extends Module implements PageBlock {
                 <i-label caption="=" font={{ bold: true, size: '1.5rem' }}></i-label>
                 <i-label id="toTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
               </i-hstack>
-              <i-vstack gap="0.5rem">
+              <i-grid-layout
+                width='100%'
+                verticalAlignment='center'
+                padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
+                templateColumns={['1fr', '2fr']}
+                templateRows={['auto']}
+                templateAreas={
+                  [
+                    ['lbNetwork', 'network']
+                  ]
+                }>
+                <i-label caption="Network" grid={{ area: 'lbNetwork' }} font={{ size: '0.875rem' }} />
+                <i-scom-nft-minter-network-picker
+                  id='networkPicker'
+                  grid={{ area: 'network' }}
+                  networks={SupportedNetworks}
+                  switchNetworkOnSelect={true}
+                  selectedChainId={getChainId()}
+                  onCustomNetworkSelected={this.onNetworkSelected}
+                />
+              </i-grid-layout>
+              <i-vstack gap="0.5rem" id='pnlInputFields'>
                 <i-grid-layout
                   id="balanceLayout"
                   gap={{ column: '0.5rem', row: '0.25rem' }}
@@ -1089,7 +1053,6 @@ export default class ScomGemToken extends Module implements PageBlock {
                       id="tokenElm"
                       class={tokenSelectionStyle}
                       width="100%"
-                      onSelectToken={this.selectToken.bind(this)}
                     ></i-scom-gem-token-selection>
                     <i-input
                       id="edtAmount"
@@ -1172,6 +1135,9 @@ export default class ScomGemToken extends Module implements PageBlock {
                   font={{ size: '0.75rem' }}
                   link={{ href: 'https://docs.scom.dev/' }}
                 ></i-label> */}
+              </i-vstack>
+              <i-vstack id='pnlUnsupportedNetwork' visible={false} horizontalAlignment='center'>
+                <i-label caption='This network is not supported.' font={{ size: '1.5rem' }}></i-label>
               </i-vstack>
             </i-vstack>
           </i-grid-layout>
