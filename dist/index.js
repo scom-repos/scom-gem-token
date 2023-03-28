@@ -5420,8 +5420,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 else {
                     this.onSetupPage(connected);
                 }
-                if (connected)
-                    await this.updateTokenBalance();
+                if (connected) {
+                    this.updateContractAddress();
+                    this.refreshDApp();
+                }
                 else
                     this.lblBalance.caption = '0.00';
             };
@@ -5783,13 +5785,13 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
                 this.pnlLogoTitle.visible = false;
             }
+            this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_3.default.fullPath('img/gem-logo.svg');
             this.gemInfo = this.contract ? await API_1.getGemInfo(this.contract) : null;
             console.log('this.gemInfo', this.gemInfo);
             if (this.gemInfo) {
                 this.pnlInputFields.visible = true;
                 this.pnlUnsupportedNetwork.visible = false;
                 this.renderTokenInput();
-                this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_3.default.fullPath('img/gem-logo.svg');
                 const buyDesc = `Use ${this.gemInfo.name || ''} for services on Secure Compute, decentralized hosting, audits, sub-domains and more. Full backed, Redeemable and transparent at all times!`;
                 const redeemDesc = `Redeem your ${this.gemInfo.name || ''} Tokens for the underlying token.`;
                 const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
