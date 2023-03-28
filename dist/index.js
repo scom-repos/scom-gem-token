@@ -2919,12 +2919,12 @@ define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/compon
         logo: fullPath('img/logo.svg'),
         img: {
             network: {
-                bsc: fullPath('img/networks/bsc.svg'),
-                eth: fullPath('img/networks/eth.svg'),
-                amio: fullPath('img/networks/amio.svg'),
-                avax: fullPath('img/networks/avax.svg'),
-                ftm: fullPath('img/networks/ftm.svg'),
-                polygon: fullPath('img/networks/polygon.svg'),
+                bsc: fullPath('img/networks/bsc.png'),
+                eth: fullPath('img/networks/eth.png'),
+                amio: fullPath('img/networks/amio.png'),
+                avax: fullPath('img/networks/avax.png'),
+                ftm: fullPath('img/networks/ftm.png'),
+                polygon: fullPath('img/networks/polygon.png'),
             }
         },
         fullPath,
@@ -5785,7 +5785,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
                 this.pnlLogoTitle.visible = false;
             }
-            this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_3.default.fullPath('img/gem-logo.svg');
+            this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_3.default.fullPath('img/gem-logo.png');
             this.gemInfo = this.contract ? await API_1.getGemInfo(this.contract) : null;
             console.log('this.gemInfo', this.gemInfo);
             if (this.gemInfo) {
@@ -6119,7 +6119,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.tokenElm.visible = false;
                 this.gemLogoStack.visible = true;
                 this.gemLogoStack.clearInnerHTML();
-                this.gemLogoStack.append(this.$render("i-image", { url: this._data.logo, class: index_css_3.imageStyle, width: 30, height: 30, fallbackUrl: assets_3.default.fullPath('img/gem-logo.svg') }));
+                this.gemLogoStack.append(this.$render("i-image", { url: this._data.logo, class: index_css_3.imageStyle, width: 30, height: 30, fallbackUrl: assets_3.default.fullPath('img/gem-logo.png') }));
                 this.maxStack.visible = !!this.contract;
                 this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
             }

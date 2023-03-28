@@ -450,7 +450,7 @@ export default class ScomGemToken extends Module implements PageBlock {
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
       this.pnlLogoTitle.visible = false;
     }
-    this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.svg');
+    this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.png');
 
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
     console.log('this.gemInfo', this.gemInfo);
@@ -851,7 +851,7 @@ export default class ScomGemToken extends Module implements PageBlock {
         <i-image
           url={this._data.logo}
           class={imageStyle} width={30} height={30}
-          fallbackUrl={assets.fullPath('img/gem-logo.svg')}
+          fallbackUrl={assets.fullPath('img/gem-logo.png')}
         ></i-image>
       )
       this.maxStack.visible = !!this.contract;
