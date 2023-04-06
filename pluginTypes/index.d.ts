@@ -113,29 +113,9 @@ declare module "@scom/scom-gem-token/utils/index.ts" {
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
     export { ApprovalStatus, getERC20Allowance, getERC20ApprovalModelAction, IERC20ApprovalOptions, IERC20ApprovalAction } from "@scom/scom-gem-token/utils/approvalModel.ts";
 }
-/// <amd-module name="@scom/scom-gem-token/wallet/walletList.ts" />
-declare module "@scom/scom-gem-token/wallet/walletList.ts" {
-    import { WalletPlugin } from '@ijstech/eth-wallet';
-    export const walletList: ({
-        name: WalletPlugin;
-        displayName: string;
-        img: string;
-        iconFile?: undefined;
-    } | {
-        name: WalletPlugin;
-        displayName: string;
-        iconFile: string;
-        img?: undefined;
-    })[];
-}
 /// <amd-module name="@scom/scom-gem-token/wallet/index.ts" />
 declare module "@scom/scom-gem-token/wallet/index.ts" {
-    import { IWallet, WalletPlugin } from "@ijstech/eth-wallet";
     export function isWalletConnected(): boolean;
-    export function connectWallet(walletPlugin: WalletPlugin, eventHandlers?: {
-        [key: string]: Function;
-    }): Promise<IWallet>;
-    export const hasWallet: () => boolean;
     export const getChainId: () => number;
 }
 /// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/avalanche.ts" />
@@ -506,6 +486,10 @@ declare module "@scom/scom-gem-token/store/index.ts" {
         IsWalletConnected = "isWalletConnected",
         IsWalletDisconnected = "IsWalletDisconnected",
         chainChanged = "chainChanged"
+    }
+    export enum WalletPlugin {
+        MetaMask = "metamask",
+        WalletConnect = "walletconnect"
     }
     export interface INetwork {
         chainId: number;
@@ -2032,7 +2016,6 @@ declare module "@scom/scom-gem-token" {
         set logo(value: string);
         get chainSpecificProperties(): any;
         set chainSpecificProperties(value: any);
-        private initWalletData;
         private initApprovalAction;
         updateContractAddress(): void;
         private updateSubmitButton;
