@@ -2,4 +2,6 @@ node_modules
 package-lock.json
 test/dist
 test/ref
-repos/
+repos
+src/scom-network-picker
+src/img/network

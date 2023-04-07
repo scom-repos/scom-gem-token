@@ -30,7 +30,7 @@ import { Alert } from './alert/index';
 import assets from './assets';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import scconfig from './scconfig.json';
-import ScomNetworkPicker from './network-picker/index';
+import ScomNetworkPicker from './scom-network-picker/index';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -923,8 +923,9 @@ export default class ScomGemToken extends Module implements PageBlock {
                   ]
                 }>
                 <i-label caption="Network" grid={{ area: 'lbNetwork' }} font={{ size: '0.875rem' }} />
-                <i-scom-nft-minter-network-picker
+                <i-scom-network-picker
                   id='networkPicker'
+                  type="combobox"
                   grid={{ area: 'network' }}
                   networks={SupportedNetworks}
                   switchNetworkOnSelect={true}
