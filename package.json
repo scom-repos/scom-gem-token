@@ -15,7 +15,8 @@
         "@ijstech/eth-contract": "^0.1.10",
         "@ijstech/eth-wallet": "^0.1.51",
         "@scom/scom-gem-token-contract": "^0.1.0",
-        "@scom/scom-commission-proxy-contract": "^0.1.2"
+        "@scom/scom-commission-proxy-contract": "^0.1.2",
+        "@scom/scom-network-picker": "https://github.com/scom-repos/scom-network-picker"
     },
     "scripts": {
         "copy": "sh ./scripts/copy.sh",
