@@ -1,4 +1,5 @@
 rm -rf src/contracts &&
+rm -rf src/scom-network-picker &&
 mkdir -p src/contracts/scom-gem-token-contract &&
 mkdir -p src/contracts/scom-commission-proxy-contract &&
 cp -r node_modules/@scom/scom-gem-token-contract/src/* src/contracts/scom-gem-token-contract &&

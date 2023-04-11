@@ -2827,12 +2827,12 @@ define("@scom/scom-gem-token/scom-network-picker/assets.ts", ["require", "export
     exports.default = {
         img: {
             network: {
-                bsc: fullPath('img/network/bsc.png'),
-                eth: fullPath('img/network/eth.png'),
-                amio: fullPath('img/network/amio.png'),
-                avax: fullPath('img/network/avax.png'),
-                ftm: fullPath('img/network/ftm.png'),
-                polygon: fullPath('img/network/polygon.png'),
+                bsc: fullPath('img/networks/bsc.png'),
+                eth: fullPath('img/networks/eth.png'),
+                amio: fullPath('img/networks/amio.png'),
+                avax: fullPath('img/networks/avax.png'),
+                ftm: fullPath('img/networks/ftm.png'),
+                polygon: fullPath('img/networks/polygon.png'),
             }
         },
         fullPath
@@ -3210,6 +3210,9 @@ define("@scom/scom-gem-token/scom-network-picker/index.css.ts", ["require", "exp
                                 }
                             }
                         }
+                    },
+                    '&> div': {
+                        transform: 'scale(1)'
                     }
                 }
             },
@@ -3415,7 +3418,7 @@ define("@scom/scom-gem-token/scom-network-picker/index.tsx", ["require", "export
                 },
                 border: { radius: 5, width: '1px', style: 'solid', color: Theme.divider },
                 font: { color: Theme.text.primary },
-                rightIcon: { name: 'angle-down', width: 20, height: 20, fill: 'rgba(0,0,0,.45)' },
+                rightIcon: { name: 'angle-down', width: 20, height: 20, fill: Theme.text.primary },
                 background: { color: 'transparent' },
                 caption: this.getNetworkLabel(),
                 onClick: () => {
