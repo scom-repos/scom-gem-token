@@ -15,11 +15,10 @@ import {
   HStack
 } from '@ijstech/components';
 import { ICommissionInfo, IEmbedData } from '../interface';
-import { BigNumber, INetwork } from '@ijstech/eth-wallet';
+import { BigNumber, Wallet } from '@ijstech/eth-wallet';
 import { formatNumber, isWalletAddress } from '../utils/index';
 import ScomNetworkPicker from '@scom/scom-network-picker';
 import { getEmbedderCommissionFee, SupportedNetworks } from '../store/index';
-import assets from '../assets';
 import { customStyle, tableStyle } from './index.css'
 const Theme = Styles.Theme.ThemeVars;
 
@@ -51,7 +50,7 @@ export default class Config extends Module {
       onRenderCell: function (source: Control, columnData: number, rowData: any) {
         const network = SupportedNetworks.find(net => net.chainId === columnData)
         if (!network) return <i-panel></i-panel>
-        const imgUrl = assets.img.network[network.img] || ''
+        const imgUrl = Wallet.getClientInstance().getNetworkInfo(columnData)?.image || ''
         const hstack = new HStack(undefined, {
           verticalAlignment: 'center',
           gap: 5
@@ -60,7 +59,7 @@ export default class Config extends Module {
           image: {url: imgUrl, width: 16, height: 16}
         })
         const lbName = new Label(hstack, {
-          caption: network.name || '',
+          caption: network.chainName || '',
           font: {size: '0.875rem'}
         })
         hstack.append(imgEl, lbName);
@@ -134,26 +133,29 @@ export default class Config extends Module {
       }
     }
   ]
+  private isInited: boolean = false;
   private btnConfirm: Button;
   private lbErrMsg: Label;
   private _onCustomCommissionsChanged: (data: any) => Promise<void>;
 
-  async init() {
+  init() {
     super.init();
     this.commissionInfoList = [];
     const embedderFee = getEmbedderCommissionFee();
     this.lbCommissionShare.caption = `${formatNumber(new BigNumber(embedderFee).times(100).toFixed(), 4)} %`;
+    this.isInited = true;
   }
 
   get data(): IEmbedData {
     const config: IEmbedData = {
     };
-    config.commissions = this.tableCommissions.data || [];
+    config.commissions = this.tableCommissions?.data || [];
     return config;
   }
 
   set data(config: IEmbedData) {
-    this.tableCommissions.data = config.commissions || [];
+    if (this.tableCommissions)
+      this.tableCommissions.data = config.commissions || [];
     this.toggleVisible();
   }
 
@@ -220,7 +222,7 @@ export default class Config extends Module {
     }
   }
 
-  onNetworkSelected(network: INetwork) {
+  onNetworkSelected() {
     this.validateModalFields();
   }
 
@@ -228,7 +230,8 @@ export default class Config extends Module {
     this.validateModalFields();
   }
 
-  private toggleVisible() {
+  private async toggleVisible() {
+    if (!this.isInited) await this.ready();
     const hasData = !!this.tableCommissions?.data?.length;
     this.tableCommissions.visible = hasData;
     this.pnlEmptyWallet.visible = !hasData;
@@ -310,7 +313,7 @@ export default class Config extends Module {
               <i-label caption="Add Wallet" font={{size: '1.5rem'}}></i-label>
             </i-hstack>
 
-            <i-label caption="Network" grid={{ area: 'lbNetwork' }} font={{size: '1rem'}} />
+            <i-label caption="Network" grid={{ area: 'lbNetwork' }} font={{size: '1rem'}} margin={{right: '0.5rem'}} />
             <i-scom-network-picker
               id='networkPicker'
               grid={{ area: 'network' }}

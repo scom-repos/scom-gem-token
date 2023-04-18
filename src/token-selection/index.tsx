@@ -12,14 +12,14 @@ import {
   Icon
 } from '@ijstech/components';
 import { ITokenObject } from '../interface';
-import { getTokenList, ChainNativeTokenByChainId, EventId } from '../store/index';
-import { } from '@ijstech/eth-wallet';
-import Assets from '../assets';
+import { EventId } from '../store/index';
+import {} from '@ijstech/eth-wallet';
+import { assets } from '@scom/scom-token-list';
 import { isWalletConnected, getChainId } from '../wallet/index';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
+import { ChainNativeTokenByChainId, tokenStore } from '@scom/scom-token-list'
 
 const Theme = Styles.Theme.ThemeVars;
-const fallBackUrl = Assets.tokenPath();
 
 type selectTokenCallback = (token: ITokenObject) => void;
 interface TokenSelectionElement extends ControlElement {
@@ -75,8 +75,8 @@ export class TokenSelection extends Module {
   }
 
   set readonly(value: boolean) {
-    if (this._readonly != value) {
-      this._readonly = value;
+    this._readonly = value;
+    if (this.btnTokens) {
       this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
       this.btnTokens.rightIcon.visible = !this._readonly;
     }
@@ -87,15 +87,11 @@ export class TokenSelection extends Module {
     this.renderTokenItems();
     if (init && this.token && !this.readonly) {
       const chainId = getChainId();
-      const _tokenList = getTokenList(chainId);
+      const _tokenList = tokenStore.getTokenList(chainId);
       const token = _tokenList.find(t => (t.address && t.address == this.token?.address) || (t.symbol == this.token?.symbol))
-      if (!token) {
-        this.token = undefined;
-      }
+      if (!token) this.token = undefined;
     }
-    if (this.token) {
-      this.updateTokenButton(this.token);
-    }
+    this.updateTokenButton(this.token);
   }
 
   private registerEvent() {
@@ -106,7 +102,7 @@ export class TokenSelection extends Module {
 
   private get tokenList(): ITokenObject[] {
     const chainId = getChainId();
-    const _tokenList = getTokenList(chainId);
+    const _tokenList = tokenStore.getTokenList(chainId);
 
     return _tokenList.map((token: ITokenObject) => {
       const tokenObject = { ...token };
@@ -150,7 +146,7 @@ export class TokenSelection extends Module {
 
   private renderToken(token: ITokenObject) {
     const chainId = getChainId();
-    const tokenIconPath = Assets.tokenPath(token, chainId);
+    const tokenIconPath = assets.tokenPath(token, chainId);
     return (
       <i-hstack
         width='100%'
@@ -161,7 +157,7 @@ export class TokenSelection extends Module {
         gap='0.5rem'
         onClick={() => this.selectToken(token)}
       >
-        <i-image width={36} height={36} url={tokenIconPath} fallbackUrl={fallBackUrl}></i-image>
+        <i-image width={36} height={36} url={tokenIconPath} fallbackUrl={assets.fallbackUrl}></i-image>
         <i-vstack gap='0.25rem'>
           <i-label font={{ size: '0.875rem', bold: true }} caption={token.symbol}></i-label>
           <i-label font={{ size: '0.75rem' }} caption={token.name}></i-label>
@@ -170,16 +166,19 @@ export class TokenSelection extends Module {
     )
   }
 
-  private updateTokenButton(token?: ITokenObject) {
+  private async updateTokenButton(token?: ITokenObject) {
+    if (!this.btnTokens) return;
+    this.btnTokens.style.cursor = this.readonly ? 'unset' : '';
+    this.btnTokens.rightIcon.visible = !this.readonly;
     const chainId = this.chainId || getChainId();
-    if (token) {
-      const tokenIconPath = Assets.tokenPath(token, chainId);
+    if (token && isWalletConnected()) {
+      const tokenIconPath = assets.tokenPath(token, chainId);
       const icon = new Icon(this.btnTokens, {
         width: 28,
         height: 28,
         image: {
           url: tokenIconPath,
-          fallBackUrl: fallBackUrl
+          fallBackUrl: assets.fallbackUrl
         }
       })
       this.btnTokens.icon = icon;
@@ -212,8 +211,10 @@ export class TokenSelection extends Module {
   
   init() {
     super.init();
-    this.readonly = this.getAttribute('readonly', true, false);
+    const readonly = this.getAttribute('readonly', true);
+    if (readonly !== undefined) this.readonly = readonly;
     this.isInited = true;
+    this.onSetup()
   }
 
   render() {

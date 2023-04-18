@@ -18,16 +18,17 @@ import {
   IDataSchema,
   ControlElement
 } from '@ijstech/components';
-import { BigNumber, Utils, Wallet, INetwork } from '@ijstech/eth-wallet';
+import { BigNumber, INetwork, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo, IChainSpecificProperties } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig, SupportedNetworks } from './store/index';
+import { EventId, getEmbedderCommissionFee, getContractAddress, setDataFromSCConfig, SupportedNetworks } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
 import Config from './config/index';
+import { assets as tokenAssets } from '@scom/scom-token-list';
+import assets from './assets';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { Alert } from './alert/index';
-import assets from './assets';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import scconfig from './scconfig.json';
 import ScomNetworkPicker from '@scom/scom-network-picker';
@@ -463,26 +464,35 @@ export default class ScomGemToken extends Module implements PageBlock {
       const redeemDesc = `Redeem your ${this.gemInfo.name || ''} Tokens for the underlying token.`;
       const description = this._data.description || (this.isBuy ? buyDesc : redeemDesc);
       this.markdownViewer.load(description);
+      if (!this.fromTokenLb.isConnected) await this.fromTokenLb.ready();
       this.fromTokenLb.caption = `1 ${this.gemInfo.name || ''}`;
+      if (!this.toTokenLb.isConnected) await this.toTokenLb.ready();
       this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
+      if (!this.lblTitle.isConnected) await this.lblTitle.ready();
+      if (!this.lblTitle2.isConnected) await this.lblTitle2.ready();
       this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this.gemInfo.name || ''} - GEM Tokens`;
       this.backerStack.visible = !this.isBuy;
-      this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
       this.pnlQty.visible = this.isBuy;
+      this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
+      if (!this.edtGemQty.isConnected) await this.edtGemQty.ready();
       this.edtGemQty.readOnly = !this.contract;
       this.edtGemQty.value = "";
       if (!this.isBuy) {
         this.btnSubmit.enabled = false;
         this.btnApprove.visible = false;
-        this.backerTokenImg.url = assets.tokenPath(this.gemInfo.baseToken, getChainId());
+        this.backerTokenImg.url = tokenAssets.tokenPath(this.gemInfo.baseToken, getChainId());
+        if (!this.backerTokenBalanceLb.isConnected) await this.backerTokenBalanceLb.ready();
         this.backerTokenBalanceLb.caption = '0.00';
       }
       const feeValue = this.isBuy ? Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+      if (!this.feeLb.isConnected) await this.feeLb.ready();
       this.feeLb.caption = `${feeValue || ''} ${this.gemInfo.name}`;
       const qty = Number(this.edtGemQty.value);
       const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
+      if (!this.lbYouWillGet.isConnected) await this.lbYouWillGet.ready();
       this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
       this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
+      if (!this.lblBalance.isConnected) await this.lblBalance.ready();
       this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
       this.updateTokenBalance();
     }
@@ -496,18 +506,6 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.isReadyCallbackQueued = true;
     super.init();
     await this.onSetupPage(isWalletConnected());
-
-    // if (!this.tag || (typeof this.tag === 'object' && !Object.keys(this.tag).length)) {
-    //   this.setTag({
-    //     fontColor: '#000000',
-    //     inputFontColor: '#ffffff',
-    //     inputBackgroundColor: '#333333',
-    //     buttonBackgroundColor: '#FE6502',
-    //     backgroundColor: '#ffffff'
-    //   });
-    // }
-    // this.$eventBus.dispatch('embedInitialized', this);
-
     this._data.dappType = this.getAttribute('dappType', true);
     this._data.description = this.getAttribute('description', true);
     this._data.hideDescription = this.getAttribute('hideDescription', true);
@@ -824,7 +822,8 @@ export default class ScomGemToken extends Module implements PageBlock {
     await this.onAmountChanged();
   }
 
-  private renderTokenInput() {
+  private async renderTokenInput() {
+    if (!this.edtAmount.isConnected) await this.edtAmount.ready();
     this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
@@ -938,7 +937,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                   id="balanceLayout"
                   gap={{ column: '0.5rem', row: '0.25rem' }}
                 >
-                  <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{ area: 'qty' }}>
+                  <i-hstack id='pnlQty' horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{ area: 'qty' }}>
                     <i-label
                       caption='Qty'
                       font={{ size: '1rem', bold: true }}
@@ -951,7 +950,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                       class={inputStyle}
                       inputType='number'
                       font={{ size: '1rem', bold: true }}
-                      border={{ radius: 4 }}
+                      border={{ radius: 4, style: 'solid', width: '1px', color: Theme.divider }}
                     ></i-input>
                   </i-hstack>
                   <i-hstack
@@ -1013,7 +1012,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                     visible={false}
                   >
                     <i-label caption='You get:' font={{ size: '1rem' }}></i-label>
-                    <i-image id="backerTokenImg" width={20} height={20} fallbackUrl={assets.tokenPath()}></i-image>
+                    <i-image id="backerTokenImg" width={20} height={20} fallbackUrl={tokenAssets.tokenPath()}></i-image>
                     <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '1rem' }}></i-label>
                   </i-hstack>
                 </i-grid-layout>
