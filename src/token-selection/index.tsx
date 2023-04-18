@@ -75,12 +75,10 @@ export class TokenSelection extends Module {
   }
 
   set readonly(value: boolean) {
-    if (this._readonly != value) {
-      this._readonly = value;
-      if (this.btnTokens) {
-        this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
-        this.btnTokens.rightIcon.visible = !this._readonly;
-      }
+    this._readonly = value;
+    if (this.btnTokens) {
+      this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
+      this.btnTokens.rightIcon.visible = !this._readonly;
     }
   }
 
@@ -91,13 +89,9 @@ export class TokenSelection extends Module {
       const chainId = getChainId();
       const _tokenList = tokenStore.getTokenList(chainId);
       const token = _tokenList.find(t => (t.address && t.address == this.token?.address) || (t.symbol == this.token?.symbol))
-      if (!token) {
-        this.token = undefined;
-      }
+      if (!token) this.token = undefined;
     }
-    if (this.token) {
-      this.updateTokenButton(this.token);
-    }
+    this.updateTokenButton(this.token);
   }
 
   private registerEvent() {
@@ -174,6 +168,8 @@ export class TokenSelection extends Module {
 
   private async updateTokenButton(token?: ITokenObject) {
     if (!this.btnTokens) return;
+    this.btnTokens.style.cursor = this.readonly ? 'unset' : '';
+    this.btnTokens.rightIcon.visible = !this.readonly;
     const chainId = this.chainId || getChainId();
     if (token && isWalletConnected()) {
       const tokenIconPath = assets.tokenPath(token, chainId);
@@ -215,8 +211,10 @@ export class TokenSelection extends Module {
   
   init() {
     super.init();
-    this.readonly = this.getAttribute('readonly', true, false);
+    const readonly = this.getAttribute('readonly', true);
+    if (readonly !== undefined) this.readonly = readonly;
     this.isInited = true;
+    this.onSetup()
   }
 
   render() {

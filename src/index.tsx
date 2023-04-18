@@ -472,8 +472,8 @@ export default class ScomGemToken extends Module implements PageBlock {
       if (!this.lblTitle2.isConnected) await this.lblTitle2.ready();
       this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this.gemInfo.name || ''} - GEM Tokens`;
       this.backerStack.visible = !this.isBuy;
-      this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
       this.pnlQty.visible = this.isBuy;
+      this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
       if (!this.edtGemQty.isConnected) await this.edtGemQty.ready();
       this.edtGemQty.readOnly = !this.contract;
       this.edtGemQty.value = "";
@@ -506,18 +506,6 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.isReadyCallbackQueued = true;
     super.init();
     await this.onSetupPage(isWalletConnected());
-
-    // if (!this.tag || (typeof this.tag === 'object' && !Object.keys(this.tag).length)) {
-    //   this.setTag({
-    //     fontColor: '#000000',
-    //     inputFontColor: '#ffffff',
-    //     inputBackgroundColor: '#333333',
-    //     buttonBackgroundColor: '#FE6502',
-    //     backgroundColor: '#ffffff'
-    //   });
-    // }
-    // this.$eventBus.dispatch('embedInitialized', this);
-
     this._data.dappType = this.getAttribute('dappType', true);
     this._data.description = this.getAttribute('description', true);
     this._data.hideDescription = this.getAttribute('hideDescription', true);
@@ -949,7 +937,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                   id="balanceLayout"
                   gap={{ column: '0.5rem', row: '0.25rem' }}
                 >
-                  <i-hstack id='pnlQty' visible={false} horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{ area: 'qty' }}>
+                  <i-hstack id='pnlQty' horizontalAlignment='end' verticalAlignment='center' gap="0.5rem" grid={{ area: 'qty' }}>
                     <i-label
                       caption='Qty'
                       font={{ size: '1rem', bold: true }}

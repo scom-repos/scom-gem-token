@@ -700,12 +700,10 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
             return this._readonly;
         }
         set readonly(value) {
-            if (this._readonly != value) {
-                this._readonly = value;
-                if (this.btnTokens) {
-                    this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
-                    this.btnTokens.rightIcon.visible = !this._readonly;
-                }
+            this._readonly = value;
+            if (this.btnTokens) {
+                this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
+                this.btnTokens.rightIcon.visible = !this._readonly;
             }
         }
         onSetup(init) {
@@ -716,13 +714,10 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
                 const chainId = index_4.getChainId();
                 const _tokenList = scom_token_list_2.tokenStore.getTokenList(chainId);
                 const token = _tokenList.find(t => { var _a, _b; return (t.address && t.address == ((_a = this.token) === null || _a === void 0 ? void 0 : _a.address)) || (t.symbol == ((_b = this.token) === null || _b === void 0 ? void 0 : _b.symbol)); });
-                if (!token) {
+                if (!token)
                     this.token = undefined;
-                }
             }
-            if (this.token) {
-                this.updateTokenButton(this.token);
-            }
+            this.updateTokenButton(this.token);
         }
         registerEvent() {
             this.$eventBus.register(this, "isWalletConnected" /* IsWalletConnected */, () => this.onSetup());
@@ -749,7 +744,6 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
         renderTokenItems() {
             this.gridTokenList.clearInnerHTML();
             const _tokenList = this.tokenList;
-            console.log(this.tokenList);
             if (_tokenList.length) {
                 const tokenItems = _tokenList.map((token) => this.renderToken(token));
                 this.gridTokenList.append(...tokenItems);
@@ -770,6 +764,8 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
         async updateTokenButton(token) {
             if (!this.btnTokens)
                 return;
+            this.btnTokens.style.cursor = this.readonly ? 'unset' : '';
+            this.btnTokens.rightIcon.visible = !this.readonly;
             const chainId = this.chainId || index_4.getChainId();
             if (token && index_4.isWalletConnected()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
@@ -802,8 +798,11 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
         }
         init() {
             super.init();
-            this.readonly = this.getAttribute('readonly', true, false);
+            const readonly = this.getAttribute('readonly', true);
+            if (readonly !== undefined)
+                this.readonly = readonly;
             this.isInited = true;
+            this.onSetup();
         }
         render() {
             return (this.$render("i-panel", null,
@@ -3043,8 +3042,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     await this.lblTitle2.ready();
                 this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this.gemInfo.name || ''} - GEM Tokens`;
                 this.backerStack.visible = !this.isBuy;
-                this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
                 this.pnlQty.visible = this.isBuy;
+                this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
                 if (!this.edtGemQty.isConnected)
                     await this.edtGemQty.ready();
                 this.edtGemQty.readOnly = !this.contract;
@@ -3081,16 +3080,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.isReadyCallbackQueued = true;
             super.init();
             await this.onSetupPage(index_12.isWalletConnected());
-            // if (!this.tag || (typeof this.tag === 'object' && !Object.keys(this.tag).length)) {
-            //   this.setTag({
-            //     fontColor: '#000000',
-            //     inputFontColor: '#ffffff',
-            //     inputBackgroundColor: '#333333',
-            //     buttonBackgroundColor: '#FE6502',
-            //     backgroundColor: '#ffffff'
-            //   });
-            // }
-            // this.$eventBus.dispatch('embedInitialized', this);
             this._data.dappType = this.getAttribute('dappType', true);
             this._data.description = this.getAttribute('description', true);
             this._data.hideDescription = this.getAttribute('hideDescription', true);
@@ -3403,7 +3392,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                 this.$render("i-scom-network-picker", { id: 'networkPicker', type: "combobox", grid: { area: 'network' }, networks: index_11.SupportedNetworks, switchNetworkOnSelect: true, selectedChainId: index_12.getChainId(), onCustomNetworkSelected: this.onNetworkSelected })),
                             this.$render("i-vstack", { gap: "0.5rem", id: 'pnlInputFields' },
                                 this.$render("i-grid-layout", { id: "balanceLayout", gap: { column: '0.5rem', row: '0.25rem' } },
-                                    this.$render("i-hstack", { id: 'pnlQty', visible: false, horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },
+                                    this.$render("i-hstack", { id: 'pnlQty', horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },
                                         this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_3.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider } })),
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
