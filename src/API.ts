@@ -3,8 +3,9 @@ import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from './in
 import { Contracts } from './contracts/scom-gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getEmbedderCommissionFee, getContractAddress, DefaultTokens } from './store/index';
+import { getEmbedderCommissionFee, getContractAddress } from './store/index';
 import { getChainId } from './wallet/index';
+import { DefaultTokens } from '@scom/scom-token-list'
 
 async function getFee(contractAddress: string, type: DappType) {
   const wallet = Wallet.getInstance();

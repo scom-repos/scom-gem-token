@@ -14,8 +14,11 @@
   "dependencies": {
     "@scom/dapp": "*",
     "@scom/scom-gem-token": "*",
+    "@scom/scom-network-picker": "*",
     "@ijstech/eth-contract": "*",
-    "@ijstech/eth-wallet": "*"
+    "@ijstech/eth-wallet": "*",
+    "@scom/scom-token-list": "*",
+    "@scom/scom-network-list": "*"
   },
   "menus": [
     {
@@ -33,18 +36,16 @@
   ],
   "networks": [
     {
-      "name": "Avalanche FUJI C-Chain",
-      "chainId": 43113,
-      "img": "avax"
+      "chainId": 43113
     },
     {
-      "name": "BSC Testnet",
-      "chainId": 97,
-      "img": "bsc"
+      "chainId": 97
     }
   ],
   "wallets": [
-    "metamask"
+    {
+      "name": "metamask"
+    }
   ],
   "themes": {
     "default": "light",

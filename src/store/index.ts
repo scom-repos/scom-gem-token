@@ -1,12 +1,6 @@
 import { application } from "@ijstech/components";
 import { Wallet } from "@ijstech/eth-wallet";
 import { isWalletConnected } from "../wallet/index";
-import { DefaultTokens } from "./tokens/index";
-
-export const getTokenList = (chainId: number) => {
-  const tokenList = [...DefaultTokens[chainId]];
-  return tokenList;
-}
 
 export const enum EventId {
   ConnectWallet = 'connectWallet',
@@ -20,34 +14,19 @@ export enum WalletPlugin {
   WalletConnect = 'walletconnect',
 }
 
-export interface INetwork {
-  chainId: number;
-  name: string;
-  img?: string;
-  rpc?: string;
-	symbol?: string;
-	env?: string;
-  explorerName?: string;
-  explorerTxUrl?: string;
-  explorerAddressUrl?: string;
-  isDisabled?: boolean;
-};
-
-export const SupportedNetworks: INetwork[] = [
+export const SupportedNetworks = [
   {
-    name: "BSC Testnet",
-    chainId: 97,
-    img: "bsc"
+    chainName: "BSC Testnet",
+    chainId: 97
   },
   {
-    name: "Avalanche FUJI C-Chain",
-    chainId: 43113,
-    img: "avax"
+    chainName: "Avalanche FUJI C-Chain",
+    chainId: 43113
   }
 ];
 
 export const getNetworkName = (chainId: number) => {
-  return SupportedNetworks.find(v => v.chainId === chainId)?.name || ""
+  return SupportedNetworks.find(v => v.chainId === chainId)?.chainName || ""
 }
 
 
@@ -109,5 +88,3 @@ export async function switchNetwork(chainId: number) {
     await wallet.switchNetwork(chainId);
   }
 }
-
-export * from './tokens/index';

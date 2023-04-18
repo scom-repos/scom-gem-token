@@ -118,369 +118,8 @@ declare module "@scom/scom-gem-token/wallet/index.ts" {
     export function isWalletConnected(): boolean;
     export const getChainId: () => number;
 }
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/avalanche.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/avalanche.ts" {
-    export const Tokens_Avalanche: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/ethereum.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/ethereum.ts" {
-    export const Tokens_Ethereuem: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/polygon.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/polygon.ts" {
-    export const Tokens_Polygon: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/bsc.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/bsc.ts" {
-    export const Tokens_BSC: ({
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        symbol: string;
-        address: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/fantom.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/fantom.ts" {
-    export const Tokens_Fantom: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/cronos.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/cronos.ts" {
-    export const Tokens_Cronos: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/mainnet/index.ts" />
-declare module "@scom/scom-gem-token/store/tokens/mainnet/index.ts" {
-    export { Tokens_Avalanche } from "@scom/scom-gem-token/store/tokens/mainnet/avalanche.ts";
-    export { Tokens_Ethereuem } from "@scom/scom-gem-token/store/tokens/mainnet/ethereum.ts";
-    export { Tokens_Polygon } from "@scom/scom-gem-token/store/tokens/mainnet/polygon.ts";
-    export { Tokens_BSC } from "@scom/scom-gem-token/store/tokens/mainnet/bsc.ts";
-    export { Tokens_Fantom } from "@scom/scom-gem-token/store/tokens/mainnet/fantom.ts";
-    export { Tokens_Cronos } from "@scom/scom-gem-token/store/tokens/mainnet/cronos.ts";
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/kovan.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/kovan.ts" {
-    export const Tokens_Kovan: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-        isVaultToken?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-        isVaultToken?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isVaultToken: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-        isVaultToken?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/bsc-testnet.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/bsc-testnet.ts" {
-    export const Tokens_BSC_Testnet: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/fuji.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/fuji.ts" {
-    export const Tokens_Fuji: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/mumbai.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/mumbai.ts" {
-    export const Tokens_Mumbai: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/fantom-testnet.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/fantom-testnet.ts" {
-    export const Tokens_Fantom_Testnet: ({
-        address: string;
-        decimals: number;
-        name: string;
-        symbol: string;
-        isWETH: boolean;
-        isCommon?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/amino.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/amino.ts" {
-    export const Tokens_Amino: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon?: undefined;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/aminoX-testnet.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/aminoX-testnet.ts" {
-    export const Tokens_AminoXTestnet: ({
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/cronos-testnet.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/cronos-testnet.ts" {
-    export const Tokens_Cronos_Testnet: ({
-        address: string;
-        name: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH: boolean;
-    } | {
-        name: string;
-        address: string;
-        symbol: string;
-        decimals: number;
-        isCommon: boolean;
-        isWETH?: undefined;
-    })[];
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/testnet/index.ts" />
-declare module "@scom/scom-gem-token/store/tokens/testnet/index.ts" {
-    export { Tokens_Kovan } from "@scom/scom-gem-token/store/tokens/testnet/kovan.ts";
-    export { Tokens_BSC_Testnet } from "@scom/scom-gem-token/store/tokens/testnet/bsc-testnet.ts";
-    export { Tokens_Fuji } from "@scom/scom-gem-token/store/tokens/testnet/fuji.ts";
-    export { Tokens_Mumbai } from "@scom/scom-gem-token/store/tokens/testnet/mumbai.ts";
-    export { Tokens_Fantom_Testnet } from "@scom/scom-gem-token/store/tokens/testnet/fantom-testnet.ts";
-    export { Tokens_Amino } from "@scom/scom-gem-token/store/tokens/testnet/amino.ts";
-    export { Tokens_AminoXTestnet } from "@scom/scom-gem-token/store/tokens/testnet/aminoX-testnet.ts";
-    export { Tokens_Cronos_Testnet } from "@scom/scom-gem-token/store/tokens/testnet/cronos-testnet.ts";
-}
-/// <amd-module name="@scom/scom-gem-token/store/tokens/index.ts" />
-declare module "@scom/scom-gem-token/store/tokens/index.ts" {
-    import { ITokenObject } from "@scom/scom-gem-token/interface.tsx";
-    const DefaultERC20Tokens: {
-        [chainId: number]: ITokenObject[];
-    };
-    const ChainNativeTokenByChainId: {
-        [chainId: number]: ITokenObject;
-    };
-    const DefaultTokens: {
-        [chainId: number]: ITokenObject[];
-    };
-    export { DefaultERC20Tokens, ChainNativeTokenByChainId, DefaultTokens };
-}
 /// <amd-module name="@scom/scom-gem-token/store/index.ts" />
 declare module "@scom/scom-gem-token/store/index.ts" {
-    export const getTokenList: (chainId: number) => import("@scom/scom-gem-token/interface.tsx").ITokenObject[];
     export const enum EventId {
         ConnectWallet = "connectWallet",
         IsWalletConnected = "isWalletConnected",
@@ -491,19 +130,10 @@ declare module "@scom/scom-gem-token/store/index.ts" {
         MetaMask = "metamask",
         WalletConnect = "walletconnect"
     }
-    export interface INetwork {
+    export const SupportedNetworks: {
+        chainName: string;
         chainId: number;
-        name: string;
-        img?: string;
-        rpc?: string;
-        symbol?: string;
-        env?: string;
-        explorerName?: string;
-        explorerTxUrl?: string;
-        explorerAddressUrl?: string;
-        isDisabled?: boolean;
-    }
-    export const SupportedNetworks: INetwork[];
+    }[];
     export const getNetworkName: (chainId: number) => string;
     export interface IContractDetailInfo {
         address: string;
@@ -523,147 +153,6 @@ declare module "@scom/scom-gem-token/store/index.ts" {
     export const getEmbedderCommissionFee: () => string;
     export const getContractAddress: (type: ContractType) => any;
     export function switchNetwork(chainId: number): Promise<void>;
-    export * from "@scom/scom-gem-token/store/tokens/index.ts";
-}
-/// <amd-module name="@scom/scom-gem-token/scom-network-picker/assets.ts" />
-declare module "@scom/scom-gem-token/scom-network-picker/assets.ts" {
-    function fullPath(path: string): string;
-    const _default: {
-        img: {
-            network: {
-                bsc: string;
-                eth: string;
-                amio: string;
-                avax: string;
-                ftm: string;
-                polygon: string;
-            };
-        };
-        fullPath: typeof fullPath;
-    };
-    export default _default;
-}
-/// <amd-module name="@scom/scom-gem-token/scom-network-picker/store/interface.ts" />
-declare module "@scom/scom-gem-token/scom-network-picker/store/interface.ts" {
-    export interface INetwork {
-        chainId: number;
-        name: string;
-        img?: string;
-        rpc?: string;
-        symbol?: string;
-        env?: string;
-        explorerName?: string;
-        explorerTxUrl?: string;
-        explorerAddressUrl?: string;
-        isDisabled?: boolean;
-    }
-    export const enum EventId {
-        ConnectWallet = "connectWallet",
-        IsWalletConnected = "isWalletConnected",
-        chainChanged = "chainChanged",
-        IsWalletDisconnected = "IsWalletDisconnected"
-    }
-}
-/// <amd-module name="@scom/scom-gem-token/scom-network-picker/store/index.ts" />
-declare module "@scom/scom-gem-token/scom-network-picker/store/index.ts" {
-    import { EventId, INetwork } from "@scom/scom-gem-token/scom-network-picker/store/interface.ts";
-    export { EventId, INetwork };
-    export enum WalletPlugin {
-        MetaMask = "metamask",
-        WalletConnect = "walletconnect"
-    }
-    export const networks: INetwork[];
-    export const updateNetworks: (options: any) => void;
-    export function getChainId(): number;
-    export function getWalletProvider(): string;
-    export const getNetworkInfo: (chainId: number) => INetwork | undefined;
-    export const getNetworkList: () => INetwork[];
-    export const getNetworkType: (chainId: number) => string;
-    export const getDefaultChainId: () => number;
-    export const getSiteSupportedNetworks: () => INetwork[];
-    export const isValidEnv: (env: string) => boolean;
-    export const getInfuraId: () => string;
-    export const getEnv: () => string;
-    export const isDefaultNetworkFromWallet: () => boolean;
-    export function isWalletConnected(): boolean;
-    export function switchNetwork(chainId: number): Promise<void>;
-}
-/// <amd-module name="@scom/scom-gem-token/scom-network-picker/index.css.ts" />
-declare module "@scom/scom-gem-token/scom-network-picker/index.css.ts" {
-    const _default_1: string;
-    export default _default_1;
-}
-/// <amd-module name="@scom/scom-gem-token/scom-network-picker/index.tsx" />
-declare module "@scom/scom-gem-token/scom-network-picker/index.tsx" {
-    import { ControlElement, Module, Container } from '@ijstech/components';
-    import { INetwork } from "@scom/scom-gem-token/scom-network-picker/store/index.ts";
-    type IType = 'button' | 'combobox';
-    interface PickerElement extends ControlElement {
-        type?: IType;
-        networks?: INetwork[] | '*';
-        selectedChainId?: number;
-        switchNetworkOnSelect?: boolean;
-        onCustomNetworkSelected?: (network: INetwork) => void;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-network-picker']: PickerElement;
-            }
-        }
-    }
-    export default class ScomNetworkPicker extends Module {
-        private mdNetwork;
-        private gridNetworkGroup;
-        private pnlNetwork;
-        private btnNetwork;
-        private _type;
-        private networkMapper;
-        private _networkList;
-        private _selectedNetwork;
-        private _switchNetworkOnSelect;
-        private networkPlaceholder;
-        private _onCustomNetworkSelected;
-        constructor(parent?: Container, options?: any);
-        get selectedNetwork(): INetwork;
-        get type(): IType;
-        set type(value: IType);
-        setNetworkByChainId(chainId: number): void;
-        clearNetwork(): void;
-        private getNetwork;
-        private getNetworkLabel;
-        private setNetwork;
-        private onNetworkSelected;
-        private renderNetworks;
-        private renderModalItem;
-        private renderUI;
-        private renderButton;
-        private renderCombobox;
-        init(): void;
-        render(): any;
-    }
-}
-/// <amd-module name="@scom/scom-gem-token/assets.ts" />
-declare module "@scom/scom-gem-token/assets.ts" {
-    import { ITokenObject } from "@scom/scom-gem-token/interface.tsx";
-    function fullPath(path: string): string;
-    function tokenPath(tokenObj?: ITokenObject, chainId?: number): string;
-    const _default_2: {
-        logo: string;
-        img: {
-            network: {
-                bsc: string;
-                eth: string;
-                amio: string;
-                avax: string;
-                ftm: string;
-                polygon: string;
-            };
-        };
-        fullPath: typeof fullPath;
-        tokenPath: typeof tokenPath;
-    };
-    export default _default_2;
 }
 /// <amd-module name="@scom/scom-gem-token/config/index.css.ts" />
 declare module "@scom/scom-gem-token/config/index.css.ts" {
@@ -674,7 +163,6 @@ declare module "@scom/scom-gem-token/config/index.css.ts" {
 declare module "@scom/scom-gem-token/config/index.tsx" {
     import { Module, ControlElement } from '@ijstech/components';
     import { IEmbedData } from "@scom/scom-gem-token/interface.tsx";
-    import { INetwork } from "@scom/scom-gem-token/store/index.ts";
     global {
         namespace JSX {
             interface IntrinsicElements {
@@ -692,10 +180,11 @@ declare module "@scom/scom-gem-token/config/index.tsx" {
         private pnlEmptyWallet;
         private commissionInfoList;
         private commissionsTableColumns;
+        private isInited;
         private btnConfirm;
         private lbErrMsg;
         private _onCustomCommissionsChanged;
-        init(): Promise<void>;
+        init(): void;
         get data(): IEmbedData;
         set data(config: IEmbedData);
         get onCustomCommissionsChanged(): (data: any) => Promise<void>;
@@ -704,11 +193,20 @@ declare module "@scom/scom-gem-token/config/index.tsx" {
         onAddCommissionClicked(): void;
         onConfirmCommissionClicked(): Promise<void>;
         validateModalFields(): boolean;
-        onNetworkSelected(network: INetwork): void;
+        onNetworkSelected(): void;
         onInputWalletAddressChanged(): void;
         private toggleVisible;
         render(): any;
     }
+}
+/// <amd-module name="@scom/scom-gem-token/assets.ts" />
+declare module "@scom/scom-gem-token/assets.ts" {
+    function fullPath(path: string): string;
+    const _default: {
+        logo: string;
+        fullPath: typeof fullPath;
+    };
+    export default _default;
 }
 /// <amd-module name="@scom/scom-gem-token/token-selection/index.css.ts" />
 declare module "@scom/scom-gem-token/token-selection/index.css.ts" {
@@ -805,7 +303,7 @@ declare module "@scom/scom-gem-token/alert/index.tsx" {
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" {
-    const _default_3: {
+    const _default_1: {
         abi: ({
             inputs: {
                 internalType: string;
@@ -847,7 +345,7 @@ declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts
         })[];
         bytecode: string;
     };
-    export default _default_3;
+    export default _default_1;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.ts" {
@@ -951,7 +449,7 @@ declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.json.ts" {
-    const _default_4: {
+    const _default_2: {
         abi: ({
             inputs: {
                 internalType: string;
@@ -993,7 +491,7 @@ declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts
         })[];
         bytecode: string;
     };
-    export default _default_4;
+    export default _default_2;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/GEM.ts" {
@@ -1342,16 +840,16 @@ declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts"
     }
     export var DefaultDeployOptions: IDeployOptions;
     export function deploy(wallet: IWallet, options: IDeployOptions, onProgress?: (msg: string) => void): Promise<IDeployResult>;
-    const _default_5: {
+    const _default_3: {
         Contracts: typeof Contracts;
         deploy: typeof deploy;
         DefaultDeployOptions: IDeployOptions;
     };
-    export default _default_5;
+    export default _default_3;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.json.ts" {
-    const _default_6: {
+    const _default_4: {
         abi: ({
             anonymous: boolean;
             inputs: {
@@ -1440,7 +938,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
         })[];
         bytecode: string;
     };
-    export default _default_6;
+    export default _default_4;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.ts" {
@@ -1603,7 +1101,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.json.ts" {
-    const _default_7: {
+    const _default_5: {
         abi: ({
             anonymous: boolean;
             inputs: {
@@ -1692,7 +1190,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
         })[];
         bytecode: string;
     };
-    export default _default_7;
+    export default _default_5;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts" {
@@ -1874,13 +1372,13 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
     export var DefaultDeployOptions: IDeployOptions;
     export function deploy(wallet: IWallet, options?: IDeployOptions): Promise<IDeployResult>;
     export function onProgress(handler: any): void;
-    const _default_8: {
+    const _default_6: {
         Contracts: typeof Contracts;
         deploy: typeof deploy;
         DefaultDeployOptions: IDeployOptions;
         onProgress: typeof onProgress;
     };
-    export default _default_8;
+    export default _default_6;
 }
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {
@@ -1904,7 +1402,7 @@ declare module "@scom/scom-gem-token/API.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/scconfig.json.ts" />
 declare module "@scom/scom-gem-token/scconfig.json.ts" {
-    const _default_9: {
+    const _default_7: {
         env: string;
         logo: string;
         main: string;
@@ -1955,7 +1453,7 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
         };
         embedderCommissionFee: string;
     };
-    export default _default_9;
+    export default _default_7;
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {

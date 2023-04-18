@@ -20,7 +20,6 @@ export const inputStyle = Styles.style({
     '> input': {
       background: Theme.input.background,
       color: Theme.input.fontColor,
-      border: 0,
       padding: '0.25rem 0.5rem',
       textAlign: 'right'
     }
