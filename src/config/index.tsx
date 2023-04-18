@@ -15,10 +15,10 @@ import {
   HStack
 } from '@ijstech/components';
 import { ICommissionInfo, IEmbedData } from '../interface';
-import { BigNumber } from '@ijstech/eth-wallet';
+import { BigNumber, INetwork } from '@ijstech/eth-wallet';
 import { formatNumber, isWalletAddress } from '../utils/index';
-import ScomNetworkPicker from '../scom-network-picker/index';
-import { getEmbedderCommissionFee, INetwork, SupportedNetworks } from '../store/index';
+import ScomNetworkPicker from '@scom/scom-network-picker';
+import { getEmbedderCommissionFee, SupportedNetworks } from '../store/index';
 import assets from '../assets';
 import { customStyle, tableStyle } from './index.css'
 const Theme = Styles.Theme.ThemeVars;

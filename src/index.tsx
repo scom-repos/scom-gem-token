@@ -18,10 +18,10 @@ import {
   IDataSchema,
   ControlElement
 } from '@ijstech/components';
-import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
+import { BigNumber, Utils, Wallet, INetwork } from '@ijstech/eth-wallet';
 import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo, IChainSpecificProperties } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig, SupportedNetworks, INetwork } from './store/index';
+import { DefaultTokens, EventId, getEmbedderCommissionFee, getContractAddress, getTokenList, setDataFromSCConfig, SupportedNetworks } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
@@ -30,7 +30,7 @@ import { Alert } from './alert/index';
 import assets from './assets';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import scconfig from './scconfig.json';
-import ScomNetworkPicker from './scom-network-picker/index';
+import ScomNetworkPicker from '@scom/scom-network-picker';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
