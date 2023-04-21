@@ -13,11 +13,10 @@ import {
 } from '@ijstech/components';
 import { ITokenObject } from '../interface';
 import { EventId } from '../store/index';
-import {} from '@ijstech/eth-wallet';
-import { assets } from '@scom/scom-token-list';
+import { ChainNativeTokenByChainId, tokenStore, assets } from '@scom/scom-token-list'
+import {} from '@ijstech/eth-contract';
 import { isWalletConnected, getChainId } from '../wallet/index';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
-import { ChainNativeTokenByChainId, tokenStore } from '@scom/scom-token-list'
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -45,7 +44,6 @@ export class TokenSelection extends Module {
   private _readonly: boolean = false;
   public onSelectToken: selectTokenCallback;
   private _chainId: number;
-  private isInited: boolean = false;
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
@@ -75,15 +73,14 @@ export class TokenSelection extends Module {
   }
 
   set readonly(value: boolean) {
-    this._readonly = value;
-    if (this.btnTokens) {
+    if (this._readonly != value) {
+      this._readonly = value;
       this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
       this.btnTokens.rightIcon.visible = !this._readonly;
     }
   }
 
   private onSetup(init?: boolean) {
-    if (!this.isInited) this.init();
     this.renderTokenItems();
     if (init && this.token && !this.readonly) {
       const chainId = getChainId();
@@ -132,6 +129,7 @@ export class TokenSelection extends Module {
   }
 
   private renderTokenItems() {
+    if (!this.gridTokenList) return
     this.gridTokenList.clearInnerHTML();
     const _tokenList = this.tokenList;
     if (_tokenList.length) {
@@ -166,10 +164,7 @@ export class TokenSelection extends Module {
     )
   }
 
-  private async updateTokenButton(token?: ITokenObject) {
-    if (!this.btnTokens) return;
-    this.btnTokens.style.cursor = this.readonly ? 'unset' : '';
-    this.btnTokens.rightIcon.visible = !this.readonly;
+  private updateTokenButton(token?: ITokenObject) {
     const chainId = this.chainId || getChainId();
     if (token && isWalletConnected()) {
       const tokenIconPath = assets.tokenPath(token, chainId);
@@ -213,8 +208,7 @@ export class TokenSelection extends Module {
     super.init();
     const readonly = this.getAttribute('readonly', true);
     if (readonly !== undefined) this.readonly = readonly;
-    this.isInited = true;
-    this.onSetup()
+    this.onSetup();
   }
 
   render() {

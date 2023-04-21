@@ -148,6 +148,8 @@ export default class Config extends Module {
 
   get data(): IEmbedData {
     const config: IEmbedData = {
+      wallets: [],
+      networks: []
     };
     config.commissions = this.tableCommissions?.data || [];
     return config;
