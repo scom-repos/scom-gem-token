@@ -1,7 +1,8 @@
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
-    import { BigNumber } from "@ijstech/eth-wallet";
+    import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
+    import { INetworkConfig } from "@scom/scom-network-picker";
     export interface PageBlock {
         getData: () => any;
         setData: (data: any) => Promise<void>;
@@ -33,6 +34,9 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         hideDescription?: boolean;
         commissions?: ICommissionInfo[];
         chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+        wallets: IWalletPlugin[];
+        networks: INetworkConfig[];
+        showHeader?: boolean;
     }
     export interface ITokenObject {
         address?: string;
@@ -61,6 +65,11 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         baseToken: ITokenObject;
         name: string;
         symbol: string;
+    }
+    export interface IWalletPlugin {
+        name: string;
+        packageName?: string;
+        provider?: IClientSideProvider;
     }
 }
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
@@ -240,7 +249,6 @@ declare module "@scom/scom-gem-token/token-selection/index.tsx" {
         private _readonly;
         onSelectToken: selectTokenCallback;
         private _chainId;
-        private isInited;
         constructor(parent?: Container, options?: any);
         get token(): ITokenObject | undefined;
         set token(value: ITokenObject | undefined);
@@ -1458,14 +1466,18 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
     import { Module, Container, IDataSchema, ControlElement } from '@ijstech/components';
-    import { IEmbedData, PageBlock, DappType, IChainSpecificProperties } from "@scom/scom-gem-token/interface.tsx";
+    import { IEmbedData, PageBlock, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import Config from "@scom/scom-gem-token/config/index.tsx";
+    import { INetworkConfig } from '@scom/scom-network-picker';
     interface ScomGemTokenElement extends ControlElement {
         dappType?: DappType;
         logo?: string;
         description?: string;
         hideDescription?: boolean;
         chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+        wallets: IWalletPlugin[];
+        networks: INetworkConfig[];
+        showHeader?: boolean;
     }
     global {
         namespace JSX {
@@ -1509,6 +1521,7 @@ declare module "@scom/scom-gem-token" {
         private networkPicker;
         private pnlInputFields;
         private pnlUnsupportedNetwork;
+        private dappContainer;
         private _type;
         private _entryContract;
         private _oldData;
@@ -1530,6 +1543,12 @@ declare module "@scom/scom-gem-token" {
         onChainChanged: () => Promise<void>;
         private get isBuy();
         private get tokenSymbol();
+        get wallets(): IWalletPlugin[];
+        set wallets(value: IWalletPlugin[]);
+        get networks(): INetworkConfig[];
+        set networks(value: INetworkConfig[]);
+        get showHeader(): boolean;
+        set showHeader(value: boolean);
         private updateTokenBalance;
         private onSetupPage;
         getEmbedderActions(): {

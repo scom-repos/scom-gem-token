@@ -1,4 +1,5 @@
-import { BigNumber } from "@ijstech/eth-wallet";
+import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
+import { INetworkConfig } from "@scom/scom-network-picker";
 
 export interface PageBlock {
   // Properties
@@ -41,6 +42,9 @@ export interface IEmbedData extends Partial<IDeploy> {
   hideDescription?: boolean;
   commissions?: ICommissionInfo[];
   chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+  wallets: IWalletPlugin[];
+  networks: INetworkConfig[];
+  showHeader?: boolean;
 }
 
 export interface ITokenObject {
@@ -72,4 +76,10 @@ export interface IGemInfo {
   baseToken: ITokenObject;
   name: string;
   symbol: string;
+}
+
+export interface IWalletPlugin {
+  name: string;
+  packageName?: string;
+  provider?: IClientSideProvider;
 }

@@ -17,18 +17,36 @@ export default class Module1 extends Module {
             "description": "Welcome fellow gamers! Are you looking to enhance your gaming experience and get an edge over your competition? Look no further than Gem Tokens!  Gem Tokens are a new form of in-game currency that can be used to unlock special items, boost your character's abilities, and access exclusive features. With Gem Tokens, you can upgrade your gaming experience and get ahead in the game.",
             chainSpecificProperties: {
                 43113: { contract: "0xCfF0d71140E9f4201b9151978BA1097732BbC36A" }
-            }
+            },
+            "networks": [
+                {
+                  "chainId": 43113
+                }
+              ],
+            "wallets": [
+              { "name": "metamask" }
+            ]
         });
         this.mainStack.appendChild(this.gemTokenEl);
     }
 
     render() {
         return <i-panel>
-            <i-hstack id="mainStack" margin={{top: '1rem', left: '1rem'}} gap="2rem">
+            <i-vstack id="mainStack" margin={{top: '1rem', left: '1rem'}} gap="2rem">
                 <i-scom-gem-token
                     dappType="buy"
+                    networks={[
+                        {
+                          "chainId": 43113
+                        }
+                    ]}
+                    wallets={[
+                        {
+                            "name": "metamask"
+                        }
+                    ]}
                 ></i-scom-gem-token>
-            </i-hstack>
+            </i-vstack>
         </i-panel>
     }
 }

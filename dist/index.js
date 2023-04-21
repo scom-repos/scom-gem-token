@@ -471,7 +471,10 @@ define("@scom/scom-gem-token/config/index.tsx", ["require", "exports", "@ijstech
         }
         get data() {
             var _a;
-            const config = {};
+            const config = {
+                wallets: [],
+                networks: []
+            };
             config.commissions = ((_a = this.tableCommissions) === null || _a === void 0 ? void 0 : _a.data) || [];
             return config;
         }
@@ -648,7 +651,7 @@ define("@scom/scom-gem-token/token-selection/index.css.ts", ["require", "exports
         }
     });
 });
-define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-token-list", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-gem-token/token-selection/index.css.ts", "@scom/scom-token-list"], function (require, exports, components_6, scom_token_list_1, index_4, index_css_2, scom_token_list_2) {
+define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-token-list", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-gem-token/token-selection/index.css.ts"], function (require, exports, components_6, scom_token_list_1, index_4, index_css_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TokenSelection = void 0;
@@ -658,7 +661,6 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
         constructor(parent, options) {
             super(parent, options);
             this._readonly = false;
-            this.isInited = false;
             this.sortToken = (a, b, asc) => {
                 const _symbol1 = a.symbol.toLowerCase();
                 const _symbol2 = b.symbol.toLowerCase();
@@ -700,19 +702,17 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
             return this._readonly;
         }
         set readonly(value) {
-            this._readonly = value;
-            if (this.btnTokens) {
+            if (this._readonly != value) {
+                this._readonly = value;
                 this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
                 this.btnTokens.rightIcon.visible = !this._readonly;
             }
         }
         onSetup(init) {
-            if (!this.isInited)
-                this.init();
             this.renderTokenItems();
             if (init && this.token && !this.readonly) {
                 const chainId = index_4.getChainId();
-                const _tokenList = scom_token_list_2.tokenStore.getTokenList(chainId);
+                const _tokenList = scom_token_list_1.tokenStore.getTokenList(chainId);
                 const token = _tokenList.find(t => { var _a, _b; return (t.address && t.address == ((_a = this.token) === null || _a === void 0 ? void 0 : _a.address)) || (t.symbol == ((_b = this.token) === null || _b === void 0 ? void 0 : _b.symbol)); });
                 if (!token)
                     this.token = undefined;
@@ -726,10 +726,10 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
         }
         get tokenList() {
             const chainId = index_4.getChainId();
-            const _tokenList = scom_token_list_2.tokenStore.getTokenList(chainId);
+            const _tokenList = scom_token_list_1.tokenStore.getTokenList(chainId);
             return _tokenList.map((token) => {
                 const tokenObject = Object.assign({}, token);
-                const nativeToken = scom_token_list_2.ChainNativeTokenByChainId[chainId];
+                const nativeToken = scom_token_list_1.ChainNativeTokenByChainId[chainId];
                 if (token.symbol === nativeToken.symbol) {
                     Object.assign(tokenObject, { isNative: true });
                 }
@@ -742,6 +742,8 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
             }).sort(this.sortToken);
         }
         renderTokenItems() {
+            if (!this.gridTokenList)
+                return;
             this.gridTokenList.clearInnerHTML();
             const _tokenList = this.tokenList;
             if (_tokenList.length) {
@@ -761,11 +763,7 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
                     this.$render("i-label", { font: { size: '0.875rem', bold: true }, caption: token.symbol }),
                     this.$render("i-label", { font: { size: '0.75rem' }, caption: token.name }))));
         }
-        async updateTokenButton(token) {
-            if (!this.btnTokens)
-                return;
-            this.btnTokens.style.cursor = this.readonly ? 'unset' : '';
-            this.btnTokens.rightIcon.visible = !this.readonly;
+        updateTokenButton(token) {
             const chainId = this.chainId || index_4.getChainId();
             if (token && index_4.isWalletConnected()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
@@ -801,7 +799,6 @@ define("@scom/scom-gem-token/token-selection/index.tsx", ["require", "exports", 
             const readonly = this.getAttribute('readonly', true);
             if (readonly !== undefined)
                 this.readonly = readonly;
-            this.isInited = true;
             this.onSetup();
         }
         render() {
@@ -2408,7 +2405,7 @@ define("@scom/scom-gem-token/contracts/scom-commission-proxy-contract/index.ts",
         onProgress
     };
 });
-define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts", "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/index.ts", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list"], function (require, exports, eth_wallet_8, index_5, index_6, index_7, index_8, index_9, scom_token_list_3) {
+define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts", "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/index.ts", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list"], function (require, exports, eth_wallet_8, index_5, index_6, index_7, index_8, index_9, scom_token_list_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getGemInfo = exports.getGemBalance = exports.redeemToken = exports.buyToken = exports.transfer = exports.getFee = exports.deployContract = void 0;
@@ -2480,7 +2477,7 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
                 gem.symbol()
             ]);
             const chainId = wallet.chainId;
-            const baseToken = (_a = scom_token_list_3.DefaultTokens[chainId]) === null || _a === void 0 ? void 0 : _a.find(t => { var _a; return ((_a = t.address) === null || _a === void 0 ? void 0 : _a.toLowerCase()) == baseTokenValue.toLowerCase(); });
+            const baseToken = (_a = scom_token_list_2.DefaultTokens[chainId]) === null || _a === void 0 ? void 0 : _a.find(t => { var _a; return ((_a = t.address) === null || _a === void 0 ? void 0 : _a.toLowerCase()) == baseTokenValue.toLowerCase(); });
             return {
                 price: priceValue,
                 mintingFee: mintingFeeValue,
@@ -2631,7 +2628,7 @@ define("@scom/scom-gem-token/scconfig.json.ts", ["require", "exports"], function
         "embedderCommissionFee": "0.01"
     };
 });
-define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/scconfig.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, scom_token_list_4, assets_1, index_css_3, API_1, scconfig_json_1) {
+define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/scconfig.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, scom_token_list_3, assets_1, index_css_3, API_1, scconfig_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_9.Styles.Theme.ThemeVars;
@@ -2640,8 +2637,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
     let ScomGemToken = class ScomGemToken extends components_9.Module {
         constructor(parent, options) {
             super(parent, options);
-            this._oldData = {};
-            this._data = {};
+            this._oldData = {
+                wallets: [],
+                networks: []
+            };
+            this._data = {
+                wallets: [],
+                networks: []
+            };
             this.isApproving = false;
             this.tag = {};
             this.oldTag = {};
@@ -2754,6 +2757,27 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         get tokenSymbol() {
             var _a, _b;
             return ((_b = (_a = this.gemInfo) === null || _a === void 0 ? void 0 : _a.baseToken) === null || _b === void 0 ? void 0 : _b.symbol) || '';
+        }
+        get wallets() {
+            var _a;
+            return (_a = this._data.wallets) !== null && _a !== void 0 ? _a : [];
+        }
+        set wallets(value) {
+            this._data.wallets = value;
+        }
+        get networks() {
+            var _a;
+            return (_a = this._data.networks) !== null && _a !== void 0 ? _a : [];
+        }
+        set networks(value) {
+            this._data.networks = value;
+        }
+        get showHeader() {
+            var _a;
+            return (_a = this._data.showHeader) !== null && _a !== void 0 ? _a : true;
+        }
+        set showHeader(value) {
+            this._data.showHeader = value;
         }
         async onSetupPage(isWalletConnected) {
             if (isWalletConnected)
@@ -3008,6 +3032,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             });
         }
         async refreshDApp() {
+            var _a;
             this._type = this._data.dappType;
             if (this._data.hideDescription) {
                 this.pnlDescription.visible = false;
@@ -3020,6 +3045,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.pnlLogoTitle.visible = false;
             }
             this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.png');
+            const data = { wallets: this.wallets, networks: this.networks, showHeader: this.showHeader };
+            if ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.setData)
+                this.dappContainer.setData(data);
             this.gemInfo = this.contract ? await API_1.getGemInfo(this.contract) : null;
             console.log('this.gemInfo', this.gemInfo);
             if (this.gemInfo) {
@@ -3051,7 +3079,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 if (!this.isBuy) {
                     this.btnSubmit.enabled = false;
                     this.btnApprove.visible = false;
-                    this.backerTokenImg.url = scom_token_list_4.assets.tokenPath(this.gemInfo.baseToken, index_12.getChainId());
+                    this.backerTokenImg.url = scom_token_list_3.assets.tokenPath(this.gemInfo.baseToken, index_12.getChainId());
                     if (!this.backerTokenBalanceLb.isConnected)
                         await this.backerTokenBalanceLb.ready();
                     this.backerTokenBalanceLb.caption = '0.00';
@@ -3085,6 +3113,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this._data.hideDescription = this.getAttribute('hideDescription', true);
             this._data.logo = this.getAttribute('logo', true);
             this._data.chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
+            this._data.networks = this.getAttribute('networks', true);
+            this._data.wallets = this.getAttribute('wallets', true);
+            this._data.showHeader = this.getAttribute('showHeader', true);
             if (this.configDApp)
                 this.configDApp.data = this._data;
             this.updateContractAddress();
@@ -3364,67 +3395,68 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             console.log('network selected', network);
         }
         render() {
-            return (this.$render("i-panel", { background: { color: Theme.background.main } },
-                this.$render("i-panel", null,
-                    this.$render("i-vstack", { id: "loadingElm", class: "i-loading-overlay", visible: false },
-                        this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
-                            this.$render("i-icon", { class: "i-loading-spinner_icon", width: 24, height: 24, name: "spinner", fill: "#FD4A4C" }),
-                            this.$render("i-label", { caption: "Deploying...", font: { color: '#FD4A4C', size: '1.2em' }, class: "i-loading-spinner_text" }))),
-                    this.$render("i-grid-layout", { id: 'gridDApp', width: '100%', height: '100%', templateColumns: ['repeat(2, 1fr)'], padding: { bottom: '1.563rem' } },
-                        this.$render("i-vstack", { id: "pnlDescription", padding: { top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }, gap: "0.813rem" },
-                            this.$render("i-hstack", null,
-                                this.$render("i-image", { id: 'imgLogo', class: index_css_3.imageStyle, height: 100 })),
-                            this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
-                            this.$render("i-markdown", { id: 'markdownViewer', class: index_css_3.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
-                        this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
-                            this.$render("i-vstack", { horizontalAlignment: 'center', id: "pnlLogoTitle", gap: '0.5rem' },
-                                this.$render("i-image", { id: 'imgLogo2', class: index_css_3.imageStyle, height: 100 }),
-                                this.$render("i-label", { id: "lblTitle2", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } })),
-                            this.$render("i-label", { caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
-                            this.$render("i-hstack", { gap: "4px", class: index_css_3.centerStyle, margin: { bottom: '1rem' } },
-                                this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
-                                this.$render("i-label", { caption: "=", font: { bold: true, size: '1.5rem' } }),
-                                this.$render("i-label", { id: "toTokenLb", font: { bold: true, size: '1.5rem' } })),
-                            this.$render("i-grid-layout", { width: '100%', verticalAlignment: 'center', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, templateColumns: ['1fr', '2fr'], templateRows: ['auto'], templateAreas: [
-                                    ['lbNetwork', 'network']
-                                ] },
-                                this.$render("i-label", { caption: "Network", grid: { area: 'lbNetwork' }, font: { size: '0.875rem' } }),
-                                this.$render("i-scom-network-picker", { id: 'networkPicker', type: "combobox", grid: { area: 'network' }, networks: index_11.SupportedNetworks, switchNetworkOnSelect: true, selectedChainId: index_12.getChainId(), onCustomNetworkSelected: this.onNetworkSelected })),
-                            this.$render("i-vstack", { gap: "0.5rem", id: 'pnlInputFields' },
-                                this.$render("i-grid-layout", { id: "balanceLayout", gap: { column: '0.5rem', row: '0.25rem' } },
-                                    this.$render("i-hstack", { id: 'pnlQty', horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },
-                                        this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                        this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_3.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider } })),
-                                    this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
-                                        this.$render("i-label", { id: "lbOrderTotal", caption: 'Total', font: { size: '1rem' } }),
-                                        this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
-                                            this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
-                                            this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
-                                    this.$render("i-grid-layout", { id: 'gridTokenInput', verticalAlignment: "center", templateColumns: ['60%', 'auto'], border: { radius: 16 }, overflow: "hidden", background: { color: Theme.input.background }, font: { color: Theme.input.fontColor }, height: 56, width: "100%", grid: { area: 'tokenInput' } },
-                                        this.$render("i-panel", { id: "gemLogoStack", padding: { left: 10 }, visible: false }),
-                                        this.$render("i-scom-gem-token-selection", { id: "tokenElm", class: index_css_3.tokenSelectionStyle, width: "100%" }),
-                                        this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, class: index_css_3.inputStyle, inputType: 'number', font: { size: '1.25rem' }, opacity: 0.3, onChanged: this.onAmountChanged.bind(this) }),
-                                        this.$render("i-hstack", { id: "maxStack", horizontalAlignment: "end", visible: false },
-                                            this.$render("i-button", { caption: "Max", padding: { top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }, margin: { right: 10 }, font: { size: '0.875rem', color: Theme.colors.primary.contrastText }, onClick: () => this.onSetMaxBalance() }))),
-                                    this.$render("i-hstack", { id: "backerStack", horizontalAlignment: "space-between", verticalAlignment: "center", grid: { area: 'redeem' }, margin: { top: '1rem', bottom: '1rem' }, maxWidth: "50%", visible: false },
-                                        this.$render("i-label", { caption: 'You get:', font: { size: '1rem' } }),
-                                        this.$render("i-image", { id: "backerTokenImg", width: 20, height: 20, fallbackUrl: scom_token_list_4.assets.tokenPath() }),
-                                        this.$render("i-label", { id: "backerTokenBalanceLb", caption: '0.00', font: { size: '1rem' } }))),
-                                this.$render("i-vstack", { horizontalAlignment: "center", verticalAlignment: 'center', gap: "8px", margin: { bottom: '1.313rem' } },
-                                    this.$render("i-button", { id: "btnApprove", minWidth: '100%', caption: "Approve", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText, bold: true }, rightIcon: { visible: false, fill: Theme.colors.primary.contrastText }, border: { radius: 12 }, visible: false, onClick: this.onApprove.bind(this) }),
-                                    this.$render("i-button", { id: 'btnSubmit', minWidth: '100%', caption: 'Submit', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText, bold: true }, background: { color: Theme.colors.primary.main }, rightIcon: { visible: false, fill: Theme.colors.primary.contrastText }, border: { radius: 12 }, onClick: this.onSubmit.bind(this), enabled: false })),
-                                this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
-                                    this.$render("i-hstack", { horizontalAlignment: "end", verticalAlignment: "center", gap: 4 },
-                                        this.$render("i-label", { caption: "Transaction Fee", font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                        this.$render("i-icon", { id: "feeTooltip", name: "question-circle", fill: Theme.text.primary, width: 14, height: 14 })),
-                                    this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })),
-                                this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
-                                    this.$render("i-label", { caption: "You will get", font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                    this.$render("i-label", { id: "lbYouWillGet", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" }))),
-                            this.$render("i-vstack", { id: 'pnlUnsupportedNetwork', visible: false, horizontalAlignment: 'center' },
-                                this.$render("i-label", { caption: 'This network is not supported.', font: { size: '1.5rem' } }))))),
-                this.$render("i-scom-gem-token-config", { id: 'configDApp', visible: false }),
-                this.$render("i-scom-gem-token-alert", { id: 'mdAlert' })));
+            return (this.$render("i-scom-dapp-container", { id: "dappContainer" },
+                this.$render("i-panel", { background: { color: Theme.background.main } },
+                    this.$render("i-panel", null,
+                        this.$render("i-vstack", { id: "loadingElm", class: "i-loading-overlay", visible: false },
+                            this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
+                                this.$render("i-icon", { class: "i-loading-spinner_icon", width: 24, height: 24, name: "spinner", fill: "#FD4A4C" }),
+                                this.$render("i-label", { caption: "Deploying...", font: { color: '#FD4A4C', size: '1.2em' }, class: "i-loading-spinner_text" }))),
+                        this.$render("i-grid-layout", { id: 'gridDApp', width: '100%', height: '100%', templateColumns: ['repeat(2, 1fr)'], padding: { bottom: '1.563rem' } },
+                            this.$render("i-vstack", { id: "pnlDescription", padding: { top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }, gap: "0.813rem" },
+                                this.$render("i-hstack", null,
+                                    this.$render("i-image", { id: 'imgLogo', class: index_css_3.imageStyle, height: 100 })),
+                                this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
+                                this.$render("i-markdown", { id: 'markdownViewer', class: index_css_3.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
+                            this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
+                                this.$render("i-vstack", { horizontalAlignment: 'center', id: "pnlLogoTitle", gap: '0.5rem' },
+                                    this.$render("i-image", { id: 'imgLogo2', class: index_css_3.imageStyle, height: 100 }),
+                                    this.$render("i-label", { id: "lblTitle2", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } })),
+                                this.$render("i-label", { caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
+                                this.$render("i-hstack", { gap: "4px", class: index_css_3.centerStyle, margin: { bottom: '1rem' } },
+                                    this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
+                                    this.$render("i-label", { caption: "=", font: { bold: true, size: '1.5rem' } }),
+                                    this.$render("i-label", { id: "toTokenLb", font: { bold: true, size: '1.5rem' } })),
+                                this.$render("i-grid-layout", { width: '100%', verticalAlignment: 'center', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, templateColumns: ['1fr', '2fr'], templateRows: ['auto'], templateAreas: [
+                                        ['lbNetwork', 'network']
+                                    ] },
+                                    this.$render("i-label", { caption: "Network", grid: { area: 'lbNetwork' }, font: { size: '0.875rem' } }),
+                                    this.$render("i-scom-network-picker", { id: 'networkPicker', type: "combobox", grid: { area: 'network' }, networks: index_11.SupportedNetworks, switchNetworkOnSelect: true, selectedChainId: index_12.getChainId(), onCustomNetworkSelected: this.onNetworkSelected })),
+                                this.$render("i-vstack", { gap: "0.5rem", id: 'pnlInputFields' },
+                                    this.$render("i-grid-layout", { id: "balanceLayout", gap: { column: '0.5rem', row: '0.25rem' } },
+                                        this.$render("i-hstack", { id: 'pnlQty', horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },
+                                            this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
+                                            this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_3.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider } })),
+                                        this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
+                                            this.$render("i-label", { id: "lbOrderTotal", caption: 'Total', font: { size: '1rem' } }),
+                                            this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
+                                                this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
+                                                this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
+                                        this.$render("i-grid-layout", { id: 'gridTokenInput', verticalAlignment: "center", templateColumns: ['60%', 'auto'], border: { radius: 16 }, overflow: "hidden", background: { color: Theme.input.background }, font: { color: Theme.input.fontColor }, height: 56, width: "100%", grid: { area: 'tokenInput' } },
+                                            this.$render("i-panel", { id: "gemLogoStack", padding: { left: 10 }, visible: false }),
+                                            this.$render("i-scom-gem-token-selection", { id: "tokenElm", class: index_css_3.tokenSelectionStyle, width: "100%" }),
+                                            this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, border: { style: 'none' }, class: index_css_3.inputStyle, inputType: 'number', font: { size: '1.25rem' }, opacity: 0.3, onChanged: this.onAmountChanged.bind(this) }),
+                                            this.$render("i-hstack", { id: "maxStack", horizontalAlignment: "end", visible: false },
+                                                this.$render("i-button", { caption: "Max", padding: { top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }, margin: { right: 10 }, font: { size: '0.875rem', color: Theme.colors.primary.contrastText }, onClick: () => this.onSetMaxBalance() }))),
+                                        this.$render("i-hstack", { id: "backerStack", horizontalAlignment: "space-between", verticalAlignment: "center", grid: { area: 'redeem' }, margin: { top: '1rem', bottom: '1rem' }, maxWidth: "50%", visible: false },
+                                            this.$render("i-label", { caption: 'You get:', font: { size: '1rem' } }),
+                                            this.$render("i-image", { id: "backerTokenImg", width: 20, height: 20, fallbackUrl: scom_token_list_3.assets.tokenPath() }),
+                                            this.$render("i-label", { id: "backerTokenBalanceLb", caption: '0.00', font: { size: '1rem' } }))),
+                                    this.$render("i-vstack", { horizontalAlignment: "center", verticalAlignment: 'center', gap: "8px", margin: { bottom: '1.313rem' } },
+                                        this.$render("i-button", { id: "btnApprove", minWidth: '100%', caption: "Approve", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText, bold: true }, rightIcon: { visible: false, fill: Theme.colors.primary.contrastText }, border: { radius: 12 }, visible: false, onClick: this.onApprove.bind(this) }),
+                                        this.$render("i-button", { id: 'btnSubmit', minWidth: '100%', caption: 'Submit', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, font: { size: '1rem', color: Theme.colors.primary.contrastText, bold: true }, background: { color: Theme.colors.primary.main }, rightIcon: { visible: false, fill: Theme.colors.primary.contrastText }, border: { radius: 12 }, onClick: this.onSubmit.bind(this), enabled: false })),
+                                    this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
+                                        this.$render("i-hstack", { horizontalAlignment: "end", verticalAlignment: "center", gap: 4 },
+                                            this.$render("i-label", { caption: "Transaction Fee", font: { size: '1rem', bold: true }, opacity: 0.6 }),
+                                            this.$render("i-icon", { id: "feeTooltip", name: "question-circle", fill: Theme.text.primary, width: 14, height: 14 })),
+                                        this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })),
+                                    this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
+                                        this.$render("i-label", { caption: "You will get", font: { size: '1rem', bold: true }, opacity: 0.6 }),
+                                        this.$render("i-label", { id: "lbYouWillGet", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" }))),
+                                this.$render("i-vstack", { id: 'pnlUnsupportedNetwork', visible: false, horizontalAlignment: 'center' },
+                                    this.$render("i-label", { caption: 'This network is not supported.', font: { size: '1.5rem' } }))))),
+                    this.$render("i-scom-gem-token-config", { id: 'configDApp', visible: false }),
+                    this.$render("i-scom-gem-token-alert", { id: 'mdAlert' }))));
         }
     };
     ScomGemToken = __decorate([
