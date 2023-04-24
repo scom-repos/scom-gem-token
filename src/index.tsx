@@ -1024,7 +1024,8 @@ export default class ScomGemToken extends Module implements PageBlock {
                       border={{ radius: 16 }} overflow="hidden"
                       background={{ color: Theme.input.background }}
                       font={{ color: Theme.input.fontColor }}
-                      height={56} width="100%"
+                      height={56} width="50%"
+                      margin={{left: 'auto', right: 'auto', top: '1rem'}}
                       grid={{ area: 'tokenInput' }}
                     >
                       <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
@@ -1069,7 +1070,12 @@ export default class ScomGemToken extends Module implements PageBlock {
                       <i-label id="backerTokenBalanceLb" caption='0.00' font={{ size: '1rem' }}></i-label>
                     </i-hstack>
                   </i-grid-layout>
-                  <i-vstack horizontalAlignment="center" verticalAlignment='center' gap="8px" margin={{ bottom: '1.313rem' }}>
+                  <i-vstack
+                    horizontalAlignment="center" verticalAlignment='center'
+                    gap="8px"
+                    width="50%"
+                    margin={{left: 'auto', right: 'auto', bottom: '1.313rem'}}
+                  >
                     <i-button
                       id="btnApprove"
                       minWidth='100%'
@@ -1083,7 +1089,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                     ></i-button>
                     <i-button
                       id='btnSubmit'
-                      minWidth='100%'
+                      width='100%'
                       caption='Submit'
                       padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
                       font={{ size: '1rem', color: Theme.colors.primary.contrastText, bold: true }}
