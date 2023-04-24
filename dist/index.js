@@ -473,7 +473,8 @@ define("@scom/scom-gem-token/config/index.tsx", ["require", "exports", "@ijstech
             var _a;
             const config = {
                 wallets: [],
-                networks: []
+                networks: [],
+                defaultChainId: 0
             };
             config.commissions = ((_a = this.tableCommissions) === null || _a === void 0 ? void 0 : _a.data) || [];
             return config;
@@ -2639,11 +2640,13 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             super(parent, options);
             this._oldData = {
                 wallets: [],
-                networks: []
+                networks: [],
+                defaultChainId: 0
             };
             this._data = {
                 wallets: [],
-                networks: []
+                networks: [],
+                defaultChainId: 0
             };
             this.isApproving = false;
             this.tag = {};
@@ -2779,9 +2782,15 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         set showHeader(value) {
             this._data.showHeader = value;
         }
+        get defaultChainId() {
+            return this._data.defaultChainId;
+        }
+        set defaultChainId(value) {
+            this._data.defaultChainId = value;
+        }
         async onSetupPage(isWalletConnected) {
-            if (isWalletConnected)
-                this.networkPicker.setNetworkByChainId(index_12.getChainId());
+            // if (isWalletConnected)
+            //   this.networkPicker.setNetworkByChainId(getChainId());
             await this.initApprovalAction();
         }
         getEmbedderActions() {
@@ -3045,7 +3054,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.pnlLogoTitle.visible = false;
             }
             this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets_1.default.fullPath('img/gem-logo.png');
-            const data = { wallets: this.wallets, networks: this.networks, showHeader: this.showHeader };
+            const data = {
+                wallets: this.wallets,
+                networks: this.networks,
+                showHeader: this.showHeader,
+                defaultChainId: this.defaultChainId
+            };
             if ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.setData)
                 this.dappContainer.setData(data);
             this.gemInfo = this.contract ? await API_1.getGemInfo(this.contract) : null;
@@ -3116,6 +3130,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this._data.networks = this.getAttribute('networks', true);
             this._data.wallets = this.getAttribute('wallets', true);
             this._data.showHeader = this.getAttribute('showHeader', true);
+            this._data.defaultChainId = this.getAttribute('defaultChainId', true);
             if (this.configDApp)
                 this.configDApp.data = this._data;
             this.updateContractAddress();
@@ -3417,11 +3432,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
                                     this.$render("i-label", { caption: "=", font: { bold: true, size: '1.5rem' } }),
                                     this.$render("i-label", { id: "toTokenLb", font: { bold: true, size: '1.5rem' } })),
-                                this.$render("i-grid-layout", { width: '100%', verticalAlignment: 'center', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, templateColumns: ['1fr', '2fr'], templateRows: ['auto'], templateAreas: [
-                                        ['lbNetwork', 'network']
-                                    ] },
-                                    this.$render("i-label", { caption: "Network", grid: { area: 'lbNetwork' }, font: { size: '0.875rem' } }),
-                                    this.$render("i-scom-network-picker", { id: 'networkPicker', type: "combobox", grid: { area: 'network' }, networks: index_11.SupportedNetworks, switchNetworkOnSelect: true, selectedChainId: index_12.getChainId(), onCustomNetworkSelected: this.onNetworkSelected })),
                                 this.$render("i-vstack", { gap: "0.5rem", id: 'pnlInputFields' },
                                     this.$render("i-grid-layout", { id: "balanceLayout", gap: { column: '0.5rem', row: '0.25rem' } },
                                         this.$render("i-hstack", { id: 'pnlQty', horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },

@@ -31,7 +31,7 @@ import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle
 import { Alert } from './alert/index';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import scconfig from './scconfig.json';
-import ScomNetworkPicker, { INetworkConfig } from '@scom/scom-network-picker';
+import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 
 const Theme = Styles.Theme.ThemeVars;
@@ -44,6 +44,7 @@ interface ScomGemTokenElement extends ControlElement {
   description?: string;
   hideDescription?: boolean;
   chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+  defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;
@@ -90,7 +91,7 @@ export default class ScomGemToken extends Module implements PageBlock {
   private loadingElm: Panel;
   private pnlDescription: VStack;
   private lbOrderTotal: Label;
-  private networkPicker: ScomNetworkPicker;
+  // private networkPicker: ScomNetworkPicker;
   private pnlInputFields: VStack;
   private pnlUnsupportedNetwork: VStack;
   private dappContainer: ScomDappContainer;
@@ -99,11 +100,13 @@ export default class ScomGemToken extends Module implements PageBlock {
   private _entryContract: string;
   private _oldData: IEmbedData = {
     wallets: [],
-    networks: []
+    networks: [],
+    defaultChainId: 0
   };
   private _data: IEmbedData = {
     wallets: [],
-    networks: []
+    networks: [],
+    defaultChainId: 0
   };
   private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
@@ -187,6 +190,13 @@ export default class ScomGemToken extends Module implements PageBlock {
     this._data.showHeader = value;
   }
 
+  get defaultChainId() {
+    return this._data.defaultChainId;
+  }
+  set defaultChainId(value: number) {
+    this._data.defaultChainId = value;
+  }
+
   private updateTokenBalance = async () => {
     const token = this.gemInfo?.baseToken;
     if (!token) return;
@@ -197,8 +207,8 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private async onSetupPage(isWalletConnected: boolean) {
-    if (isWalletConnected)
-      this.networkPicker.setNetworkByChainId(getChainId());
+    // if (isWalletConnected)
+    //   this.networkPicker.setNetworkByChainId(getChainId());
     await this.initApprovalAction();
   }
 
@@ -483,7 +493,12 @@ export default class ScomGemToken extends Module implements PageBlock {
       this.pnlLogoTitle.visible = false;
     }
     this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.png');
-    const data: any = { wallets: this.wallets, networks: this.networks, showHeader: this.showHeader }
+    const data: any = {
+      wallets: this.wallets,
+      networks: this.networks,
+      showHeader: this.showHeader,
+      defaultChainId: this.defaultChainId
+    }
     if (this.dappContainer?.setData) this.dappContainer.setData(data)
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
     console.log('this.gemInfo', this.gemInfo);
@@ -546,6 +561,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     this._data.networks = this.getAttribute('networks', true);
     this._data.wallets = this.getAttribute('wallets', true);
     this._data.showHeader = this.getAttribute('showHeader', true);
+    this._data.defaultChainId = this.getAttribute('defaultChainId', true);
 
     if (this.configDApp) this.configDApp.data = this._data;
     this.updateContractAddress();
@@ -946,7 +962,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                   <i-label caption="=" font={{ bold: true, size: '1.5rem' }}></i-label>
                   <i-label id="toTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
                 </i-hstack>
-                <i-grid-layout
+                {/* <i-grid-layout
                   width='100%'
                   verticalAlignment='center'
                   padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
@@ -967,7 +983,7 @@ export default class ScomGemToken extends Module implements PageBlock {
                     selectedChainId={getChainId()}
                     onCustomNetworkSelected={this.onNetworkSelected}
                   />
-                </i-grid-layout>
+                </i-grid-layout> */}
                 <i-vstack gap="0.5rem" id='pnlInputFields'>
                   <i-grid-layout
                     id="balanceLayout"
