@@ -42,6 +42,7 @@ export interface IEmbedData extends Partial<IDeploy> {
   hideDescription?: boolean;
   commissions?: ICommissionInfo[];
   chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+  defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;

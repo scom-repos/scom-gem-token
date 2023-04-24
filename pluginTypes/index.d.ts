@@ -34,6 +34,7 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         hideDescription?: boolean;
         commissions?: ICommissionInfo[];
         chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+        defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
@@ -1475,6 +1476,7 @@ declare module "@scom/scom-gem-token" {
         description?: string;
         hideDescription?: boolean;
         chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+        defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
@@ -1518,7 +1520,6 @@ declare module "@scom/scom-gem-token" {
         private loadingElm;
         private pnlDescription;
         private lbOrderTotal;
-        private networkPicker;
         private pnlInputFields;
         private pnlUnsupportedNetwork;
         private dappContainer;
@@ -1549,6 +1550,8 @@ declare module "@scom/scom-gem-token" {
         set networks(value: INetworkConfig[]);
         get showHeader(): boolean;
         set showHeader(value: boolean);
+        get defaultChainId(): number;
+        set defaultChainId(value: number);
         private updateTokenBalance;
         private onSetupPage;
         getEmbedderActions(): {
