@@ -2807,30 +2807,55 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             const themeSchema = {
                 type: 'object',
                 properties: {
-                    backgroundColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
+                    "dark": {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            inputBackgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            inputFontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            }
+                        }
                     },
-                    fontColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
-                    },
-                    inputBackgroundColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
-                    },
-                    inputFontColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
-                    },
-                    buttonBackgroundColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
+                    "light": {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            inputBackgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            inputFontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            }
+                        }
                     }
                 }
             };
@@ -2854,25 +2879,47 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             const themeSchema = {
                 type: 'object',
                 properties: {
-                    backgroundColor: {
-                        type: 'string',
-                        format: 'color'
+                    "dark": {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            inputBackgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            inputFontColor: {
+                                type: 'string',
+                                format: 'color'
+                            }
+                        }
                     },
-                    fontColor: {
-                        type: 'string',
-                        format: 'color'
-                    },
-                    inputBackgroundColor: {
-                        type: 'string',
-                        format: 'color'
-                    },
-                    inputFontColor: {
-                        type: 'string',
-                        format: 'color'
-                    },
-                    buttonBackgroundColor: {
-                        type: 'string',
-                        format: 'color'
+                    "light": {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            inputBackgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            inputFontColor: {
+                                type: 'string',
+                                format: 'color'
+                            }
+                        }
                     }
                 }
             };
@@ -2986,12 +3033,22 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         getTag() {
             return this.tag;
         }
+        updateTag(type, value) {
+            var _a;
+            this.tag[type] = (_a = this.tag[type]) !== null && _a !== void 0 ? _a : {};
+            for (let prop in value) {
+                if (value.hasOwnProperty(prop))
+                    this.tag[type][prop] = value[prop];
+            }
+        }
         async setTag(value) {
             const newValue = value || {};
-            for (let prop in newValue) {
-                if (newValue.hasOwnProperty(prop))
-                    this.tag[prop] = newValue[prop];
-            }
+            if (newValue.light)
+                this.updateTag('light', newValue.light);
+            if (newValue.dark)
+                this.updateTag('dark', newValue.dark);
+            if (this.dappContainer)
+                this.dappContainer.setTag(this.tag);
             this.updateTheme();
         }
         updateStyle(name, value) {
@@ -3000,12 +3057,13 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            var _a, _b, _c, _d, _e;
-            this.updateStyle('--text-primary', (_a = this.tag) === null || _a === void 0 ? void 0 : _a.fontColor);
-            this.updateStyle('--background-main', (_b = this.tag) === null || _b === void 0 ? void 0 : _b.backgroundColor);
-            this.updateStyle('--input-font_color', (_c = this.tag) === null || _c === void 0 ? void 0 : _c.inputFontColor);
-            this.updateStyle('--input-background', (_d = this.tag) === null || _d === void 0 ? void 0 : _d.inputBackgroundColor);
-            this.updateStyle('--colors-primary-main', (_e = this.tag) === null || _e === void 0 ? void 0 : _e.buttonBackgroundColor);
+            var _a, _b, _c, _d, _e, _f;
+            const themeVar = ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.theme) || 'light';
+            this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
+            this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
+            this.updateStyle('--input-font_color', (_d = this.tag[themeVar]) === null || _d === void 0 ? void 0 : _d.inputFontColor);
+            this.updateStyle('--input-background', (_e = this.tag[themeVar]) === null || _e === void 0 ? void 0 : _e.inputBackgroundColor);
+            this.updateStyle('--colors-primary-main', (_f = this.tag[themeVar]) === null || _f === void 0 ? void 0 : _f.buttonBackgroundColor);
         }
         async confirm() {
             return new Promise(async (resolve, reject) => {
