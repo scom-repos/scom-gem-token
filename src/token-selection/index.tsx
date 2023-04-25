@@ -14,7 +14,6 @@ import {
 import { ITokenObject } from '../interface';
 import { EventId } from '../store/index';
 import { ChainNativeTokenByChainId, tokenStore, assets } from '@scom/scom-token-list'
-import {} from '@ijstech/eth-contract';
 import { isWalletConnected, getChainId } from '../wallet/index';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
