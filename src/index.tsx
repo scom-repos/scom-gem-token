@@ -384,12 +384,14 @@ export default class ScomGemToken extends Module implements PageBlock {
               this.oldTag = { ...this.tag };
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
+              if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
               this.tag = { ...this.oldTag };
               if (builder) builder.setTag(this.tag);
-              else this.setTag(this.oldTag);
+              else this.setTag(this.tag);
+              if (this.dappContainer) this.dappContainer.setTag(this.tag);
             },
             redo: () => { }
           }

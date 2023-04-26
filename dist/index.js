@@ -2970,6 +2970,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     builder.setTag(userInputData);
                                 else
                                     this.setTag(userInputData);
+                                if (this.dappContainer)
+                                    this.dappContainer.setTag(userInputData);
                             },
                             undo: () => {
                                 if (!userInputData)
@@ -2978,7 +2980,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else
-                                    this.setTag(this.oldTag);
+                                    this.setTag(this.tag);
+                                if (this.dappContainer)
+                                    this.dappContainer.setTag(this.tag);
                             },
                             redo: () => { }
                         };
