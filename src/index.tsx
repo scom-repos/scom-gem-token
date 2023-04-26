@@ -227,33 +227,58 @@ export default class ScomGemToken extends Module implements PageBlock {
     const themeSchema: IDataSchema = {
       type: 'object',
       properties: {
-        backgroundColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
+        "dark": {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            inputBackgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            inputFontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            }
+          }
         },
-        fontColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
-        },
-        inputBackgroundColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
-        },
-        inputFontColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
-        },
-        buttonBackgroundColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
+        "light": {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            inputBackgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            inputFontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            }
+          }
         }
       }
-    };
+    }
     return this._getActions(propertiesSchema, themeSchema);
   }
 
@@ -275,28 +300,50 @@ export default class ScomGemToken extends Module implements PageBlock {
     const themeSchema: IDataSchema = {
       type: 'object',
       properties: {
-        backgroundColor: {
-          type: 'string',
-          format: 'color'
+        "dark": {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputBackgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputFontColor: {
+              type: 'string',
+              format: 'color'
+            }
+          }
         },
-        fontColor: {
-          type: 'string',
-          format: 'color'
-        },
-        inputBackgroundColor: {
-          type: 'string',
-          format: 'color'
-        },
-        inputFontColor: {
-          type: 'string',
-          format: 'color'
-        },
-        buttonBackgroundColor: {
-          type: 'string',
-          format: 'color'
+        "light": {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputBackgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            inputFontColor: {
+              type: 'string',
+              format: 'color'
+            }
+          }
         }
       }
-    };
+    }
     return this._getActions(propertiesSchema, themeSchema);
   }
 
@@ -337,12 +384,14 @@ export default class ScomGemToken extends Module implements PageBlock {
               this.oldTag = { ...this.tag };
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
+              if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
               this.tag = { ...this.oldTag };
               if (builder) builder.setTag(this.tag);
-              else this.setTag(this.oldTag);
+              else this.setTag(this.tag);
+              if (this.dappContainer) this.dappContainer.setTag(this.tag);
             },
             redo: () => { }
           }
@@ -408,12 +457,20 @@ export default class ScomGemToken extends Module implements PageBlock {
     return this.tag;
   }
 
+  private updateTag(type: 'light'|'dark', value: any) {
+    this.tag[type] = this.tag[type] ?? {};
+    for (let prop in value) {
+      if (value.hasOwnProperty(prop))
+        this.tag[type][prop] = value[prop];
+    }
+  }
+
   async setTag(value: any) {
     const newValue = value || {};
-    for (let prop in newValue) {
-      if (newValue.hasOwnProperty(prop))
-        this.tag[prop] = newValue[prop];
-    }
+    if (newValue.light) this.updateTag('light', newValue.light);
+    if (newValue.dark) this.updateTag('dark', newValue.dark);
+    if (this.dappContainer)
+      this.dappContainer.setTag(this.tag);
     this.updateTheme();
   }
 
@@ -424,11 +481,12 @@ export default class ScomGemToken extends Module implements PageBlock {
   }
 
   private updateTheme() {
-    this.updateStyle('--text-primary', this.tag?.fontColor);
-    this.updateStyle('--background-main', this.tag?.backgroundColor);
-    this.updateStyle('--input-font_color', this.tag?.inputFontColor);
-    this.updateStyle('--input-background', this.tag?.inputBackgroundColor);
-    this.updateStyle('--colors-primary-main', this.tag?.buttonBackgroundColor);
+    const themeVar = this.dappContainer?.theme || 'light';
+    this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
+    this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
+    this.updateStyle('--input-font_color', this.tag[themeVar]?.inputFontColor);
+    this.updateStyle('--input-background', this.tag[themeVar]?.inputBackgroundColor);
+    this.updateStyle('--colors-primary-main', this.tag[themeVar]?.buttonBackgroundColor);
   }
 
   async confirm() {

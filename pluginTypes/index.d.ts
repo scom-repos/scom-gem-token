@@ -1597,6 +1597,7 @@ declare module "@scom/scom-gem-token" {
         getData(): IEmbedData;
         setData(data: IEmbedData): Promise<void>;
         getTag(): any;
+        private updateTag;
         setTag(value: any): Promise<void>;
         private updateStyle;
         private updateTheme;
