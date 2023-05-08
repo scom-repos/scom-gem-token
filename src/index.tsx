@@ -18,10 +18,10 @@ import {
   IDataSchema,
   ControlElement
 } from '@ijstech/components';
-import { BigNumber, INetwork, Utils, Wallet } from '@ijstech/eth-wallet';
-import { IEmbedData, ITokenObject, PageBlock, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
+import { BigNumber, Utils } from '@ijstech/eth-wallet';
+import { IEmbedData, ITokenObject, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { EventId, getEmbedderCommissionFee, getContractAddress, setDataFromSCConfig, SupportedNetworks } from './store/index';
+import { EventId, getEmbedderCommissionFee, getContractAddress, setDataFromSCConfig } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { assets as tokenAssets } from '@scom/scom-token-list';
@@ -59,7 +59,7 @@ declare global {
 }
 
 @customElements('i-scom-gem-token')
-export default class ScomGemToken extends Module implements PageBlock {
+export default class ScomGemToken extends Module {
   private gridDApp: GridLayout;
   private imgLogo: Image;
   private imgLogo2: Image;
@@ -212,142 +212,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     await this.initApprovalAction();
   }
 
-  getEmbedderActions() {
-    const propertiesSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-      }
-    }
-    if (!this._data.hideDescription) {
-      propertiesSchema.properties['description'] = {
-        type: 'string',
-        format: 'multi'
-      };
-    }
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        "dark": {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            inputBackgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            inputFontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            }
-          }
-        },
-        "light": {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            inputBackgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            inputFontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            }
-          }
-        }
-      }
-    }
-    return this._getActions(propertiesSchema, themeSchema);
-  }
-
-  getActions() {
-    const propertiesSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        "contract": {
-          type: 'string'
-        }
-      }
-    }
-    if (!this._data.hideDescription) {
-      propertiesSchema.properties['description'] = {
-        type: 'string',
-        format: 'multi'
-      };
-    }
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        "dark": {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputBackgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputFontColor: {
-              type: 'string',
-              format: 'color'
-            }
-          }
-        },
-        "light": {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputBackgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            inputFontColor: {
-              type: 'string',
-              format: 'color'
-            }
-          }
-        }
-      }
-    }
-    return this._getActions(propertiesSchema, themeSchema);
-  }
-
-  _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
         name: 'Settings',
@@ -381,14 +246,14 @@ export default class ScomGemToken extends Module implements PageBlock {
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = { ...this.tag };
+              this.oldTag = JSON.parse(JSON.stringify(this.tag));
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
               if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = { ...this.oldTag };
+              this.tag = JSON.parse(JSON.stringify(this.oldTag));
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
@@ -406,7 +271,78 @@ export default class ScomGemToken extends Module implements PageBlock {
     let self = this;
     return [
       {
-        name: 'Commissions',
+        name: 'Builder Configurator',
+        target: 'Builders',
+        getActions: () => {
+          const propertiesSchema: IDataSchema = {
+            type: 'object',
+            properties: {
+              "contract": {
+                type: 'string'
+              }
+            }
+          }
+          if (!this._data.hideDescription) {
+            propertiesSchema.properties['description'] = {
+              type: 'string',
+              format: 'multi'
+            };
+          }
+          const themeSchema: IDataSchema = {
+            type: 'object',
+            properties: {
+              "dark": {
+                type: 'object',
+                properties: {
+                  backgroundColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  fontColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  inputBackgroundColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  inputFontColor: {
+                    type: 'string',
+                    format: 'color'
+                  }
+                }
+              },
+              "light": {
+                type: 'object',
+                properties: {
+                  backgroundColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  fontColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  inputBackgroundColor: {
+                    type: 'string',
+                    format: 'color'
+                  },
+                  inputFontColor: {
+                    type: 'string',
+                    format: 'color'
+                  }
+                }
+              }
+            }
+          }
+          return this._getActions(propertiesSchema, themeSchema);
+        },
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        setTag: this.setTag.bind(this)
+      },
+      {
+        name: 'Emdedder Configurator',
         target: 'Embedders',
         elementName: 'i-scom-gem-token-config',
         getLinkParams: () => {
@@ -435,16 +371,19 @@ export default class ScomGemToken extends Module implements PageBlock {
             await self.setData(resultingData);
             await callback(data);
           }
-        }
+        },
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        setTag: this.setTag.bind(this)
       }
     ]
   }
 
-  getData() {
+  private getData() {
     return this._data;
   }
 
-  async setData(data: IEmbedData) {
+  private async setData(data: IEmbedData) {
     this._data = data;
     this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
@@ -453,7 +392,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     this.refreshDApp();
   }
 
-  getTag() {
+  private getTag() {
     return this.tag;
   }
 
@@ -746,7 +685,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
   }
 
-  updateContractAddress() {
+  private updateContractAddress() {
     if (this.approvalModelAction) {
       if (!this._data.commissions || this._data.commissions.length == 0) {
         this._entryContract = this.contract;
@@ -799,11 +738,11 @@ export default class ScomGemToken extends Module implements PageBlock {
     return gemAmount / Number(price) - (gemAmount / Number(price) * Number(redemptionFee));
   }
 
-  private getGemAmount(backerCoinAmount: number) {
-    const mintingFee = Utils.fromDecimals(this.gemInfo.mintingFee).toFixed();
-    const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
-    return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
-  }
+  // private getGemAmount(backerCoinAmount: number) {
+  //   const mintingFee = Utils.fromDecimals(this.gemInfo.mintingFee).toFixed();
+  //   const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
+  //   return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
+  // }
 
   private async getBalance(token?: ITokenObject) {
     let balance = new BigNumber(0);
@@ -879,7 +818,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
   }
 
-  onBuyToken = async (quantity: number) => {
+  private onBuyToken = async (quantity: number) => {
     this.mdAlert.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
@@ -903,7 +842,7 @@ export default class ScomGemToken extends Module implements PageBlock {
     );
   }
 
-  onRedeemToken = async () => {
+  private onRedeemToken = async () => {
     this.mdAlert.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
@@ -958,9 +897,9 @@ export default class ScomGemToken extends Module implements PageBlock {
     }
   }
 
-  private onNetworkSelected(network: INetwork) {
-    console.log('network selected', network);
-  }
+  // private onNetworkSelected(network: INetwork) {
+  //   console.log('network selected', network);
+  // }
 
   render() {
     return (

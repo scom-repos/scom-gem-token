@@ -2793,138 +2793,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             //   this.networkPicker.setNetworkByChainId(getChainId());
             await this.initApprovalAction();
         }
-        getEmbedderActions() {
-            const propertiesSchema = {
-                type: 'object',
-                properties: {}
-            };
-            if (!this._data.hideDescription) {
-                propertiesSchema.properties['description'] = {
-                    type: 'string',
-                    format: 'multi'
-                };
-            }
-            const themeSchema = {
-                type: 'object',
-                properties: {
-                    "dark": {
-                        type: 'object',
-                        properties: {
-                            backgroundColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            fontColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            inputBackgroundColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            inputFontColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            }
-                        }
-                    },
-                    "light": {
-                        type: 'object',
-                        properties: {
-                            backgroundColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            fontColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            inputBackgroundColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            },
-                            inputFontColor: {
-                                type: 'string',
-                                format: 'color',
-                                readOnly: true
-                            }
-                        }
-                    }
-                }
-            };
-            return this._getActions(propertiesSchema, themeSchema);
-        }
-        getActions() {
-            const propertiesSchema = {
-                type: 'object',
-                properties: {
-                    "contract": {
-                        type: 'string'
-                    }
-                }
-            };
-            if (!this._data.hideDescription) {
-                propertiesSchema.properties['description'] = {
-                    type: 'string',
-                    format: 'multi'
-                };
-            }
-            const themeSchema = {
-                type: 'object',
-                properties: {
-                    "dark": {
-                        type: 'object',
-                        properties: {
-                            backgroundColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            fontColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            inputBackgroundColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            inputFontColor: {
-                                type: 'string',
-                                format: 'color'
-                            }
-                        }
-                    },
-                    "light": {
-                        type: 'object',
-                        properties: {
-                            backgroundColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            fontColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            inputBackgroundColor: {
-                                type: 'string',
-                                format: 'color'
-                            },
-                            inputFontColor: {
-                                type: 'string',
-                                format: 'color'
-                            }
-                        }
-                    }
-                }
-            };
-            return this._getActions(propertiesSchema, themeSchema);
-        }
         _getActions(propertiesSchema, themeSchema) {
             const actions = [
                 {
@@ -2965,7 +2833,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = Object.assign({}, this.tag);
+                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
                                 if (builder)
                                     builder.setTag(userInputData);
                                 else
@@ -2976,7 +2844,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.tag = Object.assign({}, this.oldTag);
+                                this.tag = JSON.parse(JSON.stringify(this.oldTag));
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else
@@ -2996,7 +2864,78 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             let self = this;
             return [
                 {
-                    name: 'Commissions',
+                    name: 'Builder Configurator',
+                    target: 'Builders',
+                    getActions: () => {
+                        const propertiesSchema = {
+                            type: 'object',
+                            properties: {
+                                "contract": {
+                                    type: 'string'
+                                }
+                            }
+                        };
+                        if (!this._data.hideDescription) {
+                            propertiesSchema.properties['description'] = {
+                                type: 'string',
+                                format: 'multi'
+                            };
+                        }
+                        const themeSchema = {
+                            type: 'object',
+                            properties: {
+                                "dark": {
+                                    type: 'object',
+                                    properties: {
+                                        backgroundColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        fontColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        inputBackgroundColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        inputFontColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        }
+                                    }
+                                },
+                                "light": {
+                                    type: 'object',
+                                    properties: {
+                                        backgroundColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        fontColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        inputBackgroundColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        },
+                                        inputFontColor: {
+                                            type: 'string',
+                                            format: 'color'
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                        return this._getActions(propertiesSchema, themeSchema);
+                    },
+                    getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
+                    setTag: this.setTag.bind(this)
+                },
+                {
+                    name: 'Emdedder Configurator',
                     target: 'Embedders',
                     elementName: 'i-scom-gem-token-config',
                     getLinkParams: () => {
@@ -3019,7 +2958,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             await self.setData(resultingData);
                             await callback(data);
                         };
-                    }
+                    },
+                    getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
+                    setTag: this.setTag.bind(this)
                 }
             ];
         }
@@ -3362,11 +3304,11 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             const price = eth_wallet_9.Utils.fromDecimals(this.gemInfo.price).toFixed();
             return gemAmount / Number(price) - (gemAmount / Number(price) * Number(redemptionFee));
         }
-        getGemAmount(backerCoinAmount) {
-            const mintingFee = eth_wallet_9.Utils.fromDecimals(this.gemInfo.mintingFee).toFixed();
-            const price = eth_wallet_9.Utils.fromDecimals(this.gemInfo.price).toFixed();
-            return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
-        }
+        // private getGemAmount(backerCoinAmount: number) {
+        //   const mintingFee = Utils.fromDecimals(this.gemInfo.mintingFee).toFixed();
+        //   const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
+        //   return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
+        // }
         async getBalance(token) {
             let balance = new eth_wallet_9.BigNumber(0);
             const tokenData = token || this.gemInfo.baseToken;
@@ -3468,9 +3410,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
             }
         }
-        onNetworkSelected(network) {
-            console.log('network selected', network);
-        }
+        // private onNetworkSelected(network: INetwork) {
+        //   console.log('network selected', network);
+        // }
         render() {
             return (this.$render("i-scom-dapp-container", { id: "dappContainer" },
                 this.$render("i-panel", { background: { color: Theme.background.main } },
