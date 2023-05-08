@@ -2833,7 +2833,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = Object.assign({}, this.tag);
+                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
                                 if (builder)
                                     builder.setTag(userInputData);
                                 else
@@ -2844,7 +2844,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.tag = Object.assign({}, this.oldTag);
+                                this.tag = JSON.parse(JSON.stringify(this.oldTag));
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else

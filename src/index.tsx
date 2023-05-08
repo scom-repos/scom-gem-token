@@ -246,14 +246,14 @@ export default class ScomGemToken extends Module {
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = { ...this.tag };
+              this.oldTag = JSON.parse(JSON.stringify(this.tag));
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
               if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = { ...this.oldTag };
+              this.tag = JSON.parse(JSON.stringify(this.oldTag));
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
