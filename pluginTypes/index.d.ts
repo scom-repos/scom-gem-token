@@ -1467,7 +1467,7 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
     import { Module, Container, IDataSchema, ControlElement } from '@ijstech/components';
-    import { IEmbedData, PageBlock, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
+    import { DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import Config from "@scom/scom-gem-token/config/index.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
     interface ScomGemTokenElement extends ControlElement {
@@ -1488,7 +1488,7 @@ declare module "@scom/scom-gem-token" {
             }
         }
     }
-    export default class ScomGemToken extends Module implements PageBlock {
+    export default class ScomGemToken extends Module {
         private gridDApp;
         private imgLogo;
         private imgLogo2;
@@ -1554,37 +1554,28 @@ declare module "@scom/scom-gem-token" {
         set defaultChainId(value: number);
         private updateTokenBalance;
         private onSetupPage;
-        getEmbedderActions(): {
+        private _getActions;
+        getConfigurators(): ({
             name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        getActions(): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        getConfigurators(): {
+            target: string;
+            getActions: () => {
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => void;
+                    redo: () => void;
+                };
+                userInputDataSchema: IDataSchema;
+            }[];
+            getData: any;
+            setData: any;
+            setTag: any;
+            elementName?: undefined;
+            getLinkParams?: undefined;
+            setLinkParams?: undefined;
+            bindOnChanged?: undefined;
+        } | {
             name: string;
             target: string;
             elementName: string;
@@ -1593,10 +1584,14 @@ declare module "@scom/scom-gem-token" {
             };
             setLinkParams: (params: any) => Promise<void>;
             bindOnChanged: (element: Config, callback: (data: any) => Promise<void>) => void;
-        }[];
-        getData(): IEmbedData;
-        setData(data: IEmbedData): Promise<void>;
-        getTag(): any;
+            getData: any;
+            setData: any;
+            setTag: any;
+            getActions?: undefined;
+        })[];
+        private getData;
+        private setData;
+        private getTag;
         private updateTag;
         setTag(value: any): Promise<void>;
         private updateStyle;
@@ -1617,21 +1612,19 @@ declare module "@scom/scom-gem-token" {
         get chainSpecificProperties(): any;
         set chainSpecificProperties(value: any);
         private initApprovalAction;
-        updateContractAddress(): void;
+        private updateContractAddress;
         private updateSubmitButton;
         private onApprove;
         private onQtyChanged;
         private onAmountChanged;
         private getBackerCoinAmount;
-        private getGemAmount;
         private getBalance;
         private doSubmitAction;
         private onSubmit;
-        onBuyToken: (quantity: number) => Promise<void>;
-        onRedeemToken: () => Promise<void>;
+        private onBuyToken;
+        private onRedeemToken;
         private onSetMaxBalance;
         private renderTokenInput;
-        private onNetworkSelected;
         render(): any;
     }
 }
