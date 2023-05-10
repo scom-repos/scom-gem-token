@@ -1409,8 +1409,8 @@ declare module "@scom/scom-gem-token/API.ts" {
     }>;
     export { deployContract, getFee, transfer, buyToken, redeemToken, getGemBalance, getGemInfo };
 }
-/// <amd-module name="@scom/scom-gem-token/scconfig.json.ts" />
-declare module "@scom/scom-gem-token/scconfig.json.ts" {
+/// <amd-module name="@scom/scom-gem-token/data.json.ts" />
+declare module "@scom/scom-gem-token/data.json.ts" {
     const _default_7: {
         env: string;
         logo: string;
@@ -1461,13 +1461,30 @@ declare module "@scom/scom-gem-token/scconfig.json.ts" {
             };
         };
         embedderCommissionFee: string;
+        defaultBuilderData: {
+            dappType: string;
+            hideDescription: boolean;
+            description: string;
+            chainSpecificProperties: {
+                "43113": {
+                    contract: string;
+                };
+            };
+            defaultChainId: number;
+            networks: {
+                chainId: number;
+            }[];
+            wallets: {
+                name: string;
+            }[];
+        };
     };
     export default _default_7;
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
     import { Module, Container, IDataSchema, ControlElement } from '@ijstech/components';
-    import { DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
+    import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import Config from "@scom/scom-gem-token/config/index.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
     interface ScomGemTokenElement extends ControlElement {
@@ -1554,6 +1571,7 @@ declare module "@scom/scom-gem-token" {
         set defaultChainId(value: number);
         private updateTokenBalance;
         private onSetupPage;
+        private resetUI;
         private _getActions;
         getConfigurators(): ({
             name: string;
@@ -1569,8 +1587,9 @@ declare module "@scom/scom-gem-token" {
                 userInputDataSchema: IDataSchema;
             }[];
             getData: any;
-            setData: any;
+            setData: (data: IEmbedData) => Promise<void>;
             setTag: any;
+            getTag: any;
             elementName?: undefined;
             getLinkParams?: undefined;
             setLinkParams?: undefined;
@@ -1587,6 +1606,7 @@ declare module "@scom/scom-gem-token" {
             getData: any;
             setData: any;
             setTag: any;
+            getTag: any;
             getActions?: undefined;
         })[];
         private getData;

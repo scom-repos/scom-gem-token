@@ -30,7 +30,7 @@ import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { Alert } from './alert/index';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
-import scconfig from './scconfig.json';
+import scconfig from './data.json';
 import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 
@@ -209,7 +209,20 @@ export default class ScomGemToken extends Module {
   private async onSetupPage(isWalletConnected: boolean) {
     // if (isWalletConnected)
     //   this.networkPicker.setNetworkByChainId(getChainId());
-    await this.initApprovalAction();
+    if (isWalletConnected)
+      await this.initApprovalAction();
+    else this.resetUI();
+  }
+  
+  private resetUI() {
+    this.fromTokenLb.caption = '';
+    this.toTokenLb.caption = '';
+    this.feeLb.caption = '0.00';
+    this.lbYouWillGet.caption = '0.00';
+    this.edtGemQty.value = '';
+    this.btnSubmit.enabled = false;
+    this.btnApprove.visible = false;
+    this.edtAmount.value = '';
   }
 
   private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
@@ -338,8 +351,12 @@ export default class ScomGemToken extends Module {
           return this._getActions(propertiesSchema, themeSchema);
         },
         getData: this.getData.bind(this),
-        setData: this.setData.bind(this),
-        setTag: this.setTag.bind(this)
+        setData: async (data: IEmbedData) => {
+          const defaultData = scconfig.defaultBuilderData as any;
+          await this.setData({...defaultData, ...data})
+        },
+        setTag: this.setTag.bind(this),
+        getTag: this.getTag.bind(this)
       },
       {
         name: 'Emdedder Configurator',
@@ -374,7 +391,8 @@ export default class ScomGemToken extends Module {
         },
         getData: this.getData.bind(this),
         setData: this.setData.bind(this),
-        setTag: this.setTag.bind(this)
+        setTag: this.setTag.bind(this),
+        getTag: this.getTag.bind(this)
       }
     ]
   }
