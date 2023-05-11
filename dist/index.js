@@ -363,6 +363,7 @@ define("@scom/scom-gem-token/config/index.tsx", ["require", "exports", "@ijstech
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_3.Styles.Theme.ThemeVars;
+    const CommissionFeeTooltipText = "For each transaction, you'll receive a 1% commission fee based on the total amount. This fee will be transferred to a designated commission contract within the corresponding blockchain network.";
     let Config = class Config extends components_3.Module {
         constructor() {
             super(...arguments);
@@ -467,6 +468,9 @@ define("@scom/scom-gem-token/config/index.tsx", ["require", "exports", "@ijstech
             this.commissionInfoList = [];
             const embedderFee = index_3.getEmbedderCommissionFee();
             this.lbCommissionShare.caption = `${index_2.formatNumber(new eth_wallet_6.BigNumber(embedderFee).times(100).toFixed(), 4)} %`;
+            const commissions = this.getAttribute('commissions', true);
+            this.tableCommissions.data = commissions || [];
+            this.toggleVisible();
             this.isInited = true;
         }
         get data() {
@@ -562,7 +566,7 @@ define("@scom/scom-gem-token/config/index.tsx", ["require", "exports", "@ijstech
                         this.$render("i-hstack", { gap: "4px" },
                             this.$render("i-label", { caption: "Commission Fee: ", opacity: 0.6, font: { size: '1rem' } }),
                             this.$render("i-label", { id: "lbCommissionShare", font: { size: '1rem' } }),
-                            this.$render("i-icon", { name: "question-circle", fill: Theme.background.modal, width: 20, height: 20 })),
+                            this.$render("i-icon", { name: "question-circle", fill: Theme.background.modal, width: 20, height: 20, tooltip: { content: CommissionFeeTooltipText } })),
                         this.$render("i-button", { id: "btnAddWallet", caption: "Add Wallet", border: { radius: '58px' }, padding: { top: '0.3rem', bottom: '0.3rem', left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, size: '0.75rem', weight: 400 }, visible: false, onClick: this.onAddCommissionClicked.bind(this) })),
                     this.$render("i-vstack", { id: "pnlEmptyWallet", border: { radius: '8px' }, background: { color: Theme.background.modal }, padding: { top: '1.875rem', bottom: '1.875rem', left: '1.563rem', right: '1.563rem' }, gap: "1.25rem", width: "100%", class: "text-center" },
                         this.$render("i-label", { caption: "To receive commission fee please add your wallet address", font: { size: '1rem' } }),
@@ -2653,7 +2657,7 @@ define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (re
         }
     };
 });
-define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, scom_token_list_3, assets_1, index_css_3, API_1, data_json_1) {
+define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-gem-token/config/index.tsx", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, index_13, scom_token_list_3, assets_1, index_css_3, API_1, data_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_9.Styles.Theme.ThemeVars;
@@ -2831,7 +2835,50 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.edtAmount.value = '';
         }
         _getActions(propertiesSchema, themeSchema) {
+            let self = this;
             const actions = [
+                {
+                    name: 'Commissions',
+                    icon: 'dollar-sign',
+                    command: (builder, userInputData) => {
+                        return {
+                            execute: async () => {
+                                this._oldData = Object.assign({}, this._data);
+                                let resultingData = Object.assign(Object.assign({}, self._data), { commissions: userInputData.commissions });
+                                await self.setData(resultingData);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                            },
+                            undo: async () => {
+                                this._data = Object.assign({}, this._oldData);
+                                this.configDApp.data = this._data;
+                                await self.setData(this._data);
+                                if (builder === null || builder === void 0 ? void 0 : builder.setData)
+                                    builder.setData(this._data);
+                            },
+                            redo: () => { }
+                        };
+                    },
+                    customUI: {
+                        render: (data, onConfirm) => {
+                            const vstack = new components_9.VStack();
+                            const config = new index_13.default(null, {
+                                commissions: self._data.commissions
+                            });
+                            const button = new components_9.Button(null, {
+                                caption: 'Confirm',
+                            });
+                            vstack.append(config);
+                            vstack.append(button);
+                            button.onClick = async () => {
+                                const commissions = config.data.commissions;
+                                if (onConfirm)
+                                    onConfirm(true, { commissions });
+                            };
+                            return vstack;
+                        }
+                    }
+                },
                 {
                     name: 'Settings',
                     icon: 'cog',
@@ -3014,7 +3061,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this._data = data;
             this.configDApp.data = data;
             const commissionFee = index_11.getEmbedderCommissionFee();
-            this.lbOrderTotal.caption = `Total (+${new eth_wallet_9.BigNumber(commissionFee).times(100)}% Commission Fee)`;
+            this.lbOrderTotalTitle.caption = `Total`;
+            this.iconOrderTotal.tooltip.content = `A commission fee of ${new eth_wallet_9.BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
             this.updateContractAddress();
             this.refreshDApp();
         }
@@ -3469,7 +3517,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     this.$render("i-image", { id: 'imgLogo', class: index_css_3.imageStyle, height: 100 })),
                                 this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
                                 this.$render("i-markdown", { id: 'markdownViewer', class: index_css_3.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
-                            this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between' },
+                            this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, verticalAlignment: 'space-between' },
                                 this.$render("i-vstack", { horizontalAlignment: 'center', id: "pnlLogoTitle", gap: '0.5rem' },
                                     this.$render("i-image", { id: 'imgLogo2', class: index_css_3.imageStyle, height: 100 }),
                                     this.$render("i-label", { id: "lblTitle2", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } })),
@@ -3484,7 +3532,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                             this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                             this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged.bind(this), class: index_css_3.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider } })),
                                         this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
-                                            this.$render("i-label", { id: "lbOrderTotal", caption: 'Total', font: { size: '1rem' } }),
+                                            this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
+                                                this.$render("i-label", { id: "lbOrderTotalTitle", caption: 'Total', font: { size: '1rem' } }),
+                                                this.$render("i-icon", { id: "iconOrderTotal", name: "question-circle", fill: Theme.background.modal, width: 20, height: 20 })),
                                             this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                                 this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                                 this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),

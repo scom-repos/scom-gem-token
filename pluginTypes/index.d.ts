@@ -172,11 +172,14 @@ declare module "@scom/scom-gem-token/config/index.css.ts" {
 /// <amd-module name="@scom/scom-gem-token/config/index.tsx" />
 declare module "@scom/scom-gem-token/config/index.tsx" {
     import { Module, ControlElement } from '@ijstech/components';
-    import { IEmbedData } from "@scom/scom-gem-token/interface.tsx";
+    import { ICommissionInfo, IEmbedData } from "@scom/scom-gem-token/interface.tsx";
+    interface ScomGemTokenConfigElement extends ControlElement {
+        commissions?: ICommissionInfo;
+    }
     global {
         namespace JSX {
             interface IntrinsicElements {
-                ['i-scom-gem-token-config']: ControlElement;
+                ['i-scom-gem-token-config']: ScomGemTokenConfigElement;
             }
         }
     }
@@ -1483,7 +1486,7 @@ declare module "@scom/scom-gem-token/data.json.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
-    import { Module, Container, IDataSchema, ControlElement } from '@ijstech/components';
+    import { Module, Container, VStack, IDataSchema, ControlElement } from '@ijstech/components';
     import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import Config from "@scom/scom-gem-token/config/index.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
@@ -1536,7 +1539,8 @@ declare module "@scom/scom-gem-token" {
         private maxStack;
         private loadingElm;
         private pnlDescription;
-        private lbOrderTotal;
+        private lbOrderTotalTitle;
+        private iconOrderTotal;
         private pnlInputFields;
         private pnlUnsupportedNetwork;
         private dappContainer;
@@ -1576,7 +1580,19 @@ declare module "@scom/scom-gem-token" {
         getConfigurators(): ({
             name: string;
             target: string;
-            getActions: () => {
+            getActions: () => ({
+                name: string;
+                icon: string;
+                command: (builder: any, userInputData: any) => {
+                    execute: () => Promise<void>;
+                    undo: () => Promise<void>;
+                    redo: () => void;
+                };
+                customUI: {
+                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
+                };
+                userInputDataSchema?: undefined;
+            } | {
                 name: string;
                 icon: string;
                 command: (builder: any, userInputData: any) => {
@@ -1585,7 +1601,8 @@ declare module "@scom/scom-gem-token" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
-            }[];
+                customUI?: undefined;
+            })[];
             getData: any;
             setData: (data: IEmbedData) => Promise<void>;
             setTag: any;

@@ -90,7 +90,8 @@ export default class ScomGemToken extends Module {
   private maxStack: Panel;
   private loadingElm: Panel;
   private pnlDescription: VStack;
-  private lbOrderTotal: Label;
+  private lbOrderTotalTitle: Label;
+  private iconOrderTotal: Icon;
   // private networkPicker: ScomNetworkPicker;
   private pnlInputFields: VStack;
   private pnlUnsupportedNetwork: VStack;
@@ -226,7 +227,50 @@ export default class ScomGemToken extends Module {
   }
 
   private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+    let self = this;
     const actions = [
+      {
+        name: 'Commissions',
+        icon: 'dollar-sign',
+        command: (builder: any, userInputData: any) => {
+          return {
+            execute: async () => {
+              this._oldData = {...this._data};
+              let resultingData = {
+                ...self._data,
+                commissions: userInputData.commissions
+              };
+              await self.setData(resultingData);
+              if (builder?.setData) builder.setData(this._data);
+            },
+            undo: async () => {
+              this._data = {...this._oldData};
+              this.configDApp.data = this._data;
+              await self.setData(this._data);
+              if (builder?.setData) builder.setData(this._data);
+            },
+            redo: () => { }
+          }
+        },
+        customUI: {
+          render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
+            const vstack = new VStack();
+            const config = new Config(null, {
+              commissions: self._data.commissions
+            });
+            const button = new Button(null, {
+              caption: 'Confirm',
+            });
+            vstack.append(config);
+            vstack.append(button);
+            button.onClick = async () => {
+              const commissions = config.data.commissions;
+              if (onConfirm) onConfirm(true, {commissions});
+            }
+            return vstack;
+          }
+        }
+      },        
       {
         name: 'Settings',
         icon: 'cog',
@@ -290,9 +334,9 @@ export default class ScomGemToken extends Module {
           const propertiesSchema: IDataSchema = {
             type: 'object',
             properties: {
-              "contract": {
-                type: 'string'
-              }
+              // "contract": {
+              //   type: 'string'
+              // }
             }
           }
           if (!this._data.hideDescription) {
@@ -405,7 +449,8 @@ export default class ScomGemToken extends Module {
     this._data = data;
     this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
-    this.lbOrderTotal.caption = `Total (+${new BigNumber(commissionFee).times(100)}% Commission Fee)`;
+    this.lbOrderTotalTitle.caption = `Total`;
+    this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
     this.updateContractAddress();
     this.refreshDApp();
   }
@@ -964,7 +1009,7 @@ export default class ScomGemToken extends Module {
               </i-vstack>
               <i-vstack
                 gap="0.5rem"
-                padding={{ top: '1rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
                 verticalAlignment='space-between'
               >
                 <i-vstack horizontalAlignment='center' id="pnlLogoTitle" gap='0.5rem'>
@@ -1026,7 +1071,10 @@ export default class ScomGemToken extends Module {
                       gap="0.5rem"
                       grid={{ area: 'balance' }}
                     >
-                      <i-label id="lbOrderTotal" caption='Total' font={{ size: '1rem' }}></i-label>
+                      <i-hstack verticalAlignment='center' gap="0.5rem">
+                        <i-label id="lbOrderTotalTitle" caption='Total' font={{ size: '1rem' }}></i-label>
+                        <i-icon id="iconOrderTotal" name="question-circle" fill={Theme.background.modal} width={20} height={20}></i-icon>
+                      </i-hstack>
                       <i-hstack verticalAlignment='center' gap="0.5rem">
                         <i-label caption='Balance:' font={{ size: '1rem' }} opacity={0.6}></i-label>
                         <i-label id='lblBalance' font={{ size: '1rem' }} opacity={0.6}></i-label>

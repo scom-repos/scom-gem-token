@@ -22,13 +22,19 @@ import { getEmbedderCommissionFee, SupportedNetworks } from '../store/index';
 import { customStyle, tableStyle } from './index.css'
 const Theme = Styles.Theme.ThemeVars;
 
+interface ScomGemTokenConfigElement extends ControlElement {
+  commissions?: ICommissionInfo;
+}
+
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      ['i-scom-gem-token-config']: ControlElement;
+      ['i-scom-gem-token-config']: ScomGemTokenConfigElement;
     }
   }
 }
+
+const CommissionFeeTooltipText = "For each transaction, you'll receive a 1% commission fee based on the total amount. This fee will be transferred to a designated commission contract within the corresponding blockchain network.";
 
 @customModule
 @customElements("i-scom-gem-token-config")
@@ -143,6 +149,9 @@ export default class Config extends Module {
     this.commissionInfoList = [];
     const embedderFee = getEmbedderCommissionFee();
     this.lbCommissionShare.caption = `${formatNumber(new BigNumber(embedderFee).times(100).toFixed(), 4)} %`;
+    const commissions = this.getAttribute('commissions', true);
+    this.tableCommissions.data = commissions || [];
+    this.toggleVisible();
     this.isInited = true;
   }
 
@@ -253,7 +262,7 @@ export default class Config extends Module {
             <i-hstack gap="4px">
               <i-label caption="Commission Fee: " opacity={0.6} font={{ size: '1rem' }}></i-label>
               <i-label id="lbCommissionShare" font={{ size: '1rem' }}></i-label>
-              <i-icon name="question-circle" fill={Theme.background.modal} width={20} height={20}></i-icon>
+              <i-icon name="question-circle" fill={Theme.background.modal} width={20} height={20} tooltip={{content: CommissionFeeTooltipText}}></i-icon>
             </i-hstack>
             <i-button
               id="btnAddWallet"
