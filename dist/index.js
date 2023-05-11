@@ -2573,10 +2573,10 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
     }
     exports.redeemToken = redeemToken;
 });
-define("@scom/scom-gem-token/scconfig.json.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ///<amd-module name='@scom/scom-gem-token/scconfig.json.ts'/> 
+    ///<amd-module name='@scom/scom-gem-token/data.json.ts'/> 
     exports.default = {
         "env": "testnet",
         "logo": "logo",
@@ -2626,10 +2626,34 @@ define("@scom/scom-gem-token/scconfig.json.ts", ["require", "exports"], function
                 }
             }
         },
-        "embedderCommissionFee": "0.01"
+        "embedderCommissionFee": "0.01",
+        "defaultBuilderData": {
+            "dappType": "buy",
+            "hideDescription": true,
+            "description": "Elon Gem Token is a cryptocurrency that honors the vision and innovative spirit of Elon Musk.",
+            "chainSpecificProperties": {
+                "43113": {
+                    "contract": "0xCfF0d71140E9f4201b9151978BA1097732BbC36A"
+                }
+            },
+            "defaultChainId": 43113,
+            "networks": [
+                {
+                    "chainId": 43113
+                },
+                {
+                    "chainId": 97
+                }
+            ],
+            "wallets": [
+                {
+                    "name": "metamask"
+                }
+            ]
+        }
     };
 });
-define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/scconfig.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, scom_token_list_3, assets_1, index_css_3, API_1, scconfig_json_1) {
+define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-gem-token/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts"], function (require, exports, components_9, eth_wallet_9, index_10, index_11, index_12, scom_token_list_3, assets_1, index_css_3, API_1, data_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_9.Styles.Theme.ThemeVars;
@@ -2738,8 +2762,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     this.backerTokenBalanceLb.caption = '0.00';
                 });
             };
-            if (scconfig_json_1.default) {
-                index_11.setDataFromSCConfig(scconfig_json_1.default);
+            if (data_json_1.default) {
+                index_11.setDataFromSCConfig(data_json_1.default);
             }
             this.$eventBus = components_9.application.EventBus;
             this.registerEvent();
@@ -2791,7 +2815,20 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         async onSetupPage(isWalletConnected) {
             // if (isWalletConnected)
             //   this.networkPicker.setNetworkByChainId(getChainId());
-            await this.initApprovalAction();
+            if (isWalletConnected)
+                await this.initApprovalAction();
+            else
+                this.resetUI();
+        }
+        resetUI() {
+            this.fromTokenLb.caption = '';
+            this.toTokenLb.caption = '';
+            this.feeLb.caption = '0.00';
+            this.lbYouWillGet.caption = '0.00';
+            this.edtGemQty.value = '';
+            this.btnSubmit.enabled = false;
+            this.btnApprove.visible = false;
+            this.edtAmount.value = '';
         }
         _getActions(propertiesSchema, themeSchema) {
             const actions = [
@@ -2931,8 +2968,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         return this._getActions(propertiesSchema, themeSchema);
                     },
                     getData: this.getData.bind(this),
-                    setData: this.setData.bind(this),
-                    setTag: this.setTag.bind(this)
+                    setData: async (data) => {
+                        const defaultData = data_json_1.default.defaultBuilderData;
+                        await this.setData(Object.assign(Object.assign({}, defaultData), data));
+                    },
+                    setTag: this.setTag.bind(this),
+                    getTag: this.getTag.bind(this)
                 },
                 {
                     name: 'Emdedder Configurator',
@@ -2961,7 +3002,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     },
                     getData: this.getData.bind(this),
                     setData: this.setData.bind(this),
-                    setTag: this.setTag.bind(this)
+                    setTag: this.setTag.bind(this),
+                    getTag: this.getTag.bind(this)
                 }
             ];
         }
