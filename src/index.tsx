@@ -30,7 +30,7 @@ import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { Alert } from './alert/index';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
-import scconfig from './data.json';
+import configData from './data.json';
 import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 
@@ -99,11 +99,6 @@ export default class ScomGemToken extends Module {
 
   private _type: DappType | undefined;
   private _entryContract: string;
-  private _oldData: IEmbedData = {
-    wallets: [],
-    networks: [],
-    defaultChainId: 0
-  };
   private _data: IEmbedData = {
     wallets: [],
     networks: [],
@@ -115,7 +110,6 @@ export default class ScomGemToken extends Module {
   private gemInfo: IGemInfo;
 
   tag: any = {}
-  private oldTag: any = {};
   defaultEdit: boolean = true;
   readonly onConfirm: () => Promise<void>;
   readonly onDiscard: () => Promise<void>;
@@ -123,9 +117,7 @@ export default class ScomGemToken extends Module {
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
-    if (scconfig) {
-      setDataFromSCConfig(scconfig);
-    }
+    if (configData) setDataFromSCConfig(configData);
     this.$eventBus = application.EventBus;
     this.registerEvent();
   }
@@ -233,9 +225,14 @@ export default class ScomGemToken extends Module {
         name: 'Commissions',
         icon: 'dollar-sign',
         command: (builder: any, userInputData: any) => {
+          let _oldData: IEmbedData = {
+            wallets: [],
+            networks: [],
+            defaultChainId: 0
+          };
           return {
             execute: async () => {
-              this._oldData = {...this._data};
+              _oldData = {...this._data};
               let resultingData = {
                 ...self._data,
                 commissions: userInputData.commissions
@@ -244,7 +241,7 @@ export default class ScomGemToken extends Module {
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
-              this._data = {...this._oldData};
+              this._data = {..._oldData};
               this.configDApp.data = this._data;
               await self.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
@@ -275,9 +272,14 @@ export default class ScomGemToken extends Module {
         name: 'Settings',
         icon: 'cog',
         command: (builder: any, userInputData: any) => {
+          let _oldData: IEmbedData = {
+            wallets: [],
+            networks: [],
+            defaultChainId: 0
+          };
           return {
             execute: async () => {
-              this._oldData = { ...this._data };
+              _oldData = { ...this._data };
               if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
               if (userInputData.description != undefined) this._data.description = userInputData.description;
@@ -286,7 +288,7 @@ export default class ScomGemToken extends Module {
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
-              this._data = { ...this._oldData };
+              this._data = { ..._oldData };
               this.configDApp.data = this._data;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
@@ -300,17 +302,18 @@ export default class ScomGemToken extends Module {
         name: 'Theme Settings',
         icon: 'palette',
         command: (builder: any, userInputData: any) => {
+          let oldTag = {};
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = JSON.parse(JSON.stringify(this.tag));
+              oldTag = JSON.parse(JSON.stringify(this.tag));
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
               if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = JSON.parse(JSON.stringify(this.oldTag));
+              this.tag = JSON.parse(JSON.stringify(oldTag));
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
@@ -396,7 +399,7 @@ export default class ScomGemToken extends Module {
         },
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {
-          const defaultData = scconfig.defaultBuilderData as any;
+          const defaultData = configData.defaultBuilderData as any;
           await this.setData({...defaultData, ...data})
         },
         setTag: this.setTag.bind(this),
@@ -469,8 +472,14 @@ export default class ScomGemToken extends Module {
 
   async setTag(value: any) {
     const newValue = value || {};
-    if (newValue.light) this.updateTag('light', newValue.light);
-    if (newValue.dark) this.updateTag('dark', newValue.dark);
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop)) {
+        if (prop === 'light' || prop === 'dark')
+          this.updateTag(prop, newValue[prop]);
+        else
+          this.tag[prop] = newValue[prop];
+      }
+    }
     if (this.dappContainer)
       this.dappContainer.setTag(this.tag);
     this.updateTheme();
