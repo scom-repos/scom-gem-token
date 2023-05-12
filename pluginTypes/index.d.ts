@@ -1415,47 +1415,6 @@ declare module "@scom/scom-gem-token/API.ts" {
 /// <amd-module name="@scom/scom-gem-token/data.json.ts" />
 declare module "@scom/scom-gem-token/data.json.ts" {
     const _default_7: {
-        env: string;
-        logo: string;
-        main: string;
-        assets: string;
-        moduleDir: string;
-        modules: {
-            "@scom-gem-token/assets": {
-                path: string;
-            };
-            "@scom-gem-token/interface": {
-                path: string;
-            };
-            "@scom-gem-token/utils": {
-                path: string;
-            };
-            "@scom-gem-token/store": {
-                path: string;
-            };
-            "@scom-gem-token/wallet": {
-                path: string;
-            };
-            "@scom-gem-token/token-selection": {
-                path: string;
-            };
-            "@scom-gem-token/alert": {
-                path: string;
-            };
-            "@scom-gem-token/config": {
-                path: string;
-            };
-            "@scom-gem-token/main": {
-                path: string;
-            };
-            "@scom-gem-token/loading": {
-                path: string;
-            };
-        };
-        dependencies: {
-            "@ijstech/eth-contract": string;
-            "@scom/scom-gem-token-contract": string;
-        };
         contractInfo: {
             "43113": {
                 Proxy: {
@@ -1546,14 +1505,12 @@ declare module "@scom/scom-gem-token" {
         private dappContainer;
         private _type;
         private _entryContract;
-        private _oldData;
         private _data;
         private $eventBus;
         private approvalModelAction;
         private isApproving;
         private gemInfo;
         tag: any;
-        private oldTag;
         defaultEdit: boolean;
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;

@@ -1,45 +1,4 @@
 export default {
-    "env": "testnet",
-    "logo": "logo",
-    "main": "@scom-gem-token/main",
-    "assets": "@scom-gem-token/assets",
-    "moduleDir": "modules",
-    "modules": {
-        "@scom-gem-token/assets": {
-            "path": "assets"
-        },
-        "@scom-gem-token/interface": {
-            "path": "interface"
-        },
-        "@scom-gem-token/utils": {
-            "path": "utils"
-        },
-        "@scom-gem-token/store": {
-            "path": "store"
-        },
-        "@scom-gem-token/wallet": {
-            "path": "wallet"
-        },
-        "@scom-gem-token/token-selection": {
-            "path": "token-selection"
-        },
-        "@scom-gem-token/alert": {
-            "path": "alert"
-        },
-        "@scom-gem-token/config": {
-            "path": "config"
-        },
-        "@scom-gem-token/main": {
-            "path": "main"
-        },
-        "@scom-gem-token/loading": {
-            "path": "loading"
-        }
-    },
-    "dependencies": {
-        "@ijstech/eth-contract": "*",
-        "@scom/scom-gem-token-contract": "*"
-    },
     "contractInfo": {
         "43113": {
             "Proxy": {
@@ -50,7 +9,7 @@ export default {
     "embedderCommissionFee": "0.01",
     "defaultBuilderData": {
         "dappType": "buy",
-        "hideDescription": true,
+        "hideDescription": false,
         "description": "Elon Gem Token is a cryptocurrency that honors the vision and innovative spirit of Elon Musk.",
         "chainSpecificProperties": {
             "43113": {

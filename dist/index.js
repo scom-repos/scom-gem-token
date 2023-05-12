@@ -2582,47 +2582,6 @@ define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (re
     Object.defineProperty(exports, "__esModule", { value: true });
     ///<amd-module name='@scom/scom-gem-token/data.json.ts'/> 
     exports.default = {
-        "env": "testnet",
-        "logo": "logo",
-        "main": "@scom-gem-token/main",
-        "assets": "@scom-gem-token/assets",
-        "moduleDir": "modules",
-        "modules": {
-            "@scom-gem-token/assets": {
-                "path": "assets"
-            },
-            "@scom-gem-token/interface": {
-                "path": "interface"
-            },
-            "@scom-gem-token/utils": {
-                "path": "utils"
-            },
-            "@scom-gem-token/store": {
-                "path": "store"
-            },
-            "@scom-gem-token/wallet": {
-                "path": "wallet"
-            },
-            "@scom-gem-token/token-selection": {
-                "path": "token-selection"
-            },
-            "@scom-gem-token/alert": {
-                "path": "alert"
-            },
-            "@scom-gem-token/config": {
-                "path": "config"
-            },
-            "@scom-gem-token/main": {
-                "path": "main"
-            },
-            "@scom-gem-token/loading": {
-                "path": "loading"
-            }
-        },
-        "dependencies": {
-            "@ijstech/eth-contract": "*",
-            "@scom/scom-gem-token-contract": "*"
-        },
         "contractInfo": {
             "43113": {
                 "Proxy": {
@@ -2633,7 +2592,7 @@ define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (re
         "embedderCommissionFee": "0.01",
         "defaultBuilderData": {
             "dappType": "buy",
-            "hideDescription": true,
+            "hideDescription": false,
             "description": "Elon Gem Token is a cryptocurrency that honors the vision and innovative spirit of Elon Musk.",
             "chainSpecificProperties": {
                 "43113": {
@@ -2666,11 +2625,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
     let ScomGemToken = class ScomGemToken extends components_9.Module {
         constructor(parent, options) {
             super(parent, options);
-            this._oldData = {
-                wallets: [],
-                networks: [],
-                defaultChainId: 0
-            };
             this._data = {
                 wallets: [],
                 networks: [],
@@ -2678,7 +2632,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             };
             this.isApproving = false;
             this.tag = {};
-            this.oldTag = {};
             this.defaultEdit = true;
             this.onWalletConnect = async (connected) => {
                 let chainId = index_12.getChainId();
@@ -2766,9 +2719,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     this.backerTokenBalanceLb.caption = '0.00';
                 });
             };
-            if (data_json_1.default) {
+            if (data_json_1.default)
                 index_11.setDataFromSCConfig(data_json_1.default);
-            }
             this.$eventBus = components_9.application.EventBus;
             this.registerEvent();
         }
@@ -2841,16 +2793,21 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     name: 'Commissions',
                     icon: 'dollar-sign',
                     command: (builder, userInputData) => {
+                        let _oldData = {
+                            wallets: [],
+                            networks: [],
+                            defaultChainId: 0
+                        };
                         return {
                             execute: async () => {
-                                this._oldData = Object.assign({}, this._data);
+                                _oldData = Object.assign({}, this._data);
                                 let resultingData = Object.assign(Object.assign({}, self._data), { commissions: userInputData.commissions });
                                 await self.setData(resultingData);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
                             },
                             undo: async () => {
-                                this._data = Object.assign({}, this._oldData);
+                                this._data = Object.assign({}, _oldData);
                                 this.configDApp.data = this._data;
                                 await self.setData(this._data);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
@@ -2883,9 +2840,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     name: 'Settings',
                     icon: 'cog',
                     command: (builder, userInputData) => {
+                        let _oldData = {
+                            wallets: [],
+                            networks: [],
+                            defaultChainId: 0
+                        };
                         return {
                             execute: async () => {
-                                this._oldData = Object.assign({}, this._data);
+                                _oldData = Object.assign({}, this._data);
                                 if (userInputData.dappType != undefined)
                                     this._data.dappType = userInputData.dappType;
                                 if (userInputData.logo != undefined)
@@ -2898,7 +2860,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     builder.setData(this._data);
                             },
                             undo: async () => {
-                                this._data = Object.assign({}, this._oldData);
+                                this._data = Object.assign({}, _oldData);
                                 this.configDApp.data = this._data;
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
@@ -2913,11 +2875,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     name: 'Theme Settings',
                     icon: 'palette',
                     command: (builder, userInputData) => {
+                        let oldTag = {};
                         return {
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
+                                oldTag = JSON.parse(JSON.stringify(this.tag));
                                 if (builder)
                                     builder.setTag(userInputData);
                                 else
@@ -2928,7 +2891,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.tag = JSON.parse(JSON.stringify(this.oldTag));
+                                this.tag = JSON.parse(JSON.stringify(oldTag));
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else
@@ -2954,9 +2917,9 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         const propertiesSchema = {
                             type: 'object',
                             properties: {
-                                "contract": {
-                                    type: 'string'
-                                }
+                            // "contract": {
+                            //   type: 'string'
+                            // }
                             }
                         };
                         if (!this._data.hideDescription) {
