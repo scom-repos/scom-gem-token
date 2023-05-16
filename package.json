@@ -1,32 +1,32 @@
 {
-    "name": "@scom/scom-gem-token",
-    "version": "0.1.5",
-    "main": "dist/index.js",
-    "plugin": "dist",
-    "pluginTypes": "pluginTypes/index.d.ts",
-    "types": "pluginTypes/index.d.ts",
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "dependencies": {
-        "@ijstech/components": "^0.1.29",
-        "@ijstech/eth-wallet": "^0.1.51",
-        "@ijstech/eth-contract": "^0.1.10",
-        "@scom/scom-token-list": "^0.1.0",
-        "@scom/scom-network-picker": "^0.1.1",
-        "@scom/scom-network-list": "^0.1.0",
-        "@scom/scom-dapp-container": "^0.1.2"
-    },
-    "devDependencies": {
-        "@ijstech/cli": "^0.1.26",
-        "@ijstech/compiler": "^0.1.22",
-        "@scom/scom-gem-token-contract": "^0.1.0",
-        "@scom/scom-commission-proxy-contract": "^0.1.2"
-    },
-    "scripts": {
-        "copy": "sh ./scripts/copy.sh",
-        "build": "rm -rf dist && npx @ijstech/compiler",
-        "serve": "npx @ijstech/cli serve 8080",
-        "test": "cd test && npm run test && cd .."
-    }
+  "name": "@scom/scom-gem-token",
+  "version": "0.1.6",
+  "main": "dist/index.js",
+  "plugin": "dist",
+  "pluginTypes": "pluginTypes/index.d.ts",
+  "types": "pluginTypes/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@ijstech/components": "^0.1.29",
+    "@ijstech/eth-wallet": "^0.1.51",
+    "@ijstech/eth-contract": "^0.1.10",
+    "@scom/scom-token-list": "^0.1.0",
+    "@scom/scom-network-picker": "^0.1.1",
+    "@scom/scom-network-list": "^0.1.0",
+    "@scom/scom-dapp-container": "^0.1.2"
+  },
+  "devDependencies": {
+    "@ijstech/cli": "^0.1.26",
+    "@ijstech/compiler": "^0.1.22",
+    "@scom/scom-gem-token-contract": "^0.1.0",
+    "@scom/scom-commission-proxy-contract": "^0.1.2"
+  },
+  "scripts": {
+    "copy": "sh ./scripts/copy.sh",
+    "build": "rm -rf dist && npx @ijstech/compiler",
+    "serve": "npx @ijstech/cli serve 8080",
+    "test": "cd test && npm run test && cd .."
+  }
 }
