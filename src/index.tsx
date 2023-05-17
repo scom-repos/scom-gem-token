@@ -21,8 +21,7 @@ import {
 import { BigNumber, Utils } from '@ijstech/eth-wallet';
 import { IEmbedData, ITokenObject, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { EventId, getEmbedderCommissionFee, getContractAddress, setDataFromSCConfig } from './store/index';
-import { getChainId, isWalletConnected } from './wallet/index';
+import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, isWalletConnected, setDefaultChainId } from './store/index';
 import Config from './config/index';
 import { assets as tokenAssets } from '@scom/scom-token-list';
 import assets from './assets';
@@ -92,7 +91,8 @@ export default class ScomGemToken extends Module {
   private pnlDescription: VStack;
   private lbOrderTotalTitle: Label;
   private iconOrderTotal: Icon;
-  // private networkPicker: ScomNetworkPicker;
+  private lbPrice: Label;
+  private hStackTokens: HStack;
   private pnlInputFields: VStack;
   private pnlUnsupportedNetwork: VStack;
   private dappContainer: ScomDappContainer;
@@ -200,13 +200,11 @@ export default class ScomGemToken extends Module {
   }
 
   private async onSetupPage(isWalletConnected: boolean) {
-    // if (isWalletConnected)
-    //   this.networkPicker.setNetworkByChainId(getChainId());
     if (isWalletConnected)
       await this.initApprovalAction();
     else this.resetUI();
   }
-  
+
   private resetUI() {
     this.fromTokenLb.caption = '';
     this.toTokenLb.caption = '';
@@ -232,7 +230,7 @@ export default class ScomGemToken extends Module {
           };
           return {
             execute: async () => {
-              _oldData = {...this._data};
+              _oldData = { ...this._data };
               let resultingData = {
                 ...self._data,
                 commissions: userInputData.commissions
@@ -241,7 +239,7 @@ export default class ScomGemToken extends Module {
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
-              this._data = {..._oldData};
+              this._data = { ..._oldData };
               this.configDApp.data = this._data;
               await self.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
@@ -262,12 +260,12 @@ export default class ScomGemToken extends Module {
             vstack.append(button);
             button.onClick = async () => {
               const commissions = config.data.commissions;
-              if (onConfirm) onConfirm(true, {commissions});
+              if (onConfirm) onConfirm(true, { commissions });
             }
             return vstack;
           }
         }
-      },        
+      },
       {
         name: 'Settings',
         icon: 'cog',
@@ -400,7 +398,7 @@ export default class ScomGemToken extends Module {
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {
           const defaultData = configData.defaultBuilderData as any;
-          await this.setData({...defaultData, ...data})
+          await this.setData({ ...defaultData, ...data })
         },
         setTag: this.setTag.bind(this),
         getTag: this.getTag.bind(this)
@@ -452,17 +450,17 @@ export default class ScomGemToken extends Module {
     this._data = data;
     this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
-    this.lbOrderTotalTitle.caption = `Total`;
+    // this.lbOrderTotalTitle.caption = `Total`;
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
     this.updateContractAddress();
-    this.refreshDApp();
+    await this.refreshDApp();
   }
 
   private getTag() {
     return this.tag;
   }
 
-  private updateTag(type: 'light'|'dark', value: any) {
+  private updateTag(type: 'light' | 'dark', value: any) {
     this.tag[type] = this.tag[type] ?? {};
     for (let prop in value) {
       if (value.hasOwnProperty(prop))
@@ -572,6 +570,8 @@ export default class ScomGemToken extends Module {
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
     console.log('this.gemInfo', this.gemInfo);
     if (this.gemInfo) {
+      this.lbPrice.visible = true;
+      this.hStackTokens.visible = true;
       this.pnlInputFields.visible = true;
       this.pnlUnsupportedNetwork.visible = false;
 
@@ -613,6 +613,8 @@ export default class ScomGemToken extends Module {
       this.updateTokenBalance();
     }
     else {
+      this.lbPrice.visible = false;
+      this.hStackTokens.visible = false;
       this.pnlInputFields.visible = false;
       this.pnlUnsupportedNetwork.visible = true;
     }
@@ -622,19 +624,27 @@ export default class ScomGemToken extends Module {
     this.isReadyCallbackQueued = true;
     super.init();
     await this.onSetupPage(isWalletConnected());
-    this._data.dappType = this.getAttribute('dappType', true);
-    this._data.description = this.getAttribute('description', true);
-    this._data.hideDescription = this.getAttribute('hideDescription', true);
-    this._data.logo = this.getAttribute('logo', true);
-    this._data.chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
-    this._data.networks = this.getAttribute('networks', true);
-    this._data.wallets = this.getAttribute('wallets', true);
-    this._data.showHeader = this.getAttribute('showHeader', true);
-    this._data.defaultChainId = this.getAttribute('defaultChainId', true);
-
-    if (this.configDApp) this.configDApp.data = this._data;
-    this.updateContractAddress();
-    await this.refreshDApp();
+    const dappType = this.getAttribute('dappType', true);
+    const description = this.getAttribute('description', true);
+    const hideDescription = this.getAttribute('hideDescription', true);
+    const logo = this.getAttribute('logo', true);
+    const chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
+    const networks = this.getAttribute('networks', true, []);
+    const wallets = this.getAttribute('wallets', true, []);
+    const showHeader = this.getAttribute('showHeader', true);
+    const defaultChainId = this.getAttribute('defaultChainId', true, 1);
+    setDefaultChainId(defaultChainId);
+    await this.setData({
+      dappType,
+      description,
+      hideDescription,
+      logo,
+      chainSpecificProperties,
+      networks,
+      wallets,
+      showHeader,
+      defaultChainId
+    });
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
   }
@@ -681,7 +691,7 @@ export default class ScomGemToken extends Module {
 
   private async initApprovalAction() {
     if (!this.approvalModelAction) {
-      this._entryContract = getContractAddress('Proxy');
+      this._entryContract = getProxyAddress();
       this.approvalModelAction = getERC20ApprovalModelAction(this._entryContract, {
         sender: this,
         payAction: async () => {
@@ -763,7 +773,7 @@ export default class ScomGemToken extends Module {
         this._entryContract = this.contract;
       }
       else {
-        this._entryContract = getContractAddress('Proxy');
+        this._entryContract = getProxyAddress();
       }
       this.approvalModelAction.setSpenderAddress(this._entryContract);
     }
@@ -969,10 +979,6 @@ export default class ScomGemToken extends Module {
     }
   }
 
-  // private onNetworkSelected(network: INetwork) {
-  //   console.log('network selected', network);
-  // }
-
   render() {
     return (
       <i-scom-dapp-container id="dappContainer">
@@ -1025,34 +1031,12 @@ export default class ScomGemToken extends Module {
                   <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
                   <i-label id="lblTitle2" font={{ bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' }}></i-label>
                 </i-vstack>
-                <i-label caption="Price" font={{ size: '1rem' }} opacity={0.6}></i-label>
-                <i-hstack gap="4px" class={centerStyle} margin={{ bottom: '1rem' }}>
+                <i-label id="lbPrice" caption="Price" font={{ size: '1rem' }} opacity={0.6}></i-label>
+                <i-hstack id="hStackTokens" gap="4px" class={centerStyle} margin={{ bottom: '1rem' }}>
                   <i-label id="fromTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
                   <i-label caption="=" font={{ bold: true, size: '1.5rem' }}></i-label>
                   <i-label id="toTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
                 </i-hstack>
-                {/* <i-grid-layout
-                  width='100%'
-                  verticalAlignment='center'
-                  padding={{ top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }}
-                  templateColumns={['1fr', '2fr']}
-                  templateRows={['auto']}
-                  templateAreas={
-                    [
-                      ['lbNetwork', 'network']
-                    ]
-                  }>
-                  <i-label caption="Network" grid={{ area: 'lbNetwork' }} font={{ size: '0.875rem' }} />
-                  <i-scom-network-picker
-                    id='networkPicker'
-                    type="combobox"
-                    grid={{ area: 'network' }}
-                    networks={SupportedNetworks}
-                    switchNetworkOnSelect={true}
-                    selectedChainId={getChainId()}
-                    onCustomNetworkSelected={this.onNetworkSelected}
-                  />
-                </i-grid-layout> */}
                 <i-vstack gap="0.5rem" id='pnlInputFields'>
                   <i-grid-layout
                     id="balanceLayout"
@@ -1097,7 +1081,7 @@ export default class ScomGemToken extends Module {
                       background={{ color: Theme.input.background }}
                       font={{ color: Theme.input.fontColor }}
                       height={56} width="50%"
-                      margin={{left: 'auto', right: 'auto', top: '1rem'}}
+                      margin={{ left: 'auto', right: 'auto', top: '1rem' }}
                       grid={{ area: 'tokenInput' }}
                     >
                       <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
@@ -1111,7 +1095,7 @@ export default class ScomGemToken extends Module {
                         width='100%'
                         height='100%'
                         minHeight={40}
-                        border={{style: 'none'}}
+                        border={{ style: 'none' }}
                         class={inputStyle}
                         inputType='number'
                         font={{ size: '1.25rem' }}
@@ -1146,7 +1130,7 @@ export default class ScomGemToken extends Module {
                     horizontalAlignment="center" verticalAlignment='center'
                     gap="8px"
                     width="50%"
-                    margin={{left: 'auto', right: 'auto', bottom: '1.313rem'}}
+                    margin={{ left: 'auto', right: 'auto', bottom: '1.313rem' }}
                   >
                     <i-button
                       id="btnApprove"

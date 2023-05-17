@@ -6,7 +6,7 @@ export const customStyle = Styles.style({
     'input': {
       paddingLeft: '10px'
     },
-    '.nft-network-select': {
+    '.gem-network-select': {
       $nest: {
         '.os-modal .modal': {
           background: Theme.combobox.background

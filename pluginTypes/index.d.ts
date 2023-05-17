@@ -1,7 +1,7 @@
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
-    import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
+    import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
     import { INetworkConfig } from "@scom/scom-network-picker";
     export interface PageBlock {
         getData: () => any;
@@ -72,6 +72,16 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         packageName?: string;
         provider?: IClientSideProvider;
     }
+    export interface IExtendedNetwork extends INetwork {
+        shortName?: string;
+        isDisabled?: boolean;
+        isMainChain?: boolean;
+        isCrossChainSupported?: boolean;
+        explorerName?: string;
+        explorerTxUrl?: string;
+        explorerAddressUrl?: string;
+        isTestnet?: boolean;
+    }
 }
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
 declare module "@scom/scom-gem-token/utils/token.ts" {
@@ -123,13 +133,9 @@ declare module "@scom/scom-gem-token/utils/index.ts" {
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
     export { ApprovalStatus, getERC20Allowance, getERC20ApprovalModelAction, IERC20ApprovalOptions, IERC20ApprovalAction } from "@scom/scom-gem-token/utils/approvalModel.ts";
 }
-/// <amd-module name="@scom/scom-gem-token/wallet/index.ts" />
-declare module "@scom/scom-gem-token/wallet/index.ts" {
-    export function isWalletConnected(): boolean;
-    export const getChainId: () => number;
-}
 /// <amd-module name="@scom/scom-gem-token/store/index.ts" />
 declare module "@scom/scom-gem-token/store/index.ts" {
+    import { IExtendedNetwork } from "@scom/scom-gem-token/interface.tsx";
     export const enum EventId {
         ConnectWallet = "connectWallet",
         IsWalletConnected = "isWalletConnected",
@@ -140,29 +146,28 @@ declare module "@scom/scom-gem-token/store/index.ts" {
         MetaMask = "metamask",
         WalletConnect = "walletconnect"
     }
-    export const SupportedNetworks: {
-        chainName: string;
-        chainId: number;
-    }[];
-    export const getNetworkName: (chainId: number) => string;
-    export interface IContractDetailInfo {
-        address: string;
-    }
-    export type ContractType = 'Proxy';
-    export interface IContractInfo {
-        Proxy: IContractDetailInfo;
-    }
-    export type ContractInfoByChainType = {
-        [key: number]: IContractInfo;
+    export const getNetworkInfo: (chainId: number) => IExtendedNetwork;
+    export const getSupportedNetworks: () => IExtendedNetwork[];
+    export type ProxyAddresses = {
+        [key: number]: string;
     };
     export const state: {
-        contractInfoByChain: ContractInfoByChainType;
+        defaultChainId: number;
+        networkMap: {
+            [key: number]: IExtendedNetwork;
+        };
+        proxyAddresses: ProxyAddresses;
         embedderCommissionFee: string;
     };
     export const setDataFromSCConfig: (options: any) => void;
+    export const setProxyAddresses: (data: ProxyAddresses) => void;
+    export const getProxyAddress: (chainId?: number) => string;
     export const getEmbedderCommissionFee: () => string;
-    export const getContractAddress: (type: ContractType) => any;
+    export const setDefaultChainId: (chainId: number) => void;
+    export const getDefaultChainId: () => number;
     export function switchNetwork(chainId: number): Promise<void>;
+    export function isWalletConnected(): boolean;
+    export const getChainId: () => number;
 }
 /// <amd-module name="@scom/scom-gem-token/config/index.css.ts" />
 declare module "@scom/scom-gem-token/config/index.css.ts" {
@@ -202,6 +207,9 @@ declare module "@scom/scom-gem-token/config/index.tsx" {
         set data(config: IEmbedData);
         get onCustomCommissionsChanged(): (data: any) => Promise<void>;
         set onCustomCommissionsChanged(value: (data: any) => Promise<void>);
+        getSupportedChainIds(): {
+            chainId: number;
+        }[];
         onModalAddCommissionClosed(): void;
         onAddCommissionClicked(): void;
         onConfirmCommissionClicked(): Promise<void>;
@@ -1415,12 +1423,29 @@ declare module "@scom/scom-gem-token/API.ts" {
 /// <amd-module name="@scom/scom-gem-token/data.json.ts" />
 declare module "@scom/scom-gem-token/data.json.ts" {
     const _default_7: {
-        contractInfo: {
-            "43113": {
-                Proxy: {
-                    address: string;
-                };
-            };
+        infuraId: string;
+        networks: ({
+            chainId: number;
+            isMainChain: boolean;
+            isCrossChainSupported: boolean;
+            explorerName: string;
+            explorerTxUrl: string;
+            explorerAddressUrl: string;
+            isTestnet: boolean;
+            shortName?: undefined;
+        } | {
+            chainId: number;
+            shortName: string;
+            isCrossChainSupported: boolean;
+            explorerName: string;
+            explorerTxUrl: string;
+            explorerAddressUrl: string;
+            isTestnet: boolean;
+            isMainChain?: undefined;
+        })[];
+        proxyAddresses: {
+            "97": string;
+            "43113": string;
         };
         embedderCommissionFee: string;
         defaultBuilderData: {
@@ -1500,6 +1525,8 @@ declare module "@scom/scom-gem-token" {
         private pnlDescription;
         private lbOrderTotalTitle;
         private iconOrderTotal;
+        private lbPrice;
+        private hStackTokens;
         private pnlInputFields;
         private pnlUnsupportedNetwork;
         private dappContainer;

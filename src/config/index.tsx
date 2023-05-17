@@ -14,11 +14,11 @@ import {
   VStack,
   HStack
 } from '@ijstech/components';
-import { ICommissionInfo, IEmbedData } from '../interface';
-import { BigNumber, Wallet } from '@ijstech/eth-wallet';
-import { formatNumber, isWalletAddress } from '../utils/index';
+import { BigNumber } from '@ijstech/eth-wallet';
 import ScomNetworkPicker from '@scom/scom-network-picker';
-import { getEmbedderCommissionFee, SupportedNetworks } from '../store/index';
+import { getEmbedderCommissionFee, getNetworkInfo, getSupportedNetworks } from '../store/index';
+import { formatNumber, isWalletAddress  } from '../utils/index';
+import { ICommissionInfo, IEmbedData } from '../interface'
 import { customStyle, tableStyle } from './index.css'
 const Theme = Styles.Theme.ThemeVars;
 
@@ -54,9 +54,11 @@ export default class Config extends Module {
       key: 'chainId',
       textAlign: 'left' as any,
       onRenderCell: function (source: Control, columnData: number, rowData: any) {
-        const network = SupportedNetworks.find(net => net.chainId === columnData)
+        const supportedNetworks = getSupportedNetworks();
+        const network = supportedNetworks.find(net => net.chainId === columnData)
         if (!network) return <i-panel></i-panel>
-        const imgUrl = Wallet.getClientInstance().getNetworkInfo(columnData)?.image || ''
+        const networkInfo = getNetworkInfo(network.chainId)
+        const imgUrl = networkInfo.image || ''
         const hstack = new HStack(undefined, {
           verticalAlignment: 'center',
           gap: 5
@@ -65,7 +67,7 @@ export default class Config extends Module {
           image: {url: imgUrl, width: 16, height: 16}
         })
         const lbName = new Label(hstack, {
-          caption: network.chainName || '',
+          caption: networkInfo.chainName || '',
           font: {size: '0.875rem'}
         })
         hstack.append(imgEl, lbName);
@@ -146,11 +148,11 @@ export default class Config extends Module {
 
   init() {
     super.init();
-    this.commissionInfoList = [];
     const embedderFee = getEmbedderCommissionFee();
     this.lbCommissionShare.caption = `${formatNumber(new BigNumber(embedderFee).times(100).toFixed(), 4)} %`;
-    const commissions = this.getAttribute('commissions', true);
-    this.tableCommissions.data = commissions || [];
+    const commissions = this.getAttribute('commissions', true, []);
+    this.commissionInfoList = commissions;
+    this.tableCommissions.data = commissions;
     this.toggleVisible();
     this.isInited = true;
   }
@@ -177,6 +179,10 @@ export default class Config extends Module {
 
   set onCustomCommissionsChanged(value: (data: any) => Promise<void>) {
     this._onCustomCommissionsChanged = value;
+  }
+
+  getSupportedChainIds() {
+    return getSupportedNetworks().map(v => ({ chainId: v.chainId }))
   }
 
   onModalAddCommissionClosed() {
@@ -331,11 +337,11 @@ export default class Config extends Module {
               grid={{ area: 'network' }}
               display="block"
               type='combobox'
-              networks={SupportedNetworks}
+              networks={this.getSupportedChainIds()}
               background={{color: Theme.combobox.background}}
               border={{radius: 8, width: '1px', style: 'solid', color: Theme.input.background}}
               onCustomNetworkSelected={this.onNetworkSelected}
-              class="nft-network-select"
+              class="gem-network-select"
             />
 
             <i-label caption="Wallet Address" grid={{ area: 'lbWalletAddress' }} font={{size: '1rem'}} />
