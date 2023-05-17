@@ -3,8 +3,7 @@ import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from './in
 import { Contracts } from './contracts/scom-gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getEmbedderCommissionFee, getContractAddress } from './store/index';
-import { getChainId } from './wallet/index';
+import { getEmbedderCommissionFee, getProxyAddress, getChainId } from './store/index';
 import { DefaultTokens } from '@scom/scom-token-list'
 
 async function getFee(contractAddress: string, type: DappType) {
@@ -130,7 +129,7 @@ async function buyToken(
       receipt = await contract.buy(amount);
     }
     else {
-      let proxyAddress = getContractAddress('Proxy');
+      let proxyAddress = getProxyAddress();
       const proxy = new ProxyContracts.Proxy(wallet, proxyAddress);
       const txData = await contract.buy.txData(amount);
       const tokensIn =

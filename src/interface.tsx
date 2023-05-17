@@ -1,4 +1,4 @@
-import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
+import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
 import { INetworkConfig } from "@scom/scom-network-picker";
 
 export interface PageBlock {
@@ -84,3 +84,14 @@ export interface IWalletPlugin {
   packageName?: string;
   provider?: IClientSideProvider;
 }
+
+export interface IExtendedNetwork extends INetwork {
+  shortName?: string;
+  isDisabled?: boolean;
+  isMainChain?: boolean;
+  isCrossChainSupported?: boolean;
+  explorerName?: string;
+  explorerTxUrl?: string;
+  explorerAddressUrl?: string;
+  isTestnet?: boolean;
+};

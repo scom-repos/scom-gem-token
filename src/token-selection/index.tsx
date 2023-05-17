@@ -12,9 +12,8 @@ import {
   Icon
 } from '@ijstech/components';
 import { ITokenObject } from '../interface';
-import { EventId } from '../store/index';
+import { EventId, isWalletConnected, getChainId } from '../store/index';
 import { ChainNativeTokenByChainId, tokenStore, assets } from '@scom/scom-token-list'
-import { isWalletConnected, getChainId } from '../wallet/index';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;
@@ -56,7 +55,7 @@ export class TokenSelection extends Module {
 
   set token(value: ITokenObject | undefined) {
     this._token = value;
-    this.updateTokenButton(value);
+    this.updateTokenButton();
   }
 
   get chainId() {
@@ -74,6 +73,7 @@ export class TokenSelection extends Module {
   set readonly(value: boolean) {
     if (this._readonly != value) {
       this._readonly = value;
+      if (!this.btnTokens) return;
       this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
       this.btnTokens.rightIcon.visible = !this._readonly;
     }
@@ -87,7 +87,7 @@ export class TokenSelection extends Module {
       const token = _tokenList.find(t => (t.address && t.address == this.token?.address) || (t.symbol == this.token?.symbol))
       if (!token) this.token = undefined;
     }
-    this.updateTokenButton(this.token);
+    this.updateTokenButton();
   }
 
   private registerEvent() {
@@ -163,7 +163,9 @@ export class TokenSelection extends Module {
     )
   }
 
-  private updateTokenButton(token?: ITokenObject) {
+  private updateTokenButton() {
+    if (!this.btnTokens) return;
+    const token = this.token;
     const chainId = this.chainId || getChainId();
     if (token && isWalletConnected()) {
       const tokenIconPath = assets.tokenPath(token, chainId);
@@ -188,7 +190,7 @@ export class TokenSelection extends Module {
   private selectToken = (token: ITokenObject) => {
     if (!this.enabled || this._readonly) return;
     this.token = token;
-    this.updateTokenButton(token);
+    this.updateTokenButton();
     this.mdTokenSelection.visible = false;
     if (this.onSelectToken) this.onSelectToken(token);
   }
