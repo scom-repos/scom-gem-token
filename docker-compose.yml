@@ -19,7 +19,7 @@ services:
       - .:/app
     command: bash -c "cd /app/test && rm -rf node_modules && rm -f package-lock.json && npm i"       
   build: 
-    user: node
+    # user: node
     image: node:18
     volumes:
       - .:/app
