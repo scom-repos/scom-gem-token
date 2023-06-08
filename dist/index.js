@@ -2669,6 +2669,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_9.Styles.Theme.ThemeVars;
+    const currentTheme = components_9.Styles.Theme.currentTheme;
     const buyTooltip = 'The fee the project owner will receive for token minting';
     const redeemTooltip = 'The spread the project owner will receive for redemptions';
     let ScomGemToken = class ScomGemToken extends components_9.Module {
@@ -3233,6 +3234,17 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         async init() {
             this.isReadyCallbackQueued = true;
             super.init();
+            const defaultColors = {
+                fontColor: currentTheme.text.primary,
+                backgroundColor: currentTheme.background.main,
+                inputFontColor: currentTheme.input.fontColor,
+                inputBackgroundColor: currentTheme.input.background,
+                buttonBackgroundColor: currentTheme.colors.primary.main,
+            };
+            this.setTag({
+                light: Object.assign({}, defaultColors),
+                dark: Object.assign({}, defaultColors)
+            });
             await this.onSetupPage(index_9.isWalletConnected());
             const dappType = this.getAttribute('dappType', true);
             const description = this.getAttribute('description', true);
