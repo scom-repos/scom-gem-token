@@ -73,9 +73,7 @@ export class TokenSelection extends Module {
   set readonly(value: boolean) {
     if (this._readonly != value) {
       this._readonly = value;
-      if (!this.btnTokens) return;
-      this.btnTokens.style.cursor = this._readonly ? 'unset' : '';
-      this.btnTokens.rightIcon.visible = !this._readonly;
+      this.updateStatusButton();
     }
   }
 
@@ -163,11 +161,17 @@ export class TokenSelection extends Module {
     )
   }
 
+  private async updateStatusButton() {
+    if (!this.btnTokens) return;
+    this.btnTokens.style.cursor = this._readonly ? 'default' : '';
+    this.btnTokens.rightIcon.visible = !this._readonly;
+  }
+
   private updateTokenButton() {
     if (!this.btnTokens) return;
     const token = this.token;
     const chainId = this.chainId || getChainId();
-    if (token && isWalletConnected()) {
+    if (token /*&& isWalletConnected()*/) {
       const tokenIconPath = assets.tokenPath(token, chainId);
       const icon = new Icon(this.btnTokens, {
         width: 28,
@@ -208,7 +212,11 @@ export class TokenSelection extends Module {
   init() {
     super.init();
     const readonly = this.getAttribute('readonly', true);
-    if (readonly !== undefined) this.readonly = readonly;
+    if (readonly !== undefined) {
+      this.readonly = readonly;
+    } else {
+      this.updateStatusButton();
+    }
     this.onSetup();
   }
 

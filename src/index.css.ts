@@ -22,6 +22,9 @@ export const inputStyle = Styles.style({
       color: Theme.input.fontColor,
       padding: '0.25rem 0.5rem',
       textAlign: 'right'
+    },
+    'input[readonly]': {
+      cursor: 'default'
     }
   }
 })

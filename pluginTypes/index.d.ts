@@ -274,6 +274,7 @@ declare module "@scom/scom-gem-token/token-selection/index.tsx" {
         private sortToken;
         private renderTokenItems;
         private renderToken;
+        private updateStatusButton;
         private updateTokenButton;
         private selectToken;
         private showTokenModal;
