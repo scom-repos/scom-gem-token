@@ -41,9 +41,13 @@ export function parseContractError(oMessage: any): string {
   let message = '';
   if (oMessage.message && oMessage.message.includes('Internal JSON-RPC error.'))
     message = JSON.parse(oMessage.message.replace('Internal JSON-RPC error.\n', '')).message;
+  else if (oMessage.message)
+    message = oMessage.message;
 
   const staticMessageMap: { [key: string]: string } = {
     'execution reverted: OAXDEX: INVALID_SIGNATURE': 'Invalid signature',
+    'execution reverted: OAXDEX: EXPIRED': 'Expired',
+    'execution reverted: OAXDEX: OVERFLOW': 'Overflow',
     'MetaMask Tx Signature: User denied transaction signature.': 'User denied transaction signature',
     'execution reverted: backerCoin can\'t be a null address': 'BackerCoin can\'t be a null address',
     'execution reverted: price can\'t be zero': 'Price can\'t be zero',

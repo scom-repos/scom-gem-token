@@ -207,8 +207,9 @@ export default class ScomGemToken extends Module {
   }
 
   private resetUI() {
-    this.fromTokenLb.caption = '';
-    this.toTokenLb.caption = '';
+    if (!this.feeLb.isConnected) return;
+    // this.fromTokenLb.caption = '';
+    // this.toTokenLb.caption = '';
     this.feeLb.caption = '0.00';
     this.lbYouWillGet.caption = '0.00';
     this.edtGemQty.value = '';
@@ -567,10 +568,9 @@ export default class ScomGemToken extends Module {
       showHeader: this.showHeader,
       defaultChainId: this.defaultChainId
     }
-    if (this.dappContainer?.setData) this.dappContainer.setData(data)
+    if (this.dappContainer?.setData) await this.dappContainer.setData(data);
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
-    console.log('this.gemInfo', this.gemInfo);
-    if (this.gemInfo) {
+    if (this.gemInfo?.baseToken) {
       this.lbPrice.visible = true;
       this.hStackTokens.visible = true;
       this.pnlInputFields.visible = true;
@@ -587,8 +587,13 @@ export default class ScomGemToken extends Module {
       this.toTokenLb.caption = `1 ${this.tokenSymbol}`;
       if (!this.lblTitle.isConnected) await this.lblTitle.ready();
       if (!this.lblTitle2.isConnected) await this.lblTitle2.ready();
+      this.lblTitle.visible = true;
+      this.lblTitle2.visible = true;
+      this.markdownViewer.visible = true;
       this.lblTitle.caption = this.lblTitle2.caption = `${this.isBuy ? 'Buy' : 'Redeem'} ${this.gemInfo.name || ''} - GEM Tokens`;
+      if (!this.backerStack.isConnected) await this.backerStack.ready();
       this.backerStack.visible = !this.isBuy;
+      if (!this.pnlQty.isConnected) await this.pnlQty.ready();
       this.pnlQty.visible = this.isBuy;
       this.balanceLayout.templateAreas = [['qty'], ['balance'], ['tokenInput'], ['redeem']];
       if (!this.edtGemQty.isConnected) await this.edtGemQty.ready();
@@ -617,6 +622,9 @@ export default class ScomGemToken extends Module {
       this.lbPrice.visible = false;
       this.hStackTokens.visible = false;
       this.pnlInputFields.visible = false;
+      this.lblTitle.visible = false;
+      this.lblTitle2.visible = false;
+      this.markdownViewer.visible = false;
       this.pnlUnsupportedNetwork.visible = true;
     }
   }
@@ -802,7 +810,7 @@ export default class ScomGemToken extends Module {
       content: 'Approving'
     };
     this.mdAlert.showModal();
-    this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, this.edtAmount.value);
+    this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, Utils.toDecimals(this.edtAmount.value, this.gemInfo.baseToken.decimals).toFixed());
   }
 
   private async onQtyChanged() {
@@ -815,7 +823,7 @@ export default class ScomGemToken extends Module {
     this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
 
-    if (this.approvalModelAction)
+    if (this.approvalModelAction && isWalletConnected())
       this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, Utils.toDecimals(backerCoinAmount, this.gemInfo.baseToken.decimals).toFixed());
   }
 
@@ -977,6 +985,7 @@ export default class ScomGemToken extends Module {
       this.gridTokenInput.templateColumns = ['60%', 'auto'];
     } else {
       this.tokenElm.visible = false;
+      if (!this.gemLogoStack.isConnected) await this.gemLogoStack.ready();
       this.gemLogoStack.visible = true;
       this.gemLogoStack.clearInnerHTML();
       this.gemLogoStack.append(
@@ -986,7 +995,9 @@ export default class ScomGemToken extends Module {
           fallbackUrl={assets.fullPath('img/gem-logo.png')}
         ></i-image>
       )
+      if (!this.maxStack.isConnected) await this.maxStack.ready();
       this.maxStack.visible = !!this.contract;
+      if (!this.gridTokenInput.isConnected) await this.gridTokenInput.ready();
       this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
     }
   }
