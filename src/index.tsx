@@ -39,6 +39,7 @@ const buyTooltip = 'The fee the project owner will receive for token minting';
 const redeemTooltip = 'The spread the project owner will receive for redemptions';
 
 interface ScomGemTokenElement extends ControlElement {
+  lazyLoad?: boolean;
   dappType?: DappType;
   logo?: string;
   description?: string;
@@ -643,28 +644,31 @@ export default class ScomGemToken extends Module {
       light: {...defaultColors},
       dark: {...defaultColors}
     })
-    await this.onSetupPage(isWalletConnected());
-    const dappType = this.getAttribute('dappType', true);
-    const description = this.getAttribute('description', true);
-    const hideDescription = this.getAttribute('hideDescription', true);
-    const logo = this.getAttribute('logo', true);
-    const chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
-    const networks = this.getAttribute('networks', true, []);
-    const wallets = this.getAttribute('wallets', true, []);
-    const showHeader = this.getAttribute('showHeader', true);
-    const defaultChainId = this.getAttribute('defaultChainId', true, 1);
-    setDefaultChainId(defaultChainId);
-    await this.setData({
-      dappType,
-      description,
-      hideDescription,
-      logo,
-      chainSpecificProperties,
-      networks,
-      wallets,
-      showHeader,
-      defaultChainId
-    });
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      await this.onSetupPage(isWalletConnected());
+      const dappType = this.getAttribute('dappType', true);
+      const description = this.getAttribute('description', true);
+      const hideDescription = this.getAttribute('hideDescription', true);
+      const logo = this.getAttribute('logo', true);
+      const chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
+      const networks = this.getAttribute('networks', true, []);
+      const wallets = this.getAttribute('wallets', true, []);
+      const showHeader = this.getAttribute('showHeader', true);
+      const defaultChainId = this.getAttribute('defaultChainId', true, 1);
+      setDefaultChainId(defaultChainId);
+      await this.setData({
+        dappType,
+        description,
+        hideDescription,
+        logo,
+        chainSpecificProperties,
+        networks,
+        wallets,
+        showHeader,
+        defaultChainId
+      });
+    }
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
   }

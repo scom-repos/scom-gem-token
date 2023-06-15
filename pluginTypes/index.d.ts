@@ -1476,6 +1476,7 @@ declare module "@scom/scom-gem-token" {
     import Config from "@scom/scom-gem-token/config/index.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
     interface ScomGemTokenElement extends ControlElement {
+        lazyLoad?: boolean;
         dappType?: DappType;
         logo?: string;
         description?: string;
