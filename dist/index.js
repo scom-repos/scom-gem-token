@@ -3085,6 +3085,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             return this._data;
         }
         async setData(data) {
+            await this.onSetupPage((0, index_9.isWalletConnected)());
             this._data = data;
             this.configDApp.data = data;
             const commissionFee = (0, index_9.getEmbedderCommissionFee)();
@@ -3272,7 +3273,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             });
             const lazyLoad = this.getAttribute('lazyLoad', true, false);
             if (!lazyLoad) {
-                await this.onSetupPage((0, index_9.isWalletConnected)());
                 const dappType = this.getAttribute('dappType', true);
                 const description = this.getAttribute('description', true);
                 const hideDescription = this.getAttribute('hideDescription', true);

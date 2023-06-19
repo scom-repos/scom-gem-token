@@ -450,6 +450,7 @@ export default class ScomGemToken extends Module {
   }
 
   private async setData(data: IEmbedData) {
+    await this.onSetupPage(isWalletConnected());
     this._data = data;
     this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
@@ -646,7 +647,6 @@ export default class ScomGemToken extends Module {
     })
     const lazyLoad = this.getAttribute('lazyLoad', true, false);
     if (!lazyLoad) {
-      await this.onSetupPage(isWalletConnected());
       const dappType = this.getAttribute('dappType', true);
       const description = this.getAttribute('description', true);
       const hideDescription = this.getAttribute('hideDescription', true);
