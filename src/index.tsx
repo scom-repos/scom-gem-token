@@ -34,7 +34,6 @@ import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 
 const Theme = Styles.Theme.ThemeVars;
-const currentTheme = Styles.Theme.currentTheme;
 const buyTooltip = 'The fee the project owner will receive for token minting';
 const redeemTooltip = 'The spread the project owner will receive for redemptions';
 
@@ -634,17 +633,6 @@ export default class ScomGemToken extends Module {
   async init() {
     this.isReadyCallbackQueued = true;
     super.init();
-    const defaultColors = {
-      fontColor: currentTheme.text.primary,
-      backgroundColor: currentTheme.background.main,
-      inputFontColor: currentTheme.input.fontColor,
-      inputBackgroundColor: currentTheme.input.background,
-      buttonBackgroundColor: currentTheme.colors.primary.main,
-    }
-    this.setTag({
-      light: {...defaultColors},
-      dark: {...defaultColors}
-    })
     const lazyLoad = this.getAttribute('lazyLoad', true, false);
     if (!lazyLoad) {
       const dappType = this.getAttribute('dappType', true);
