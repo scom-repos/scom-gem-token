@@ -169,57 +169,6 @@ declare module "@scom/scom-gem-token/store/index.ts" {
     export function isWalletConnected(): boolean;
     export const getChainId: () => number;
 }
-/// <amd-module name="@scom/scom-gem-token/config/index.css.ts" />
-declare module "@scom/scom-gem-token/config/index.css.ts" {
-    export const customStyle: string;
-    export const tableStyle: string;
-}
-/// <amd-module name="@scom/scom-gem-token/config/index.tsx" />
-declare module "@scom/scom-gem-token/config/index.tsx" {
-    import { Module, ControlElement } from '@ijstech/components';
-    import { ICommissionInfo, IEmbedData } from "@scom/scom-gem-token/interface.tsx";
-    interface ScomGemTokenConfigElement extends ControlElement {
-        commissions?: ICommissionInfo;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-gem-token-config']: ScomGemTokenConfigElement;
-            }
-        }
-    }
-    export default class Config extends Module {
-        private tableCommissions;
-        private modalAddCommission;
-        private networkPicker;
-        private inputWalletAddress;
-        private lbCommissionShare;
-        private btnAddWallet;
-        private pnlEmptyWallet;
-        private commissionInfoList;
-        private commissionsTableColumns;
-        private isInited;
-        private btnConfirm;
-        private lbErrMsg;
-        private _onCustomCommissionsChanged;
-        init(): void;
-        get data(): IEmbedData;
-        set data(config: IEmbedData);
-        get onCustomCommissionsChanged(): (data: any) => Promise<void>;
-        set onCustomCommissionsChanged(value: (data: any) => Promise<void>);
-        getSupportedChainIds(): {
-            chainId: number;
-        }[];
-        onModalAddCommissionClosed(): void;
-        onAddCommissionClicked(): void;
-        onConfirmCommissionClicked(): Promise<void>;
-        validateModalFields(): boolean;
-        onNetworkSelected(): void;
-        onInputWalletAddressChanged(): void;
-        private toggleVisible;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-gem-token/assets.ts" />
 declare module "@scom/scom-gem-token/assets.ts" {
     function fullPath(path: string): string;
@@ -1473,8 +1422,8 @@ declare module "@scom/scom-gem-token/data.json.ts" {
 declare module "@scom/scom-gem-token" {
     import { Module, Container, VStack, IDataSchema, ControlElement } from '@ijstech/components';
     import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
-    import Config from "@scom/scom-gem-token/config/index.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
+    import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
     interface ScomGemTokenElement extends ControlElement {
         lazyLoad?: boolean;
         dappType?: DappType;
@@ -1514,7 +1463,6 @@ declare module "@scom/scom-gem-token" {
         private btnApprove;
         private tokenElm;
         private edtAmount;
-        private configDApp;
         private mdAlert;
         private balanceLayout;
         private backerStack;
@@ -1605,8 +1553,26 @@ declare module "@scom/scom-gem-token" {
                 data: string;
             };
             setLinkParams: (params: any) => Promise<void>;
-            bindOnChanged: (element: Config, callback: (data: any) => Promise<void>) => void;
-            getData: any;
+            bindOnChanged: (element: ScomCommissionFeeSetup, callback: (data: any) => Promise<void>) => void;
+            getData: () => {
+                fee: string;
+                dappType?: DappType;
+                logo?: string;
+                description?: string;
+                hideDescription?: boolean;
+                commissions?: import("@scom/scom-gem-token/interface.tsx").ICommissionInfo[];
+                chainSpecificProperties?: Record<number, IChainSpecificProperties>;
+                defaultChainId: number;
+                wallets: IWalletPlugin[];
+                networks: INetworkConfig[];
+                showHeader?: boolean;
+                name?: string;
+                symbol?: string;
+                cap?: string;
+                price?: string;
+                mintingFee?: string;
+                redemptionFee?: string;
+            };
             setData: any;
             setTag: any;
             getTag: any;

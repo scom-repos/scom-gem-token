@@ -21,8 +21,7 @@ import {
 import { BigNumber, Utils } from '@ijstech/eth-wallet';
 import { IEmbedData, ITokenObject, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, isWalletConnected, setDefaultChainId } from './store/index';
-import Config from './config/index';
+import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, isWalletConnected, setDefaultChainId, getSupportedNetworks } from './store/index';
 import { assets as tokenAssets } from '@scom/scom-token-list';
 import assets from './assets';
 import { TokenSelection } from './token-selection/index';
@@ -32,6 +31,7 @@ import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from
 import configData from './data.json';
 import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
+import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -79,7 +79,6 @@ export default class ScomGemToken extends Module {
   private btnApprove: Button;
   private tokenElm: TokenSelection;
   private edtAmount: Input;
-  private configDApp: Config;
   private mdAlert: Alert;
   private balanceLayout: GridLayout;
   private backerStack: Panel;
@@ -242,7 +241,6 @@ export default class ScomGemToken extends Module {
             },
             undo: async () => {
               this._data = { ..._oldData };
-              this.configDApp.data = this._data;
               await self.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
             },
@@ -252,8 +250,10 @@ export default class ScomGemToken extends Module {
         customUI: {
           render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => {
             const vstack = new VStack();
-            const config = new Config(null, {
-              commissions: self._data.commissions
+            const config = new ScomCommissionFeeSetup(null, {
+              commissions: self._data.commissions || [],
+              fee: getEmbedderCommissionFee(),
+              networks: self._data.networks
             });
             const button = new Button(null, {
               caption: 'Confirm',
@@ -261,7 +261,7 @@ export default class ScomGemToken extends Module {
             vstack.append(config);
             vstack.append(button);
             button.onClick = async () => {
-              const commissions = config.data.commissions;
+              const commissions = config.commissions;
               if (onConfirm) onConfirm(true, { commissions });
             }
             return vstack;
@@ -283,13 +283,11 @@ export default class ScomGemToken extends Module {
               if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
               if (userInputData.description != undefined) this._data.description = userInputData.description;
-              this.configDApp.data = this._data;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
             undo: async () => {
               this._data = { ..._oldData };
-              this.configDApp.data = this._data;
               this.refreshDApp();
               if (builder?.setData) builder.setData(this._data);
             },
@@ -408,7 +406,7 @@ export default class ScomGemToken extends Module {
       {
         name: 'Emdedder Configurator',
         target: 'Embedders',
-        elementName: 'i-scom-gem-token-config',
+        elementName: 'i-scom-commission-fee-setup',
         getLinkParams: () => {
           const commissions = self._data.commissions || [];
           return {
@@ -426,8 +424,8 @@ export default class ScomGemToken extends Module {
             await self.setData(resultingData);
           }
         },
-        bindOnChanged: (element: Config, callback: (data: any) => Promise<void>) => {
-          element.onCustomCommissionsChanged = async (data: any) => {
+        bindOnChanged: (element: ScomCommissionFeeSetup, callback: (data: any) => Promise<void>) => {
+          element.onChanged = async (data: any) => {
             let resultingData = {
               ...self._data,
               ...data
@@ -436,7 +434,10 @@ export default class ScomGemToken extends Module {
             await callback(data);
           }
         },
-        getData: this.getData.bind(this),
+        getData: () => {
+          const fee = getEmbedderCommissionFee();
+          return {...this.getData(), fee}
+        },
         setData: this.setData.bind(this),
         setTag: this.setTag.bind(this),
         getTag: this.getTag.bind(this)
@@ -451,9 +452,7 @@ export default class ScomGemToken extends Module {
   private async setData(data: IEmbedData) {
     await this.onSetupPage(isWalletConnected());
     this._data = data;
-    this.configDApp.data = data;
     const commissionFee = getEmbedderCommissionFee();
-    // this.lbOrderTotalTitle.caption = `Total`;
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
     this.updateContractAddress();
     await this.refreshDApp();
@@ -1199,7 +1198,6 @@ export default class ScomGemToken extends Module {
               </i-vstack>
             </i-grid-layout>
           </i-panel>
-          <i-scom-gem-token-config id='configDApp' visible={false}></i-scom-gem-token-config>
           <i-scom-gem-token-alert id='mdAlert'></i-scom-gem-token-alert>
         </i-panel>
       </i-scom-dapp-container>
