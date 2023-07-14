@@ -19,10 +19,10 @@ import {
   ControlElement
 } from '@ijstech/components';
 import { BigNumber, Utils } from '@ijstech/eth-wallet';
-import { IEmbedData, ITokenObject, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
+import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
 import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, isWalletConnected, setDefaultChainId, getSupportedNetworks } from './store/index';
-import { assets as tokenAssets } from '@scom/scom-token-list';
+import { assets as tokenAssets, ITokenObject } from '@scom/scom-token-list';
 import assets from './assets';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
@@ -217,9 +217,9 @@ export default class ScomGemToken extends Module {
     this.edtAmount.value = '';
   }
 
-  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema, category?: string) {
     let self = this;
-    const actions = [
+    const actions: any[] = [
       {
         name: 'Commissions',
         icon: 'dollar-sign',
@@ -267,61 +267,67 @@ export default class ScomGemToken extends Module {
             return vstack;
           }
         }
-      },
-      {
-        name: 'Settings',
-        icon: 'cog',
-        command: (builder: any, userInputData: any) => {
-          let _oldData: IEmbedData = {
-            wallets: [],
-            networks: [],
-            defaultChainId: 0
-          };
-          return {
-            execute: async () => {
-              _oldData = { ...this._data };
-              if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
-              if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
-              if (userInputData.description != undefined) this._data.description = userInputData.description;
-              this.refreshDApp();
-              if (builder?.setData) builder.setData(this._data);
-            },
-            undo: async () => {
-              this._data = { ..._oldData };
-              this.refreshDApp();
-              if (builder?.setData) builder.setData(this._data);
-            },
-            redo: () => { }
-          }
-        },
-        userInputDataSchema: propertiesSchema
-      },
-      {
-        name: 'Theme Settings',
-        icon: 'palette',
-        command: (builder: any, userInputData: any) => {
-          let oldTag = {};
-          return {
-            execute: async () => {
-              if (!userInputData) return;
-              oldTag = JSON.parse(JSON.stringify(this.tag));
-              if (builder) builder.setTag(userInputData);
-              else this.setTag(userInputData);
-              if (this.dappContainer) this.dappContainer.setTag(userInputData);
-            },
-            undo: () => {
-              if (!userInputData) return;
-              this.tag = JSON.parse(JSON.stringify(oldTag));
-              if (builder) builder.setTag(this.tag);
-              else this.setTag(this.tag);
-              if (this.dappContainer) this.dappContainer.setTag(this.tag);
-            },
-            redo: () => { }
-          }
-        },
-        userInputDataSchema: themeSchema
       }
-    ]
+    ];
+    if (category && category !== 'offers') {
+      actions.push(
+        {
+          name: 'Settings',
+          icon: 'cog',
+          command: (builder: any, userInputData: any) => {
+            let _oldData: IEmbedData = {
+              wallets: [],
+              networks: [],
+              defaultChainId: 0
+            };
+            return {
+              execute: async () => {
+                _oldData = { ...this._data };
+                if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
+                if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
+                if (userInputData.description != undefined) this._data.description = userInputData.description;
+                this.refreshDApp();
+                if (builder?.setData) builder.setData(this._data);
+              },
+              undo: async () => {
+                this._data = { ..._oldData };
+                this.refreshDApp();
+                if (builder?.setData) builder.setData(this._data);
+              },
+              redo: () => { }
+            }
+          },
+          userInputDataSchema: propertiesSchema
+        }
+      );
+      actions.push(
+        {
+          name: 'Theme Settings',
+          icon: 'palette',
+          command: (builder: any, userInputData: any) => {
+            let oldTag = {};
+            return {
+              execute: async () => {
+                if (!userInputData) return;
+                oldTag = JSON.parse(JSON.stringify(this.tag));
+                if (builder) builder.setTag(userInputData);
+                else this.setTag(userInputData);
+                if (this.dappContainer) this.dappContainer.setTag(userInputData);
+              },
+              undo: () => {
+                if (!userInputData) return;
+                this.tag = JSON.parse(JSON.stringify(oldTag));
+                if (builder) builder.setTag(this.tag);
+                else this.setTag(this.tag);
+                if (this.dappContainer) this.dappContainer.setTag(this.tag);
+              },
+              redo: () => { }
+            }
+          },
+          userInputDataSchema: themeSchema
+        }
+      );
+    }
     return actions
   }
 
@@ -331,7 +337,7 @@ export default class ScomGemToken extends Module {
       {
         name: 'Builder Configurator',
         target: 'Builders',
-        getActions: () => {
+        getActions: (category?: string) => {
           const propertiesSchema: IDataSchema = {
             type: 'object',
             properties: {
@@ -393,7 +399,7 @@ export default class ScomGemToken extends Module {
               }
             }
           }
-          return this._getActions(propertiesSchema, themeSchema);
+          return this._getActions(propertiesSchema, themeSchema, category);
         },
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {

@@ -1,5 +1,6 @@
 import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
 import { INetworkConfig } from "@scom/scom-network-picker";
+import { ITokenObject } from '@scom/scom-token-list';
 
 export interface PageBlock {
   // Properties
@@ -47,20 +48,6 @@ export interface IEmbedData extends Partial<IDeploy> {
   networks: INetworkConfig[];
   showHeader?: boolean;
 }
-
-export interface ITokenObject {
-  address?: string;
-  name: string;
-  decimals: number;
-  symbol: string;
-  status?: boolean | null;
-  logoURI?: string;
-  isCommon?: boolean | null;
-  balance?: string | number;
-  isNative?: boolean | null;
-  isWETH?: boolean | null;
-  isNew?: boolean | null;
-};
 
 export interface ICommissionInfo {
   chainId: number;
