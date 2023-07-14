@@ -1,5 +1,5 @@
 import { BigNumber, Erc20, Wallet, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
-import { ITokenObject } from "../interface";
+import { ITokenObject } from '@scom/scom-token-list';
 
 export const getERC20Amount = async (wallet: IWallet, tokenAddress: string, decimals: number) => {
   let erc20 = new Erc20(wallet, tokenAddress, decimals);

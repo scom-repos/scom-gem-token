@@ -3,6 +3,7 @@
 declare module "@scom/scom-gem-token/interface.tsx" {
     import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
     import { INetworkConfig } from "@scom/scom-network-picker";
+    import { ITokenObject } from '@scom/scom-token-list';
     export interface PageBlock {
         getData: () => any;
         setData: (data: any) => Promise<void>;
@@ -39,19 +40,6 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         networks: INetworkConfig[];
         showHeader?: boolean;
     }
-    export interface ITokenObject {
-        address?: string;
-        name: string;
-        decimals: number;
-        symbol: string;
-        status?: boolean | null;
-        logoURI?: string;
-        isCommon?: boolean | null;
-        balance?: string | number;
-        isNative?: boolean | null;
-        isWETH?: boolean | null;
-        isNew?: boolean | null;
-    }
     export interface ICommissionInfo {
         chainId: number;
         walletAddress: string;
@@ -86,7 +74,7 @@ declare module "@scom/scom-gem-token/interface.tsx" {
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
 declare module "@scom/scom-gem-token/utils/token.ts" {
     import { BigNumber, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
-    import { ITokenObject } from "@scom/scom-gem-token/interface.tsx";
+    import { ITokenObject } from '@scom/scom-token-list';
     export const getERC20Amount: (wallet: IWallet, tokenAddress: string, decimals: number) => Promise<BigNumber>;
     export const getTokenBalance: (token: ITokenObject) => Promise<BigNumber>;
     export const registerSendTxEvents: (sendTxEventHandlers: ISendTxEventsOptions) => void;
@@ -94,7 +82,7 @@ declare module "@scom/scom-gem-token/utils/token.ts" {
 /// <amd-module name="@scom/scom-gem-token/utils/approvalModel.ts" />
 declare module "@scom/scom-gem-token/utils/approvalModel.ts" {
     import { BigNumber } from "@ijstech/eth-wallet";
-    import { ITokenObject } from "@scom/scom-gem-token/interface.tsx";
+    import { ITokenObject } from '@scom/scom-token-list';
     export enum ApprovalStatus {
         TO_BE_APPROVED = 0,
         APPROVING = 1,
@@ -188,7 +176,7 @@ declare module "@scom/scom-gem-token/token-selection/index.css.ts" {
 /// <amd-module name="@scom/scom-gem-token/token-selection/index.tsx" />
 declare module "@scom/scom-gem-token/token-selection/index.tsx" {
     import { Module, ControlElement, Container } from '@ijstech/components';
-    import { ITokenObject } from "@scom/scom-gem-token/interface.tsx";
+    import { ITokenObject } from '@scom/scom-token-list';
     type selectTokenCallback = (token: ITokenObject) => void;
     interface TokenSelectionElement extends ControlElement {
         readonly?: boolean;
@@ -1353,8 +1341,9 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {
     import { BigNumber } from '@ijstech/eth-wallet';
-    import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from "@scom/scom-gem-token/interface.tsx";
+    import { DappType, ICommissionInfo, IDeploy, IGemInfo } from "@scom/scom-gem-token/interface.tsx";
     import { Contracts } from "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts";
+    import { ITokenObject } from '@scom/scom-token-list';
     function getFee(contractAddress: string, type: DappType): Promise<BigNumber>;
     function getGemBalance(contractAddress: string): Promise<BigNumber>;
     function deployContract(options: IDeploy, token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<string>;
@@ -1420,7 +1409,7 @@ declare module "@scom/scom-gem-token/data.json.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
-    import { Module, Container, VStack, IDataSchema, ControlElement } from '@ijstech/components';
+    import { Module, Container, ControlElement } from '@ijstech/components';
     import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
     import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
@@ -1514,29 +1503,7 @@ declare module "@scom/scom-gem-token" {
         getConfigurators(): ({
             name: string;
             target: string;
-            getActions: () => ({
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => Promise<void>;
-                    undo: () => Promise<void>;
-                    redo: () => void;
-                };
-                customUI: {
-                    render: (data?: any, onConfirm?: (result: boolean, data: any) => void) => VStack;
-                };
-                userInputDataSchema?: undefined;
-            } | {
-                name: string;
-                icon: string;
-                command: (builder: any, userInputData: any) => {
-                    execute: () => Promise<void>;
-                    undo: () => void;
-                    redo: () => void;
-                };
-                userInputDataSchema: IDataSchema;
-                customUI?: undefined;
-            })[];
+            getActions: (category?: string) => any[];
             getData: any;
             setData: (data: IEmbedData) => Promise<void>;
             setTag: any;

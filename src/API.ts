@@ -1,10 +1,10 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
-import { DappType, ICommissionInfo, IDeploy, IGemInfo, ITokenObject } from './interface';
+import { DappType, ICommissionInfo, IDeploy, IGemInfo } from './interface';
 import { Contracts } from './contracts/scom-gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
 import { getEmbedderCommissionFee, getProxyAddress, getChainId } from './store/index';
-import { DefaultTokens } from '@scom/scom-token-list'
+import { DefaultTokens, ITokenObject } from '@scom/scom-token-list';
 
 async function getFee(contractAddress: string, type: DappType) {
   const wallet = Wallet.getInstance();

@@ -8,7 +8,6 @@ define("@scom/scom-gem-token/interface.tsx", ["require", "exports"], function (r
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     ;
-    ;
 });
 define("@scom/scom-gem-token/utils/token.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_1) {
     "use strict";
@@ -2569,7 +2568,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.btnApprove.visible = false;
             this.edtAmount.value = '';
         }
-        _getActions(propertiesSchema, themeSchema) {
+        _getActions(propertiesSchema, themeSchema, category) {
             let self = this;
             const actions = [
                 {
@@ -2591,7 +2590,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             },
                             undo: async () => {
                                 this._data = Object.assign({}, _oldData);
-                                // this.configDApp.commissions = this._data.commissions || [];
                                 await self.setData(this._data);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
@@ -2620,8 +2618,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             return vstack;
                         }
                     }
-                },
-                {
+                }
+            ];
+            if (category && category !== 'offers') {
+                actions.push({
                     name: 'Settings',
                     icon: 'cog',
                     command: (builder, userInputData) => {
@@ -2639,14 +2639,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     this._data.logo = userInputData.logo;
                                 if (userInputData.description != undefined)
                                     this._data.description = userInputData.description;
-                                // this.configDApp.commissions = this._data.commissions || [];
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
                             },
                             undo: async () => {
                                 this._data = Object.assign({}, _oldData);
-                                // this.configDApp.commissions = this._data.commissions || [];
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
@@ -2655,8 +2653,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         };
                     },
                     userInputDataSchema: propertiesSchema
-                },
-                {
+                });
+                actions.push({
                     name: 'Theme Settings',
                     icon: 'palette',
                     command: (builder, userInputData) => {
@@ -2688,8 +2686,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         };
                     },
                     userInputDataSchema: themeSchema
-                }
-            ];
+                });
+            }
             return actions;
         }
         getConfigurators() {
@@ -2698,7 +2696,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 {
                     name: 'Builder Configurator',
                     target: 'Builders',
-                    getActions: () => {
+                    getActions: (category) => {
                         const propertiesSchema = {
                             type: 'object',
                             properties: {
@@ -2760,7 +2758,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                 }
                             }
                         };
-                        return this._getActions(propertiesSchema, themeSchema);
+                        return this._getActions(propertiesSchema, themeSchema, category);
                     },
                     getData: this.getData.bind(this),
                     setData: async (data) => {
@@ -2812,10 +2810,6 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             await this.onSetupPage((0, index_7.isWalletConnected)());
             this._data = data;
             const commissionFee = (0, index_7.getEmbedderCommissionFee)();
-            // this.configDApp.fee = commissionFee
-            // this.configDApp.commissions = data.commissions || [];
-            // this.configDApp.networks = getSupportedNetworks();
-            // this.lbOrderTotalTitle.caption = `Total`;
             this.iconOrderTotal.tooltip.content = `A commission fee of ${new eth_wallet_7.BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
             this.updateContractAddress();
             await this.refreshDApp();
