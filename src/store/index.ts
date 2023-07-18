@@ -1,5 +1,5 @@
 import { application } from "@ijstech/components";
-import { Wallet } from "@ijstech/eth-wallet";
+import { INetwork, Wallet } from "@ijstech/eth-wallet";
 import getNetworkList from "@scom/scom-network-list";
 import { IExtendedNetwork } from "../interface";
 
@@ -53,7 +53,9 @@ export const state = {
   defaultChainId: 1,
   networkMap: {} as { [key: number]: IExtendedNetwork },
   proxyAddresses: {} as ProxyAddresses,
-  embedderCommissionFee: '0'
+  embedderCommissionFee: '0',
+  ipfsGatewayUrl: '',
+  rpcWalletId: ''
 }
 
 export const setDataFromSCConfig = (options: any) => {
@@ -65,7 +67,15 @@ export const setDataFromSCConfig = (options: any) => {
   }
   if (options.embedderCommissionFee) {
     setEmbedderCommissionFee(options.embedderCommissionFee);
-  }  
+  }
+}
+
+export const setIPFSGatewayUrl = (url: string) => {
+  state.ipfsGatewayUrl = url;
+}
+
+export const getIPFSGatewayUrl = () => {
+  return state.ipfsGatewayUrl;
 }
 
 export const setProxyAddresses = (data: ProxyAddresses) => {
@@ -97,23 +107,45 @@ export const getDefaultChainId = () => {
   return state.defaultChainId;
 }
 
-export async function switchNetwork(chainId: number) {
-  if (!isWalletConnected()) {
-    application.EventBus.dispatch(EventId.chainChanged, chainId);
-    return;
-  }
-  const wallet = Wallet.getClientInstance();
-  if (wallet?.clientSideProvider?.name === WalletPlugin.MetaMask) {
-    await wallet.switchNetwork(chainId);
-  }
-}
-
-export function isWalletConnected() {
+export function isClientWalletConnected() {
   const wallet = Wallet.getClientInstance();
   return wallet.isConnected;
 }
 
-export const getChainId = () => {
-  const wallet = Wallet.getInstance();
-  return isWalletConnected() ? wallet.chainId : getDefaultChainId();
+export function isRpcWalletConnected() {
+  const wallet = getRpcWallet();
+  return wallet?.isConnected;
+}
+
+export function getChainId() {
+  const rpcWallet = getRpcWallet();
+  return rpcWallet?.chainId;
+}
+
+export function initRpcWallet(defaultChainId: number) {
+  if (state.rpcWalletId) {
+    return state.rpcWalletId;
+  }
+  const clientWallet = Wallet.getClientInstance();
+  const networkList: INetwork[] = Object.values(application.store.networkMap);
+  const instanceId = clientWallet.initRpcWallet({
+    networks: networkList,
+    defaultChainId,
+    infuraId: application.store.infuraId,
+    multicalls: application.store.multicalls
+  });
+  state.rpcWalletId = instanceId;
+  if (clientWallet.address) {
+    const rpcWallet = Wallet.getRpcWalletInstance(instanceId);
+    rpcWallet.address = clientWallet.address;
+  }
+  return instanceId;
+}
+
+export function getRpcWallet() {
+  return Wallet.getRpcWalletInstance(state.rpcWalletId);
+}
+
+export function getClientWallet() {
+  return Wallet.getClientInstance();
 }

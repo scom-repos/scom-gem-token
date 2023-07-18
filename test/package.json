@@ -5,14 +5,11 @@
         "node": ">=18.0.0"
     },
     "dependencies": {
-        "@ijstech/components": "^0.1.47",
-        "@ijstech/eth-wallet": "^0.1.35",
-        "@ijstech/eth-contract": "^0.1.14"
+        "@ijstech/components": "^0.1.47"
     },
     "devDependencies": {
         "@ijstech/cli": "^0.1.28",
         "@ijstech/compiler": "^0.1.22",
-        "@scom/dapp": "^0.1.11",
         "@scom/scom-gem-token": "file:./ref"
     },
     "scripts": {

@@ -18,11 +18,11 @@ import {
   IDataSchema,
   ControlElement
 } from '@ijstech/components';
-import { BigNumber, Utils } from '@ijstech/eth-wallet';
+import { BigNumber, Constants, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
 import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
-import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, isWalletConnected, setDefaultChainId, getSupportedNetworks } from './store/index';
-import { assets as tokenAssets, ITokenObject } from '@scom/scom-token-list';
+import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, setDefaultChainId, getRpcWallet, initRpcWallet, isRpcWalletConnected, isClientWalletConnected, getIPFSGatewayUrl } from './store/index';
+import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
@@ -111,9 +111,8 @@ export default class ScomGemToken extends Module {
 
   tag: any = {}
   defaultEdit: boolean = true;
-  readonly onConfirm: () => Promise<void>;
-  readonly onDiscard: () => Promise<void>;
-  readonly onEdit: () => Promise<void>;
+  private rpcWalletEvents: IEventBusRegistry[] = [];
+  private clientEvents: any[] = [];
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
@@ -122,36 +121,41 @@ export default class ScomGemToken extends Module {
     this.registerEvent();
   }
 
+  onHide() {
+    this.dappContainer.onHide();
+    const rpcWallet = getRpcWallet();
+    for (let event of this.rpcWalletEvents) {
+      rpcWallet.unregisterWalletEvent(event);
+    }
+    this.rpcWalletEvents = [];
+    for (let event of this.clientEvents) {
+      event.unregister();
+    }
+    this.clientEvents = [];
+  }
+
+  private registerEvent() {
+    this.clientEvents.push(this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged));
+  }
+
   static async create(options?: ScomGemTokenElement, parent?: Container) {
     let self = new this(parent, options);
     await self.ready();
     return self;
   }
 
-  private registerEvent() {
-    this.$eventBus.register(this, EventId.IsWalletConnected, () => this.onWalletConnect(true));
-    this.$eventBus.register(this, EventId.IsWalletDisconnected, () => this.onWalletConnect(false));
-    this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged);
-  }
-
-  onWalletConnect = async (connected: boolean) => {
-    let chainId = getChainId();
-    if (connected && !chainId) {
-      this.onSetupPage(true);
-    } else {
-      this.onSetupPage(connected);
-    }
-    if (connected) {
+  private onWalletConnect = async () => {
+    if (isClientWalletConnected) {
       this.updateContractAddress();
-      this.refreshDApp();
+    } else {
+      this.lblBalance.caption = '0.00';
     }
-    else this.lblBalance.caption = '0.00';
+    this.initializeWidgetConfig()
   }
 
-  onChainChanged = async () => {
-    this.onSetupPage(true);
+  private onChainChanged = async () => {
     this.updateContractAddress();
-    this.refreshDApp();
+    this.initializeWidgetConfig();
   }
 
   private get isBuy() {
@@ -197,24 +201,6 @@ export default class ScomGemToken extends Module {
       const symbol = token?.symbol || '';
       this.lblBalance.caption = token ? `${(await getTokenBalance(token)).toFixed(2)} ${symbol}` : `0 ${symbol}`;
     } catch { }
-  }
-
-  private async onSetupPage(isWalletConnected: boolean) {
-    if (isWalletConnected)
-      await this.initApprovalAction();
-    else this.resetUI();
-  }
-
-  private resetUI() {
-    if (!this.feeLb.isConnected) return;
-    // this.fromTokenLb.caption = '';
-    // this.toTokenLb.caption = '';
-    this.feeLb.caption = '0.00';
-    this.lbYouWillGet.caption = '0.00';
-    this.edtGemQty.value = '';
-    this.btnSubmit.enabled = false;
-    this.btnApprove.visible = false;
-    this.edtAmount.value = '';
   }
 
   private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema, category?: string) {
@@ -442,7 +428,7 @@ export default class ScomGemToken extends Module {
         },
         getData: () => {
           const fee = getEmbedderCommissionFee();
-          return {...this.getData(), fee}
+          return { ...this.getData(), fee }
         },
         setData: this.setData.bind(this),
         setTag: this.setTag.bind(this),
@@ -455,13 +441,27 @@ export default class ScomGemToken extends Module {
     return this._data;
   }
 
-  private async setData(data: IEmbedData) {
-    await this.onSetupPage(isWalletConnected());
-    this._data = data;
+  private async setData(value: IEmbedData) {
+    this._data = value;
+    const rpcWalletId = initRpcWallet(this.defaultChainId);
+    const rpcWallet = getRpcWallet();
+    const event = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
+      this.onWalletConnect();
+    });
+    this.rpcWalletEvents.push(event);
+
+    const data: any = {
+      defaultChainId: this.defaultChainId,
+      wallets: this.wallets,
+      networks: this.networks,
+      showHeader: this.showHeader,
+      rpcWalletId: rpcWallet.instanceId
+    }
+    if (this.dappContainer?.setData) this.dappContainer.setData(data)
+    await this.initializeWidgetConfig();
     const commissionFee = getEmbedderCommissionFee();
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
     this.updateContractAddress();
-    await this.refreshDApp();
   }
 
   private getTag() {
@@ -506,53 +506,82 @@ export default class ScomGemToken extends Module {
     this.updateStyle('--colors-primary-main', this.tag[themeVar]?.buttonBackgroundColor);
   }
 
-  async confirm() {
-    return new Promise<void>(async (resolve, reject) => {
-      try {
-        if (this.loadingElm) this.loadingElm.visible = true;
-        await this.onDeploy((error: Error, receipt?: string) => {
-          if (error) {
-            this.mdAlert.message = {
-              status: 'error',
-              content: parseContractError(error)
-            };
-            this.mdAlert.showModal();
-            reject(error);
-          }
-        }, (receipt: any) => {
-          this.refreshDApp();
-        });
-      } catch (error) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: parseContractError(error)
-        };
-        this.mdAlert.showModal();
-        reject(error);
-      }
-      if (!this.contract && !this._data)
-        reject(new Error('Data missing'));
-      resolve();
-      if (this.loadingElm) this.loadingElm.visible = false;
-    })
+  // async confirm() {
+  //   return new Promise<void>(async (resolve, reject) => {
+  //     try {
+  //       if (this.loadingElm) this.loadingElm.visible = true;
+  //       await this.onDeploy((error: Error, receipt?: string) => {
+  //         if (error) {
+  //           this.mdAlert.message = {
+  //             status: 'error',
+  //             content: parseContractError(error)
+  //           };
+  //           this.mdAlert.showModal();
+  //           reject(error);
+  //         }
+  //       }, (receipt: any) => {
+  //         this.refreshDApp();
+  //       });
+  //     } catch (error) {
+  //       this.mdAlert.message = {
+  //         status: 'error',
+  //         content: parseContractError(error)
+  //       };
+  //       this.mdAlert.showModal();
+  //       reject(error);
+  //     }
+  //     if (!this.contract && !this._data)
+  //       reject(new Error('Data missing'));
+  //     resolve();
+  //     if (this.loadingElm) this.loadingElm.visible = false;
+  //   })
+  // }
+
+  // private onDeploy = async (callback?: any, confirmationCallback?: any) => {
+  //   if (this.contract || !this.gemInfo.name) return;
+  //   const params = {
+  //     name: this.gemInfo.name,
+  //     symbol: this.gemInfo.symbol,
+  //     cap: this.gemInfo.cap.toFixed(),
+  //     price: this.gemInfo.price.toFixed(),
+  //     mintingFee: this.gemInfo.mintingFee.toFixed(),
+  //     redemptionFee: this.gemInfo.redemptionFee.toFixed()
+  //   }
+  //   const result = await deployContract(
+  //     params,
+  //     this.gemInfo.baseToken,
+  //     callback,
+  //     confirmationCallback
+  //   );
+  // }
+
+  private async initializeWidgetConfig() {
+    tokenStore.updateTokenMapData(getChainId());
+    const rpcWallet = getRpcWallet();
+    if (rpcWallet.address) {
+      tokenStore.updateAllTokenBalances(rpcWallet);
+    }
+    try {
+      await Wallet.getClientInstance().init();
+    } catch { }
+    if (isClientWalletConnected()) {
+      this.refreshDApp();
+      await this.initApprovalAction();
+    } else {
+      this.renderEmpty();
+    }
   }
 
-  private onDeploy = async (callback?: any, confirmationCallback?: any) => {
-    if (this.contract || !this.gemInfo.name) return;
-    const params = {
-      name: this.gemInfo.name,
-      symbol: this.gemInfo.symbol,
-      cap: this.gemInfo.cap.toFixed(),
-      price: this.gemInfo.price.toFixed(),
-      mintingFee: this.gemInfo.mintingFee.toFixed(),
-      redemptionFee: this.gemInfo.redemptionFee.toFixed()
-    }
-    const result = await deployContract(
-      params,
-      this.gemInfo.baseToken,
-      callback,
-      confirmationCallback
-    );
+  private renderEmpty() {
+    if (!this.lbPrice.isConnected) return;
+    this.btnSubmit.caption = this.submitButtonCaption;
+    this.lbPrice.visible = false;
+    this.hStackTokens.visible = false;
+    this.pnlInputFields.visible = false;
+    this.lblTitle.visible = false;
+    this.lblTitle2.visible = false;
+    this.markdownViewer.visible = false;
+    this.pnlUnsupportedNetwork.visible = true;
   }
 
   private async refreshDApp() {
@@ -567,14 +596,8 @@ export default class ScomGemToken extends Module {
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
       this.pnlLogoTitle.visible = false;
     }
-    this.imgLogo.url = this.imgLogo2.url = this._data.logo || assets.fullPath('img/gem-logo.png');
-    const data: any = {
-      wallets: this.wallets,
-      networks: this.networks,
-      showHeader: this.showHeader,
-      defaultChainId: this.defaultChainId
-    }
-    if (this.dappContainer?.setData) await this.dappContainer.setData(data);
+    this.btnSubmit.caption = this.submitButtonCaption;
+    this.imgLogo.url = this.imgLogo2.url = this.logo || assets.fullPath('img/gem-logo.png');
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
     if (this.gemInfo?.baseToken) {
       this.lbPrice.visible = true;
@@ -623,15 +646,11 @@ export default class ScomGemToken extends Module {
       if (!this.lblBalance.isConnected) await this.lblBalance.ready();
       this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
       this.updateTokenBalance();
+    } else {
+      this.renderEmpty();
     }
-    else {
-      this.lbPrice.visible = false;
-      this.hStackTokens.visible = false;
-      this.pnlInputFields.visible = false;
-      this.lblTitle.visible = false;
-      this.lblTitle2.visible = false;
-      this.markdownViewer.visible = false;
-      this.pnlUnsupportedNetwork.visible = true;
+    if (!isRpcWalletConnected()) {
+      this.btnSubmit.enabled = true;
     }
   }
 
@@ -692,6 +711,10 @@ export default class ScomGemToken extends Module {
   }
 
   get logo() {
+    if (this._data.logo?.startsWith('ipfs://')) {
+      const ipfsGatewayUrl = getIPFSGatewayUrl();
+      return this._data.logo.replace('ipfs://', ipfsGatewayUrl);
+    }
     return this._data.logo ?? '';
   }
   set logo(value: string) {
@@ -716,7 +739,7 @@ export default class ScomGemToken extends Module {
         },
         onToBeApproved: async (token: ITokenObject) => {
           this.btnApprove.visible = true;
-          this.btnSubmit.enabled = false;
+          this.btnSubmit.enabled = !isRpcWalletConnected();
           if (!this.isApproving) {
             this.btnApprove.rightIcon.visible = false;
             this.btnApprove.caption = 'Approve';
@@ -727,7 +750,7 @@ export default class ScomGemToken extends Module {
         onToBePaid: async (token: ITokenObject) => {
           this.btnApprove.visible = false;
           this.isApproving = false;
-          this.btnSubmit.enabled = new BigNumber(this.edtAmount.value).gt(0);
+          this.btnSubmit.enabled = !isRpcWalletConnected() || new BigNumber(this.edtAmount.value).gt(0);
         },
         onApproving: async (token: ITokenObject, receipt?: string) => {
           this.isApproving = true;
@@ -771,6 +794,7 @@ export default class ScomGemToken extends Module {
           }
         },
         onPaid: async (receipt?: any) => {
+          this.btnSubmit.caption = this.submitButtonCaption;
           this.btnSubmit.rightIcon.visible = false;
         },
         onPayingError: async (err: Error) => {
@@ -801,6 +825,10 @@ export default class ScomGemToken extends Module {
     this.btnSubmit.rightIcon.visible = submitting;
   }
 
+  private get submitButtonCaption() {
+    return !isRpcWalletConnected() ? 'Switch Network' : 'Submit';
+  }
+
   private onApprove() {
     this.mdAlert.message = {
       status: 'warning',
@@ -820,7 +848,7 @@ export default class ScomGemToken extends Module {
     this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
 
-    if (this.approvalModelAction && isWalletConnected())
+    if (this.approvalModelAction && isRpcWalletConnected())
       this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, Utils.toDecimals(backerCoinAmount, this.gemInfo.baseToken.decimals).toFixed());
   }
 
@@ -828,7 +856,7 @@ export default class ScomGemToken extends Module {
     const gemAmount = Number(this.edtAmount.value);
     this.backerTokenBalanceLb.caption = this.getBackerCoinAmount(gemAmount).toFixed(2);
     const balance = await this.getBalance();
-    this.btnSubmit.enabled = balance.gt(0) && new BigNumber(this.edtAmount.value).gt(0) && new BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
+    this.btnSubmit.enabled = !isRpcWalletConnected() || balance.gt(0) && new BigNumber(this.edtAmount.value).gt(0) && new BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
   }
 
   private getBackerCoinAmount(gemAmount: number) {
@@ -905,6 +933,12 @@ export default class ScomGemToken extends Module {
   }
 
   private async onSubmit() {
+    if (!isRpcWalletConnected()) {
+      const chainId = getChainId();
+      const clientWallet = Wallet.getClientInstance();
+      await clientWallet.switchNetwork(chainId);
+      return;
+    }
     if (this.isBuy) {
       this.mdAlert.message = {
         status: 'warning',
@@ -932,7 +966,6 @@ export default class ScomGemToken extends Module {
 
     await buyToken(this.contract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
       async (result: any) => {
-        console.log('buyToken: ', result);
         this.edtGemQty.value = '';
         this.edtAmount.value = '';
         this.btnSubmit.enabled = false;
@@ -956,7 +989,6 @@ export default class ScomGemToken extends Module {
     const gemAmount = this.edtAmount.value;
     await redeemToken(this.contract, gemAmount, callback,
       async (result: any) => {
-        console.log('redeemToken: ', result);
         this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
         this.edtAmount.value = '';
         this.backerTokenBalanceLb.caption = '0.00';
@@ -987,7 +1019,7 @@ export default class ScomGemToken extends Module {
       this.gemLogoStack.clearInnerHTML();
       this.gemLogoStack.append(
         <i-image
-          url={this._data.logo}
+          url={this.logo}
           class={imageStyle} width={30} height={30}
           fallbackUrl={assets.fullPath('img/gem-logo.png')}
         ></i-image>

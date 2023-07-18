@@ -11,8 +11,8 @@ import {
   Modal,
   Icon
 } from '@ijstech/components';
-import { EventId, isWalletConnected, getChainId } from '../store/index';
-import { ChainNativeTokenByChainId, tokenStore, assets, ITokenObject } from '@scom/scom-token-list';
+import { EventId, getChainId } from '../store/index';
+import { ChainNativeTokenByChainId, tokenStore, assets, ITokenObject, isWalletConnected } from '@scom/scom-token-list';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;

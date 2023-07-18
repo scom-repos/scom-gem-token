@@ -1,21 +1,11 @@
+/// <reference path="@ijstech/eth-wallet/index.d.ts" />
+/// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
     import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
     import { INetworkConfig } from "@scom/scom-network-picker";
     import { ITokenObject } from '@scom/scom-token-list';
-    export interface PageBlock {
-        getData: () => any;
-        setData: (data: any) => Promise<void>;
-        getTag: () => any;
-        setTag: (tag: any) => Promise<void>;
-        defaultEdit?: boolean;
-        tag?: any;
-        readonly onEdit: () => Promise<void>;
-        readonly onConfirm: () => Promise<void>;
-        readonly onDiscard: () => Promise<void>;
-        confirm: () => Promise<void>;
-    }
     export type DappType = 'buy' | 'redeem';
     export interface IDeploy {
         name: string;
@@ -71,6 +61,49 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         isTestnet?: boolean;
     }
 }
+/// <amd-module name="@scom/scom-gem-token/store/index.ts" />
+declare module "@scom/scom-gem-token/store/index.ts" {
+    import { IExtendedNetwork } from "@scom/scom-gem-token/interface.tsx";
+    export const enum EventId {
+        ConnectWallet = "connectWallet",
+        IsWalletConnected = "isWalletConnected",
+        IsWalletDisconnected = "IsWalletDisconnected",
+        chainChanged = "chainChanged"
+    }
+    export enum WalletPlugin {
+        MetaMask = "metamask",
+        WalletConnect = "walletconnect"
+    }
+    export const getNetworkInfo: (chainId: number) => IExtendedNetwork;
+    export const getSupportedNetworks: () => IExtendedNetwork[];
+    export type ProxyAddresses = {
+        [key: number]: string;
+    };
+    export const state: {
+        defaultChainId: number;
+        networkMap: {
+            [key: number]: IExtendedNetwork;
+        };
+        proxyAddresses: ProxyAddresses;
+        embedderCommissionFee: string;
+        ipfsGatewayUrl: string;
+        rpcWalletId: string;
+    };
+    export const setDataFromSCConfig: (options: any) => void;
+    export const setIPFSGatewayUrl: (url: string) => void;
+    export const getIPFSGatewayUrl: () => string;
+    export const setProxyAddresses: (data: ProxyAddresses) => void;
+    export const getProxyAddress: (chainId?: number) => string;
+    export const getEmbedderCommissionFee: () => string;
+    export const setDefaultChainId: (chainId: number) => void;
+    export const getDefaultChainId: () => number;
+    export function isClientWalletConnected(): boolean;
+    export function isRpcWalletConnected(): boolean;
+    export function getChainId(): number;
+    export function initRpcWallet(defaultChainId: number): string;
+    export function getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
+    export function getClientWallet(): import("@ijstech/eth-wallet").IClientWallet;
+}
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
 declare module "@scom/scom-gem-token/utils/token.ts" {
     import { BigNumber, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
@@ -120,42 +153,6 @@ declare module "@scom/scom-gem-token/utils/index.ts" {
     export function isWalletAddress(address: string): boolean;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
     export { ApprovalStatus, getERC20Allowance, getERC20ApprovalModelAction, IERC20ApprovalOptions, IERC20ApprovalAction } from "@scom/scom-gem-token/utils/approvalModel.ts";
-}
-/// <amd-module name="@scom/scom-gem-token/store/index.ts" />
-declare module "@scom/scom-gem-token/store/index.ts" {
-    import { IExtendedNetwork } from "@scom/scom-gem-token/interface.tsx";
-    export const enum EventId {
-        ConnectWallet = "connectWallet",
-        IsWalletConnected = "isWalletConnected",
-        IsWalletDisconnected = "IsWalletDisconnected",
-        chainChanged = "chainChanged"
-    }
-    export enum WalletPlugin {
-        MetaMask = "metamask",
-        WalletConnect = "walletconnect"
-    }
-    export const getNetworkInfo: (chainId: number) => IExtendedNetwork;
-    export const getSupportedNetworks: () => IExtendedNetwork[];
-    export type ProxyAddresses = {
-        [key: number]: string;
-    };
-    export const state: {
-        defaultChainId: number;
-        networkMap: {
-            [key: number]: IExtendedNetwork;
-        };
-        proxyAddresses: ProxyAddresses;
-        embedderCommissionFee: string;
-    };
-    export const setDataFromSCConfig: (options: any) => void;
-    export const setProxyAddresses: (data: ProxyAddresses) => void;
-    export const getProxyAddress: (chainId?: number) => string;
-    export const getEmbedderCommissionFee: () => string;
-    export const setDefaultChainId: (chainId: number) => void;
-    export const getDefaultChainId: () => number;
-    export function switchNetwork(chainId: number): Promise<void>;
-    export function isWalletConnected(): boolean;
-    export const getChainId: () => number;
 }
 /// <amd-module name="@scom/scom-gem-token/assets.ts" />
 declare module "@scom/scom-gem-token/assets.ts" {
@@ -1478,14 +1475,14 @@ declare module "@scom/scom-gem-token" {
         private gemInfo;
         tag: any;
         defaultEdit: boolean;
-        readonly onConfirm: () => Promise<void>;
-        readonly onDiscard: () => Promise<void>;
-        readonly onEdit: () => Promise<void>;
+        private rpcWalletEvents;
+        private clientEvents;
         constructor(parent?: Container, options?: any);
-        static create(options?: ScomGemTokenElement, parent?: Container): Promise<ScomGemToken>;
+        onHide(): void;
         private registerEvent;
-        onWalletConnect: (connected: boolean) => Promise<void>;
-        onChainChanged: () => Promise<void>;
+        static create(options?: ScomGemTokenElement, parent?: Container): Promise<ScomGemToken>;
+        private onWalletConnect;
+        private onChainChanged;
         private get isBuy();
         private get tokenSymbol();
         get wallets(): IWalletPlugin[];
@@ -1497,8 +1494,6 @@ declare module "@scom/scom-gem-token" {
         get defaultChainId(): number;
         set defaultChainId(value: number);
         private updateTokenBalance;
-        private onSetupPage;
-        private resetUI;
         private _getActions;
         getConfigurators(): ({
             name: string;
@@ -1552,8 +1547,8 @@ declare module "@scom/scom-gem-token" {
         setTag(value: any): Promise<void>;
         private updateStyle;
         private updateTheme;
-        confirm(): Promise<void>;
-        private onDeploy;
+        private initializeWidgetConfig;
+        private renderEmpty;
         private refreshDApp;
         init(): Promise<void>;
         get contract(): string;
@@ -1570,6 +1565,7 @@ declare module "@scom/scom-gem-token" {
         private initApprovalAction;
         private updateContractAddress;
         private updateSubmitButton;
+        private get submitButtonCaption();
         private onApprove;
         private onQtyChanged;
         private onAmountChanged;

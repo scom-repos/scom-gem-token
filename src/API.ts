@@ -3,11 +3,11 @@ import { DappType, ICommissionInfo, IDeploy, IGemInfo } from './interface';
 import { Contracts } from './contracts/scom-gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getEmbedderCommissionFee, getProxyAddress, getChainId } from './store/index';
+import { getEmbedderCommissionFee, getProxyAddress, getChainId, getRpcWallet } from './store/index';
 import { DefaultTokens, ITokenObject } from '@scom/scom-token-list';
 
 async function getFee(contractAddress: string, type: DappType) {
-  const wallet = Wallet.getInstance();
+  const wallet = getRpcWallet();
   const contract = new Contracts.GEM(wallet, contractAddress);
   const fee = type === 'buy' ? await contract.mintingFee() : await contract.redemptionFee();
   const decimals = (await contract.decimals()).toNumber();
@@ -15,7 +15,7 @@ async function getFee(contractAddress: string, type: DappType) {
 }
 
 async function getGemBalance(contractAddress: string) {
-  const wallet = Wallet.getInstance();
+  const wallet = getRpcWallet();
   const contract = new Contracts.GEM(wallet, contractAddress);
   const balance = await contract.balanceOf(wallet.address);
   return balance;
@@ -27,7 +27,7 @@ async function deployContract(
   callback?: any,
   confirmationCallback?: any
 ) {
-  const wallet = Wallet.getInstance();
+  const wallet = Wallet.getClientInstance();
   registerSendTxEvents({
     transactionHash: callback,
     confirmation: confirmationCallback
@@ -48,7 +48,7 @@ async function deployContract(
 }
 
 async function transfer(contractAddress: string, to: string, amount: string) {
-  const wallet = Wallet.getInstance();
+  const wallet = Wallet.getClientInstance();
   const contract = new Contracts.GEM(wallet, contractAddress);
   const receipt = await contract.transfer({
     to,
@@ -66,7 +66,7 @@ async function transfer(contractAddress: string, to: string, amount: string) {
 }
 
 async function getGemInfo(contractAddress: string): Promise<IGemInfo> {
-  const wallet = Wallet.getInstance();
+  const wallet = getRpcWallet();
   const gem = new Contracts.GEM(wallet, contractAddress);
 
   try {
@@ -92,7 +92,7 @@ async function getGemInfo(contractAddress: string): Promise<IGemInfo> {
       name: nameValue,
       symbol: symbolValue
     };
-  } 
+  }
   catch (e) {
     console.error(e);
   }
@@ -112,7 +112,7 @@ async function buyToken(
       transactionHash: callback,
       confirmation: confirmationCallback
     });
-    const wallet = Wallet.getInstance();
+    const wallet = Wallet.getClientInstance();
     const tokenDecimals = token?.decimals || 18;
     const amount = Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
     const _commissions = (commissions || []).filter(v => v.chainId === getChainId()).map(v => {
@@ -156,7 +156,7 @@ async function buyToken(
     return receipt;
   }
   catch (err) {
-    console.error(err);
+    if (callback) callback(err);
     return null;
   }
 }
@@ -172,7 +172,7 @@ async function redeemToken(
       transactionHash: callback,
       confirmation: confirmationCallback
     });
-    const wallet = Wallet.getInstance();
+    const wallet = Wallet.getClientInstance();
     const contract = new Contracts.GEM(wallet, address);
     const receipt = await contract.redeem(Utils.toDecimals(gemAmount).dp(0));
     if (receipt) {
@@ -184,7 +184,7 @@ async function redeemToken(
     }
     return receipt;
   } catch (err) {
-    console.error(err);
+    if (callback) callback(err);
     return null;
   }
 }
