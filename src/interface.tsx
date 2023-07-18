@@ -2,25 +2,6 @@ import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
 import { INetworkConfig } from "@scom/scom-network-picker";
 import { ITokenObject } from '@scom/scom-token-list';
 
-export interface PageBlock {
-  // Properties
-  getData: () => any;
-  setData: (data: any) => Promise<void>;
-  getTag: () => any;
-  setTag: (tag: any) => Promise<void>
-  defaultEdit?: boolean;
-  tag?: any;
-
-  // Page Events
-  readonly onEdit: () => Promise<void>;
-  readonly onConfirm: () => Promise<void>;
-  readonly onDiscard: () => Promise<void>;
-  // onClear: () => void;
-
-  // Page Block Events
-  confirm: () => Promise<void>;
-}
-
 export type DappType = 'buy' | 'redeem';
 export interface IDeploy {
   name: string;
