@@ -2612,11 +2612,17 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                 fee: (0, index_8.getEmbedderCommissionFee)(),
                                 networks: self._data.networks
                             });
-                            const button = new components_7.Button(null, {
+                            const hstack = new components_7.HStack(null, {
+                                verticalAlignment: 'center',
+                            });
+                            const button = new components_7.Button(hstack, {
                                 caption: 'Confirm',
+                                width: '100%',
+                                height: 40,
+                                font: { color: Theme.colors.primary.contrastText }
                             });
                             vstack.append(config);
-                            vstack.append(button);
+                            vstack.append(hstack);
                             button.onClick = async () => {
                                 const commissions = config.commissions;
                                 if (onConfirm)
