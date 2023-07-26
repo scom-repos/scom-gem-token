@@ -20,18 +20,18 @@ import {
 } from '@ijstech/components';
 import { BigNumber, Constants, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
-import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction, parseContractError } from './utils/index';
+import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction } from './utils/index';
 import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, setDefaultChainId, getRpcWallet, initRpcWallet, isRpcWalletConnected, isClientWalletConnected, getIPFSGatewayUrl } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
-import { Alert } from './alert/index';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import configData from './data.json';
 import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
+import ScomTxStatusModal from '@scom/scom-tx-status-modal';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -79,7 +79,7 @@ export default class ScomGemToken extends Module {
   private btnApprove: Button;
   private tokenElm: TokenSelection;
   private edtAmount: Input;
-  private mdAlert: Alert;
+  private txStatusModal: ScomTxStatusModal;
   private balanceLayout: GridLayout;
   private backerStack: Panel;
   private backerTokenImg: Image;
@@ -114,7 +114,7 @@ export default class ScomGemToken extends Module {
   private rpcWalletEvents: IEventBusRegistry[] = [];
   private clientEvents: any[] = [];
 
-  constructor(parent?: Container, options?: any) {
+  constructor(parent?: Container, options?: ScomGemTokenElement) {
     super(parent, options);
     if (configData) setDataFromSCConfig(configData);
     this.$eventBus = application.EventBus;
@@ -248,7 +248,7 @@ export default class ScomGemToken extends Module {
               caption: 'Confirm',
               width: '100%',
               height: 40,
-              font: {color: Theme.colors.primary.contrastText}
+              font: { color: Theme.colors.primary.contrastText }
             });
             vstack.append(config);
             vstack.append(hstack);
@@ -456,7 +456,7 @@ export default class ScomGemToken extends Module {
     });
     this.rpcWalletEvents.push(event);
 
-    const data: any = {
+    const data = {
       defaultChainId: this.defaultChainId,
       wallets: this.wallets,
       networks: this.networks,
@@ -505,11 +505,12 @@ export default class ScomGemToken extends Module {
 
   private updateTheme() {
     const themeVar = this.dappContainer?.theme || 'light';
-    this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
-    this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
-    this.updateStyle('--input-font_color', this.tag[themeVar]?.inputFontColor);
-    this.updateStyle('--input-background', this.tag[themeVar]?.inputBackgroundColor);
-    this.updateStyle('--colors-primary-main', this.tag[themeVar]?.buttonBackgroundColor);
+    const { fontColor, backgroundColor, inputFontColor, inputBackgroundColor, buttonBackgroundColor } = this.tag[themeVar] || {};
+    this.updateStyle('--text-primary', fontColor);
+    this.updateStyle('--background-main', backgroundColor);
+    this.updateStyle('--input-font_color', inputFontColor);
+    this.updateStyle('--input-background', inputBackgroundColor);
+    this.updateStyle('--colors-primary-main', buttonBackgroundColor);
   }
 
   // async confirm() {
@@ -518,22 +519,14 @@ export default class ScomGemToken extends Module {
   //       if (this.loadingElm) this.loadingElm.visible = true;
   //       await this.onDeploy((error: Error, receipt?: string) => {
   //         if (error) {
-  //           this.mdAlert.message = {
-  //             status: 'error',
-  //             content: parseContractError(error)
-  //           };
-  //           this.mdAlert.showModal();
+  //           this.showTxStatusModal('error', error);
   //           reject(error);
   //         }
   //       }, (receipt: any) => {
   //         this.refreshDApp();
   //       });
   //     } catch (error) {
-  //       this.mdAlert.message = {
-  //         status: 'error',
-  //         content: parseContractError(error)
-  //       };
-  //       this.mdAlert.showModal();
+  //       this.showTxStatusModal('error', error);
   //       reject(error);
   //     }
   //     if (!this.contract && !this._data)
@@ -567,9 +560,7 @@ export default class ScomGemToken extends Module {
     if (rpcWallet.address) {
       tokenStore.updateAllTokenBalances(rpcWallet);
     }
-    try {
-      await Wallet.getClientInstance().init();
-    } catch { }
+    await this.initWallet();
     if (isClientWalletConnected()) {
       this.refreshDApp();
       await this.initApprovalAction();
@@ -578,8 +569,25 @@ export default class ScomGemToken extends Module {
     }
   }
 
-  private renderEmpty() {
-    if (!this.lbPrice.isConnected) return;
+  private initWallet = async () => {
+    try {
+      await Wallet.getClientInstance().init();
+      const rpcWallet = getRpcWallet();
+      await rpcWallet.init();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  private async renderEmpty() {
+    if (!this.btnSubmit.isConnected) await this.btnSubmit.ready();
+    if (!this.lbPrice.isConnected) await this.lbPrice.ready();
+    if (!this.hStackTokens.isConnected) await this.hStackTokens.ready();
+    if (!this.pnlInputFields.isConnected) await this.pnlInputFields.ready();
+    if (!this.lblTitle.isConnected) await this.lblTitle.ready();
+    if (!this.lblTitle2.isConnected) await this.lblTitle2.ready();
+    if (!this.markdownViewer.isConnected) await this.markdownViewer.ready();
+    if (!this.pnlUnsupportedNetwork.isConnected) await this.pnlUnsupportedNetwork.ready();
     this.btnSubmit.caption = this.submitButtonCaption;
     this.lbPrice.visible = false;
     this.hStackTokens.visible = false;
@@ -602,6 +610,7 @@ export default class ScomGemToken extends Module {
       this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
       this.pnlLogoTitle.visible = false;
     }
+    if (!this.btnSubmit.isConnected) await this.btnSubmit.ready();
     this.btnSubmit.caption = this.submitButtonCaption;
     this.imgLogo.url = this.imgLogo2.url = this.logo || assets.fullPath('img/gem-logo.png');
     this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
@@ -765,11 +774,7 @@ export default class ScomGemToken extends Module {
           this.btnApprove.caption = `Approving ${token.symbol}`;
           this.btnSubmit.visible = false;
           if (receipt) {
-            this.mdAlert.message = {
-              status: 'success',
-              content: receipt
-            };
-            this.mdAlert.showModal();
+            this.showTxStatusModal('success', receipt);
           }
         },
         onApproved: async (token: ITokenObject) => {
@@ -780,21 +785,13 @@ export default class ScomGemToken extends Module {
           this.btnSubmit.enabled = true;
         },
         onApprovingError: async (token: ITokenObject, err: Error) => {
-          this.mdAlert.message = {
-            status: 'error',
-            content: err.message
-          };
-          this.mdAlert.showModal();
+          this.showTxStatusModal('error', err);
           this.btnApprove.caption = 'Approve';
           this.btnApprove.rightIcon.visible = false;
         },
         onPaying: async (receipt?: string) => {
           if (receipt) {
-            this.mdAlert.message = {
-              status: 'success',
-              content: receipt
-            };
-            this.mdAlert.showModal();
+            this.showTxStatusModal('success', receipt);
             this.btnSubmit.enabled = false;
             this.btnSubmit.rightIcon.visible = true;
           }
@@ -804,11 +801,7 @@ export default class ScomGemToken extends Module {
           this.btnSubmit.rightIcon.visible = false;
         },
         onPayingError: async (err: Error) => {
-          this.mdAlert.message = {
-            status: 'error',
-            content: err.message
-          };
-          this.mdAlert.showModal();
+          this.showTxStatusModal('error', err);
         }
       });
     }
@@ -826,6 +819,18 @@ export default class ScomGemToken extends Module {
     }
   }
 
+  private showTxStatusModal = (status: 'warning' | 'success' | 'error', content?: string | Error) => {
+    if (!this.txStatusModal) return;
+    let params: any = { status };
+    if (status === 'success') {
+      params.txtHash = content;
+    } else {
+      params.content = content;
+    }
+    this.txStatusModal.message = { ...params };
+    this.txStatusModal.showModal();
+  }
+
   private updateSubmitButton(submitting: boolean) {
     this.btnSubmit.rightIcon.spin = submitting;
     this.btnSubmit.rightIcon.visible = submitting;
@@ -836,11 +841,7 @@ export default class ScomGemToken extends Module {
   }
 
   private onApprove() {
-    this.mdAlert.message = {
-      status: 'warning',
-      content: 'Approving'
-    };
-    this.mdAlert.showModal();
+    this.showTxStatusModal('warning', 'Approving');
     this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, Utils.toDecimals(this.edtAmount.value, this.gemInfo.baseToken.decimals).toFixed());
   }
 
@@ -855,7 +856,7 @@ export default class ScomGemToken extends Module {
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
 
     if (this.approvalModelAction && isRpcWalletConnected())
-      this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, Utils.toDecimals(backerCoinAmount, this.gemInfo.baseToken.decimals).toFixed());
+      this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, backerCoinAmount.toString());
   }
 
   private async onAmountChanged() {
@@ -893,11 +894,7 @@ export default class ScomGemToken extends Module {
     if (!this._data || !this.contract) return;
     this.updateSubmitButton(true);
     // if (!this.tokenElm.token) {
-    //   this.mdAlert.message = {
-    //     status: 'error',
-    //     content: 'Token Required'
-    //   };
-    //   this.mdAlert.showModal();
+    //   this.showTxStatusModal('error', 'Token Required');
     //   this.updateSubmitButton(false);
     //   return;
     // }
@@ -905,31 +902,19 @@ export default class ScomGemToken extends Module {
     if (this._type === 'buy') {
       const qty = this.edtGemQty.value ? Number(this.edtGemQty.value) : 1;
       if (balance.lt(this.getBackerCoinAmount(qty))) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: `Insufficient ${this.tokenElm.token.symbol} Balance`
-        };
-        this.mdAlert.showModal();
+        this.showTxStatusModal('error', `Insufficient ${this.tokenElm.token?.symbol || ''} Balance`);
         this.updateSubmitButton(false);
         return;
       }
       await this.onBuyToken(qty);
     } else {
       if (!this.edtAmount.value) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: 'Amount Required'
-        };
-        this.mdAlert.showModal();
+        this.showTxStatusModal('error', 'Amount Required');
         this.updateSubmitButton(false);
         return;
       }
       if (balance.lt(this.edtAmount.value)) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: `Insufficient ${this.gemInfo.name} Balance`
-        };
-        this.mdAlert.showModal();
+        this.showTxStatusModal('error', `Insufficient ${this.gemInfo.name} Balance`);
         this.updateSubmitButton(false);
         return;
       }
@@ -946,11 +931,7 @@ export default class ScomGemToken extends Module {
       return;
     }
     if (this.isBuy) {
-      this.mdAlert.message = {
-        status: 'warning',
-        content: 'Confirming'
-      };
-      this.mdAlert.showModal();
+      this.showTxStatusModal('warning', 'Comfirming');
       this.approvalModelAction.doPayAction();
     } else {
       this.doSubmitAction();
@@ -958,15 +939,11 @@ export default class ScomGemToken extends Module {
   }
 
   private onBuyToken = async (quantity: number) => {
-    this.mdAlert.closeModal();
+    this.txStatusModal.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: parseContractError(error)
-        };
-        this.mdAlert.showModal();
+        this.showTxStatusModal('error', error);
       }
     };
 
@@ -981,15 +958,11 @@ export default class ScomGemToken extends Module {
   }
 
   private onRedeemToken = async () => {
-    this.mdAlert.closeModal();
+    this.txStatusModal.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
-        this.mdAlert.message = {
-          status: 'error',
-          content: parseContractError(error)
-        };
-        this.mdAlert.showModal();
+        this.showTxStatusModal('error', error);
       }
     };
     const gemAmount = this.edtAmount.value;
@@ -1009,6 +982,7 @@ export default class ScomGemToken extends Module {
 
   private async renderTokenInput() {
     if (!this.edtAmount.isConnected) await this.edtAmount.ready();
+    if (!this.tokenElm.isConnected) await this.tokenElm.ready();
     this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
@@ -1124,7 +1098,7 @@ export default class ScomGemToken extends Module {
                     >
                       <i-hstack verticalAlignment='center' gap="0.5rem">
                         <i-label id="lbOrderTotalTitle" caption='Total' font={{ size: '1rem' }}></i-label>
-                        <i-icon id="iconOrderTotal" name="question-circle" fill={Theme.background.modal} width={20} height={20}></i-icon>
+                        <i-icon id="iconOrderTotal" name="question-circle" fill={Theme.text.primary} width={20} height={20} opacity={0.6}></i-icon>
                       </i-hstack>
                       <i-hstack verticalAlignment='center' gap="0.5rem">
                         <i-label caption='Balance:' font={{ size: '1rem' }} opacity={0.6}></i-label>
@@ -1220,6 +1194,7 @@ export default class ScomGemToken extends Module {
                       <i-icon
                         id="feeTooltip"
                         name="question-circle"
+                        opacity={0.6}
                         fill={Theme.text.primary}
                         width={14} height={14}
                       ></i-icon>
@@ -1242,7 +1217,7 @@ export default class ScomGemToken extends Module {
               </i-vstack>
             </i-grid-layout>
           </i-panel>
-          <i-scom-gem-token-alert id='mdAlert'></i-scom-gem-token-alert>
+          <i-scom-tx-status-modal id="txStatusModal" />
         </i-panel>
       </i-scom-dapp-container>
     )

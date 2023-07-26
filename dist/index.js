@@ -7,7 +7,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-gem-token/interface.tsx", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ;
 });
 define("@scom/scom-gem-token/store/index.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-network-list"], function (require, exports, components_1, eth_wallet_1, scom_network_list_1) {
     "use strict";
@@ -294,7 +293,7 @@ define("@scom/scom-gem-token/utils/approvalModel.ts", ["require", "exports", "@i
             owner: wallet.address,
             spender: spenderAddress
         });
-        return allowance;
+        return eth_wallet_3.Utils.fromDecimals(allowance, token.decimals || 18);
     };
     exports.getERC20Allowance = getERC20Allowance;
     const getERC20ApprovalModelAction = (spenderAddress, options) => {
@@ -308,7 +307,7 @@ define("@scom/scom-gem-token/utils/approvalModel.ts", ["require", "exports", "@i
 define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/token.ts", "@scom/scom-gem-token/utils/approvalModel.ts"], function (require, exports, eth_wallet_4, token_2, approvalModel_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getERC20ApprovalModelAction = exports.getERC20Allowance = exports.ApprovalStatus = exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.isWalletAddress = exports.parseContractError = exports.formatNumberWithSeparators = exports.formatNumber = void 0;
+    exports.getERC20ApprovalModelAction = exports.getERC20Allowance = exports.ApprovalStatus = exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.formatNumberWithSeparators = exports.formatNumber = void 0;
     const formatNumber = (value, decimals) => {
         let val = value;
         const minValue = '0.0000001';
@@ -338,7 +337,7 @@ define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@ijstech/e
                 outputStr = value.toLocaleString('en-US', { maximumSignificantDigits: precision });
             }
             if (outputStr.length > 18) {
-                outputStr = outputStr.substr(0, 18) + '...';
+                outputStr = outputStr.substring(0, 18) + '...';
             }
             return outputStr;
         }
@@ -347,32 +346,6 @@ define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@ijstech/e
         }
     };
     exports.formatNumberWithSeparators = formatNumberWithSeparators;
-    function parseContractError(oMessage) {
-        var _a;
-        if (typeof oMessage === 'string')
-            return oMessage;
-        let message = '';
-        if (oMessage.message && oMessage.message.includes('Internal JSON-RPC error.'))
-            message = JSON.parse(oMessage.message.replace('Internal JSON-RPC error.\n', '')).message;
-        else if (oMessage.message)
-            message = oMessage.message;
-        const staticMessageMap = {
-            'execution reverted: OAXDEX: INVALID_SIGNATURE': 'Invalid signature',
-            'execution reverted: OAXDEX: EXPIRED': 'Expired',
-            'execution reverted: OAXDEX: OVERFLOW': 'Overflow',
-            'MetaMask Tx Signature: User denied transaction signature.': 'User denied transaction signature',
-            'execution reverted: backerCoin can\'t be a null address': 'BackerCoin can\'t be a null address',
-            'execution reverted: price can\'t be zero': 'Price can\'t be zero',
-            'execution reverted: mintingFee can\'t exceed 1': 'MintingFee can\'t exceed 1',
-            'execution reverted: redemptionFee can\'t exceed 1': 'RedemptionFee can\'t exceed 1'
-        };
-        return (_a = staticMessageMap[message]) !== null && _a !== void 0 ? _a : `Unknown Error: ${message}`;
-    }
-    exports.parseContractError = parseContractError;
-    function isWalletAddress(address) {
-        return /^0x[a-fA-F0-9]{40}$/.test(address);
-    }
-    exports.isWalletAddress = isWalletAddress;
     Object.defineProperty(exports, "getERC20Amount", { enumerable: true, get: function () { return token_2.getERC20Amount; } });
     Object.defineProperty(exports, "getTokenBalance", { enumerable: true, get: function () { return token_2.getTokenBalance; } });
     Object.defineProperty(exports, "registerSendTxEvents", { enumerable: true, get: function () { return token_2.registerSendTxEvents; } });
@@ -389,7 +362,6 @@ define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/compon
     }
     ;
     exports.default = {
-        logo: fullPath('img/logo.svg'),
         fullPath
     };
 });
@@ -655,76 +627,6 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
     exports.centerStyle = components_5.Styles.style({
         textAlign: 'center'
     });
-});
-define("@scom/scom-gem-token/alert/index.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Alert = void 0;
-    const Theme = components_6.Styles.Theme.ThemeVars;
-    ;
-    let Alert = class Alert extends components_6.Module {
-        get message() {
-            return this._message;
-        }
-        set message(value) {
-            this._message = value;
-            this.mdAlert.onClose = this._message.onClose;
-        }
-        get iconName() {
-            if (this.message.status === 'error')
-                return 'times';
-            else if (this.message.status === 'warning')
-                return 'exclamation';
-            else if (this.message.status === 'success')
-                return 'check';
-            else
-                return 'spinner';
-        }
-        get color() {
-            if (this.message.status === 'error')
-                return Theme.colors.error.main;
-            else if (this.message.status === 'warning')
-                return Theme.colors.warning.main;
-            else if (this.message.status === 'success')
-                return Theme.colors.success.main;
-            else
-                return Theme.colors.primary.main;
-        }
-        closeModal() {
-            this.mdAlert.visible = false;
-        }
-        showModal() {
-            this.renderUI();
-            this.mdAlert.visible = true;
-        }
-        renderUI() {
-            this.pnlMain.clearInnerHTML();
-            const content = this.renderContent();
-            const border = this.message.status === 'loading' ? {} : { border: { width: 2, style: 'solid', color: this.color, radius: '50%' } };
-            this.pnlMain.appendChild(this.$render("i-vstack", { horizontalAlignment: "center", gap: "1.75rem" },
-                this.$render("i-icon", Object.assign({ width: 55, height: 55, name: this.iconName, fill: this.color, padding: { top: "0.6rem", bottom: "0.6rem", left: "0.6rem", right: "0.6rem" }, spin: this.message.status === 'loading' }, border)),
-                content,
-                this.$render("i-button", { padding: { top: "0.5rem", bottom: "0.5rem", left: "2rem", right: "2rem" }, caption: "Close", font: { color: Theme.colors.primary.contrastText }, onClick: this.closeModal.bind(this) })));
-        }
-        renderContent() {
-            if (!this.message.title && !this.message.content)
-                return [];
-            const lblTitle = this.message.title ? this.$render("i-label", { caption: this.message.title, font: { size: '1.25rem', bold: true } }) : [];
-            const lblContent = this.message.content ? this.$render("i-label", { caption: this.message.content, overflowWrap: 'anywhere' }) : [];
-            return (this.$render("i-vstack", { class: "text-center", horizontalAlignment: "center", gap: "0.75rem", lineHeight: 1.5 },
-                lblTitle,
-                lblContent));
-        }
-        render() {
-            return (this.$render("i-modal", { id: "mdAlert", maxWidth: "400px", maxHeight: "300px" },
-                this.$render("i-panel", { id: "pnlMain", width: "100%", padding: { top: "1rem", bottom: "1.5rem", left: "1rem", right: "1rem" } })));
-        }
-    };
-    Alert = __decorate([
-        (0, components_6.customElements)('i-scom-gem-token-alert')
-    ], Alert);
-    exports.Alert = Alert;
-    ;
 });
 define("@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -2385,21 +2287,15 @@ define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (re
         "networks": [
             {
                 "chainId": 97,
-                "isMainChain": true,
-                "isCrossChainSupported": true,
                 "explorerName": "BSCScan",
                 "explorerTxUrl": "https://testnet.bscscan.com/tx/",
                 "explorerAddressUrl": "https://testnet.bscscan.com/address/",
-                "isTestnet": true
             },
             {
                 "chainId": 43113,
-                "shortName": "AVAX Testnet",
-                "isCrossChainSupported": true,
                 "explorerName": "SnowTrace",
                 "explorerTxUrl": "https://testnet.snowtrace.io/tx/",
                 "explorerAddressUrl": "https://testnet.snowtrace.io/address/",
-                "isTestnet": true
             }
         ],
         "proxyAddresses": {
@@ -2433,13 +2329,13 @@ define("@scom/scom-gem-token/data.json.ts", ["require", "exports"], function (re
         }
     };
 });
-define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts", "@scom/scom-commission-fee-setup"], function (require, exports, components_7, eth_wallet_7, index_7, index_8, scom_token_list_3, assets_1, index_css_2, API_1, data_json_1, scom_commission_fee_setup_1) {
+define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts", "@scom/scom-commission-fee-setup"], function (require, exports, components_6, eth_wallet_7, index_7, index_8, scom_token_list_3, assets_1, index_css_2, API_1, data_json_1, scom_commission_fee_setup_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_7.Styles.Theme.ThemeVars;
+    const Theme = components_6.Styles.Theme.ThemeVars;
     const buyTooltip = 'The fee the project owner will receive for token minting';
     const redeemTooltip = 'The spread the project owner will receive for redemptions';
-    let ScomGemToken = class ScomGemToken extends components_7.Module {
+    let ScomGemToken = class ScomGemToken extends components_6.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -2476,17 +2372,36 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 }
                 catch (_b) { }
             };
+            this.initWallet = async () => {
+                try {
+                    await eth_wallet_7.Wallet.getClientInstance().init();
+                    const rpcWallet = (0, index_8.getRpcWallet)();
+                    await rpcWallet.init();
+                }
+                catch (err) {
+                    console.log(err);
+                }
+            };
+            this.showTxStatusModal = (status, content) => {
+                if (!this.txStatusModal)
+                    return;
+                let params = { status };
+                if (status === 'success') {
+                    params.txtHash = content;
+                }
+                else {
+                    params.content = content;
+                }
+                this.txStatusModal.message = Object.assign({}, params);
+                this.txStatusModal.showModal();
+            };
             this.onBuyToken = async (quantity) => {
-                this.mdAlert.closeModal();
+                this.txStatusModal.closeModal();
                 if (!this.gemInfo.name)
                     return;
                 const callback = (error, receipt) => {
                     if (error) {
-                        this.mdAlert.message = {
-                            status: 'error',
-                            content: (0, index_7.parseContractError)(error)
-                        };
-                        this.mdAlert.showModal();
+                        this.showTxStatusModal('error', error);
                     }
                 };
                 await (0, API_1.buyToken)(this.contract, quantity, this.gemInfo.baseToken, this._data.commissions, callback, async (result) => {
@@ -2497,16 +2412,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 });
             };
             this.onRedeemToken = async () => {
-                this.mdAlert.closeModal();
+                this.txStatusModal.closeModal();
                 if (!this.gemInfo.name)
                     return;
                 const callback = (error, receipt) => {
                     if (error) {
-                        this.mdAlert.message = {
-                            status: 'error',
-                            content: (0, index_7.parseContractError)(error)
-                        };
-                        this.mdAlert.showModal();
+                        this.showTxStatusModal('error', error);
                     }
                 };
                 const gemAmount = this.edtAmount.value;
@@ -2518,7 +2429,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             };
             if (data_json_1.default)
                 (0, index_8.setDataFromSCConfig)(data_json_1.default);
-            this.$eventBus = components_7.application.EventBus;
+            this.$eventBus = components_6.application.EventBus;
             this.registerEvent();
         }
         onHide() {
@@ -2606,16 +2517,16 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     },
                     customUI: {
                         render: (data, onConfirm) => {
-                            const vstack = new components_7.VStack();
+                            const vstack = new components_6.VStack();
                             const config = new scom_commission_fee_setup_1.default(null, {
                                 commissions: self._data.commissions || [],
                                 fee: (0, index_8.getEmbedderCommissionFee)(),
                                 networks: self._data.networks
                             });
-                            const hstack = new components_7.HStack(null, {
+                            const hstack = new components_6.HStack(null, {
                                 verticalAlignment: 'center',
                             });
-                            const button = new components_7.Button(hstack, {
+                            const button = new components_6.Button(hstack, {
                                 caption: 'Confirm',
                                 width: '100%',
                                 height: 40,
@@ -2873,13 +2784,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            var _a, _b, _c, _d, _e, _f;
+            var _a;
             const themeVar = ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.theme) || 'light';
-            this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
-            this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
-            this.updateStyle('--input-font_color', (_d = this.tag[themeVar]) === null || _d === void 0 ? void 0 : _d.inputFontColor);
-            this.updateStyle('--input-background', (_e = this.tag[themeVar]) === null || _e === void 0 ? void 0 : _e.inputBackgroundColor);
-            this.updateStyle('--colors-primary-main', (_f = this.tag[themeVar]) === null || _f === void 0 ? void 0 : _f.buttonBackgroundColor);
+            const { fontColor, backgroundColor, inputFontColor, inputBackgroundColor, buttonBackgroundColor } = this.tag[themeVar] || {};
+            this.updateStyle('--text-primary', fontColor);
+            this.updateStyle('--background-main', backgroundColor);
+            this.updateStyle('--input-font_color', inputFontColor);
+            this.updateStyle('--input-background', inputBackgroundColor);
+            this.updateStyle('--colors-primary-main', buttonBackgroundColor);
         }
         // async confirm() {
         //   return new Promise<void>(async (resolve, reject) => {
@@ -2887,22 +2799,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         //       if (this.loadingElm) this.loadingElm.visible = true;
         //       await this.onDeploy((error: Error, receipt?: string) => {
         //         if (error) {
-        //           this.mdAlert.message = {
-        //             status: 'error',
-        //             content: parseContractError(error)
-        //           };
-        //           this.mdAlert.showModal();
+        //           this.showTxStatusModal('error', error);
         //           reject(error);
         //         }
         //       }, (receipt: any) => {
         //         this.refreshDApp();
         //       });
         //     } catch (error) {
-        //       this.mdAlert.message = {
-        //         status: 'error',
-        //         content: parseContractError(error)
-        //       };
-        //       this.mdAlert.showModal();
+        //       this.showTxStatusModal('error', error);
         //       reject(error);
         //     }
         //     if (!this.contract && !this._data)
@@ -2934,10 +2838,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             if (rpcWallet.address) {
                 scom_token_list_3.tokenStore.updateAllTokenBalances(rpcWallet);
             }
-            try {
-                await eth_wallet_7.Wallet.getClientInstance().init();
-            }
-            catch (_a) { }
+            await this.initWallet();
             if ((0, index_8.isClientWalletConnected)()) {
                 this.refreshDApp();
                 await this.initApprovalAction();
@@ -2946,9 +2847,23 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.renderEmpty();
             }
         }
-        renderEmpty() {
+        async renderEmpty() {
+            if (!this.btnSubmit.isConnected)
+                await this.btnSubmit.ready();
             if (!this.lbPrice.isConnected)
-                return;
+                await this.lbPrice.ready();
+            if (!this.hStackTokens.isConnected)
+                await this.hStackTokens.ready();
+            if (!this.pnlInputFields.isConnected)
+                await this.pnlInputFields.ready();
+            if (!this.lblTitle.isConnected)
+                await this.lblTitle.ready();
+            if (!this.lblTitle2.isConnected)
+                await this.lblTitle2.ready();
+            if (!this.markdownViewer.isConnected)
+                await this.markdownViewer.ready();
+            if (!this.pnlUnsupportedNetwork.isConnected)
+                await this.pnlUnsupportedNetwork.ready();
             this.btnSubmit.caption = this.submitButtonCaption;
             this.lbPrice.visible = false;
             this.hStackTokens.visible = false;
@@ -2971,6 +2886,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.gridDApp.templateColumns = ['repeat(2, 1fr)'];
                 this.pnlLogoTitle.visible = false;
             }
+            if (!this.btnSubmit.isConnected)
+                await this.btnSubmit.ready();
             this.btnSubmit.caption = this.submitButtonCaption;
             this.imgLogo.url = this.imgLogo2.url = this.logo || assets_1.default.fullPath('img/gem-logo.png');
             this.gemInfo = this.contract ? await (0, API_1.getGemInfo)(this.contract) : null;
@@ -3142,11 +3059,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         this.btnApprove.caption = `Approving ${token.symbol}`;
                         this.btnSubmit.visible = false;
                         if (receipt) {
-                            this.mdAlert.message = {
-                                status: 'success',
-                                content: receipt
-                            };
-                            this.mdAlert.showModal();
+                            this.showTxStatusModal('success', receipt);
                         }
                     },
                     onApproved: async (token) => {
@@ -3157,21 +3070,13 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         this.btnSubmit.enabled = true;
                     },
                     onApprovingError: async (token, err) => {
-                        this.mdAlert.message = {
-                            status: 'error',
-                            content: err.message
-                        };
-                        this.mdAlert.showModal();
+                        this.showTxStatusModal('error', err);
                         this.btnApprove.caption = 'Approve';
                         this.btnApprove.rightIcon.visible = false;
                     },
                     onPaying: async (receipt) => {
                         if (receipt) {
-                            this.mdAlert.message = {
-                                status: 'success',
-                                content: receipt
-                            };
-                            this.mdAlert.showModal();
+                            this.showTxStatusModal('success', receipt);
                             this.btnSubmit.enabled = false;
                             this.btnSubmit.rightIcon.visible = true;
                         }
@@ -3181,11 +3086,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         this.btnSubmit.rightIcon.visible = false;
                     },
                     onPayingError: async (err) => {
-                        this.mdAlert.message = {
-                            status: 'error',
-                            content: err.message
-                        };
-                        this.mdAlert.showModal();
+                        this.showTxStatusModal('error', err);
                     }
                 });
             }
@@ -3209,11 +3110,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             return !(0, index_8.isRpcWalletConnected)() ? 'Switch Network' : 'Submit';
         }
         onApprove() {
-            this.mdAlert.message = {
-                status: 'warning',
-                content: 'Approving'
-            };
-            this.mdAlert.showModal();
+            this.showTxStatusModal('warning', 'Approving');
             this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, eth_wallet_7.Utils.toDecimals(this.edtAmount.value, this.gemInfo.baseToken.decimals).toFixed());
         }
         async onQtyChanged() {
@@ -3226,7 +3123,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
             this.btnApprove.enabled = new eth_wallet_7.BigNumber(this.edtGemQty.value).gt(0);
             if (this.approvalModelAction && (0, index_8.isRpcWalletConnected)())
-                this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, eth_wallet_7.Utils.toDecimals(backerCoinAmount, this.gemInfo.baseToken.decimals).toFixed());
+                this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, backerCoinAmount.toString());
         }
         async onAmountChanged() {
             const gemAmount = Number(this.edtAmount.value);
@@ -3257,15 +3154,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             return balance;
         }
         async doSubmitAction() {
+            var _a;
             if (!this._data || !this.contract)
                 return;
             this.updateSubmitButton(true);
             // if (!this.tokenElm.token) {
-            //   this.mdAlert.message = {
-            //     status: 'error',
-            //     content: 'Token Required'
-            //   };
-            //   this.mdAlert.showModal();
+            //   this.showTxStatusModal('error', 'Token Required');
             //   this.updateSubmitButton(false);
             //   return;
             // }
@@ -3273,11 +3167,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             if (this._type === 'buy') {
                 const qty = this.edtGemQty.value ? Number(this.edtGemQty.value) : 1;
                 if (balance.lt(this.getBackerCoinAmount(qty))) {
-                    this.mdAlert.message = {
-                        status: 'error',
-                        content: `Insufficient ${this.tokenElm.token.symbol} Balance`
-                    };
-                    this.mdAlert.showModal();
+                    this.showTxStatusModal('error', `Insufficient ${((_a = this.tokenElm.token) === null || _a === void 0 ? void 0 : _a.symbol) || ''} Balance`);
                     this.updateSubmitButton(false);
                     return;
                 }
@@ -3285,20 +3175,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             }
             else {
                 if (!this.edtAmount.value) {
-                    this.mdAlert.message = {
-                        status: 'error',
-                        content: 'Amount Required'
-                    };
-                    this.mdAlert.showModal();
+                    this.showTxStatusModal('error', 'Amount Required');
                     this.updateSubmitButton(false);
                     return;
                 }
                 if (balance.lt(this.edtAmount.value)) {
-                    this.mdAlert.message = {
-                        status: 'error',
-                        content: `Insufficient ${this.gemInfo.name} Balance`
-                    };
-                    this.mdAlert.showModal();
+                    this.showTxStatusModal('error', `Insufficient ${this.gemInfo.name} Balance`);
                     this.updateSubmitButton(false);
                     return;
                 }
@@ -3314,11 +3196,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 return;
             }
             if (this.isBuy) {
-                this.mdAlert.message = {
-                    status: 'warning',
-                    content: 'Confirming'
-                };
-                this.mdAlert.showModal();
+                this.showTxStatusModal('warning', 'Comfirming');
                 this.approvalModelAction.doPayAction();
             }
             else {
@@ -3332,6 +3210,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         async renderTokenInput() {
             if (!this.edtAmount.isConnected)
                 await this.edtAmount.ready();
+            if (!this.tokenElm.isConnected)
+                await this.tokenElm.ready();
             this.edtAmount.readOnly = this.isBuy || !this.contract;
             this.edtAmount.value = "";
             if (this.isBuy) {
@@ -3388,7 +3268,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                         this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
                                             this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                                 this.$render("i-label", { id: "lbOrderTotalTitle", caption: 'Total', font: { size: '1rem' } }),
-                                                this.$render("i-icon", { id: "iconOrderTotal", name: "question-circle", fill: Theme.background.modal, width: 20, height: 20 })),
+                                                this.$render("i-icon", { id: "iconOrderTotal", name: "question-circle", fill: Theme.text.primary, width: 20, height: 20, opacity: 0.6 })),
                                             this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                                 this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                                 this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
@@ -3408,18 +3288,18 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
                                         this.$render("i-hstack", { horizontalAlignment: "end", verticalAlignment: "center", gap: 4 },
                                             this.$render("i-label", { caption: "Transaction Fee", font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                            this.$render("i-icon", { id: "feeTooltip", name: "question-circle", fill: Theme.text.primary, width: 14, height: 14 })),
+                                            this.$render("i-icon", { id: "feeTooltip", name: "question-circle", opacity: 0.6, fill: Theme.text.primary, width: 14, height: 14 })),
                                         this.$render("i-label", { id: "feeLb", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" })),
                                     this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", gap: "0.5rem" },
                                         this.$render("i-label", { caption: "You will get", font: { size: '1rem', bold: true }, opacity: 0.6 }),
                                         this.$render("i-label", { id: "lbYouWillGet", font: { size: '1rem', bold: true }, opacity: 0.6, caption: "0" }))),
                                 this.$render("i-vstack", { id: 'pnlUnsupportedNetwork', visible: false, horizontalAlignment: 'center' },
                                     this.$render("i-label", { caption: 'This network is not supported.', font: { size: '1.5rem' } }))))),
-                    this.$render("i-scom-gem-token-alert", { id: 'mdAlert' }))));
+                    this.$render("i-scom-tx-status-modal", { id: "txStatusModal" }))));
         }
     };
     ScomGemToken = __decorate([
-        (0, components_7.customElements)('i-scom-gem-token')
+        (0, components_6.customElements)('i-scom-gem-token')
     ], ScomGemToken);
     exports.default = ScomGemToken;
 });

@@ -1,7 +1,6 @@
 import { application } from "@ijstech/components";
 import { INetwork, Wallet } from "@ijstech/eth-wallet";
 import getNetworkList from "@scom/scom-network-list";
-import { IExtendedNetwork } from "../interface";
 
 export const enum EventId {
   ConnectWallet = 'connectWallet',
@@ -15,7 +14,7 @@ export enum WalletPlugin {
   WalletConnect = 'walletconnect',
 }
 
-const setNetworkList = (networkList: IExtendedNetwork[], infuraId?: string) => {
+const setNetworkList = (networkList: INetwork[], infuraId?: string) => {
   const wallet = Wallet.getClientInstance();
   state.networkMap = {};
   const defaultNetworkList = getNetworkList();
@@ -51,7 +50,7 @@ export type ProxyAddresses = { [key: number]: string };
 
 export const state = {
   defaultChainId: 1,
-  networkMap: {} as { [key: number]: IExtendedNetwork },
+  networkMap: {} as { [key: number]: INetwork },
   proxyAddresses: {} as ProxyAddresses,
   embedderCommissionFee: '0',
   ipfsGatewayUrl: '',
