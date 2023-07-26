@@ -28,40 +28,13 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
     }
 
     if (outputStr.length > 18) {
-      outputStr = outputStr.substr(0, 18) + '...'
+      outputStr = outputStr.substring(0, 18) + '...'
     }
     return outputStr;
   }
   else {
     return value.toLocaleString('en-US');
   }
-}
-
-export function parseContractError(oMessage: any): string {
-  if (typeof oMessage === 'string') return oMessage;
-
-  let message = '';
-  if (oMessage.message && oMessage.message.includes('Internal JSON-RPC error.'))
-    message = JSON.parse(oMessage.message.replace('Internal JSON-RPC error.\n', '')).message;
-  else if (oMessage.message)
-    message = oMessage.message;
-
-  const staticMessageMap: { [key: string]: string } = {
-    'execution reverted: OAXDEX: INVALID_SIGNATURE': 'Invalid signature',
-    'execution reverted: OAXDEX: EXPIRED': 'Expired',
-    'execution reverted: OAXDEX: OVERFLOW': 'Overflow',
-    'MetaMask Tx Signature: User denied transaction signature.': 'User denied transaction signature',
-    'execution reverted: backerCoin can\'t be a null address': 'BackerCoin can\'t be a null address',
-    'execution reverted: price can\'t be zero': 'Price can\'t be zero',
-    'execution reverted: mintingFee can\'t exceed 1': 'MintingFee can\'t exceed 1',
-    'execution reverted: redemptionFee can\'t exceed 1': 'RedemptionFee can\'t exceed 1'
-  }
-
-  return staticMessageMap[message] ?? `Unknown Error: ${message}`;
-}
-
-export function isWalletAddress(address: string) {
-  return /^0x[a-fA-F0-9]{40}$/.test(address);
 }
 
 export {

@@ -52,14 +52,3 @@ export interface IWalletPlugin {
   packageName?: string;
   provider?: IClientSideProvider;
 }
-
-export interface IExtendedNetwork extends INetwork {
-  shortName?: string;
-  isDisabled?: boolean;
-  isMainChain?: boolean;
-  isCrossChainSupported?: boolean;
-  explorerName?: string;
-  explorerTxUrl?: string;
-  explorerAddressUrl?: string;
-  isTestnet?: boolean;
-};

@@ -3,7 +3,7 @@
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
-    import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
+    import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
     import { INetworkConfig } from "@scom/scom-network-picker";
     import { ITokenObject } from '@scom/scom-token-list';
     export type DappType = 'buy' | 'redeem';
@@ -50,20 +50,10 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         packageName?: string;
         provider?: IClientSideProvider;
     }
-    export interface IExtendedNetwork extends INetwork {
-        shortName?: string;
-        isDisabled?: boolean;
-        isMainChain?: boolean;
-        isCrossChainSupported?: boolean;
-        explorerName?: string;
-        explorerTxUrl?: string;
-        explorerAddressUrl?: string;
-        isTestnet?: boolean;
-    }
 }
 /// <amd-module name="@scom/scom-gem-token/store/index.ts" />
 declare module "@scom/scom-gem-token/store/index.ts" {
-    import { IExtendedNetwork } from "@scom/scom-gem-token/interface.tsx";
+    import { INetwork } from "@ijstech/eth-wallet";
     export const enum EventId {
         ConnectWallet = "connectWallet",
         IsWalletConnected = "isWalletConnected",
@@ -74,15 +64,15 @@ declare module "@scom/scom-gem-token/store/index.ts" {
         MetaMask = "metamask",
         WalletConnect = "walletconnect"
     }
-    export const getNetworkInfo: (chainId: number) => IExtendedNetwork;
-    export const getSupportedNetworks: () => IExtendedNetwork[];
+    export const getNetworkInfo: (chainId: number) => INetwork;
+    export const getSupportedNetworks: () => INetwork[];
     export type ProxyAddresses = {
         [key: number]: string;
     };
     export const state: {
         defaultChainId: number;
         networkMap: {
-            [key: number]: IExtendedNetwork;
+            [key: number]: INetwork;
         };
         proxyAddresses: ProxyAddresses;
         embedderCommissionFee: string;
@@ -149,8 +139,6 @@ declare module "@scom/scom-gem-token/utils/approvalModel.ts" {
 declare module "@scom/scom-gem-token/utils/index.ts" {
     export const formatNumber: (value: any, decimals?: number) => string;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
-    export function parseContractError(oMessage: any): string;
-    export function isWalletAddress(address: string): boolean;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
     export { ApprovalStatus, getERC20Allowance, getERC20ApprovalModelAction, IERC20ApprovalOptions, IERC20ApprovalAction } from "@scom/scom-gem-token/utils/approvalModel.ts";
 }
@@ -158,7 +146,6 @@ declare module "@scom/scom-gem-token/utils/index.ts" {
 declare module "@scom/scom-gem-token/assets.ts" {
     function fullPath(path: string): string;
     const _default: {
-        logo: string;
         fullPath: typeof fullPath;
     };
     export default _default;
@@ -224,37 +211,6 @@ declare module "@scom/scom-gem-token/index.css.ts" {
     export const inputStyle: string;
     export const tokenSelectionStyle: string;
     export const centerStyle: string;
-}
-/// <amd-module name="@scom/scom-gem-token/alert/index.tsx" />
-declare module "@scom/scom-gem-token/alert/index.tsx" {
-    import { Module, ControlElement } from '@ijstech/components';
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-gem-token-alert']: ControlElement;
-            }
-        }
-    }
-    export interface IAlertMessage {
-        status: 'warning' | 'success' | 'error' | 'loading';
-        title?: string;
-        content?: string;
-        onClose?: any;
-    }
-    export class Alert extends Module {
-        private mdAlert;
-        private pnlMain;
-        private _message;
-        get message(): IAlertMessage;
-        set message(value: IAlertMessage);
-        private get iconName();
-        private get color();
-        closeModal(): void;
-        showModal(): void;
-        private renderUI;
-        private renderContent;
-        render(): any;
-    }
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/contracts/@openzeppelin/contracts/token/ERC20/ERC20.json.ts" {
@@ -1360,25 +1316,12 @@ declare module "@scom/scom-gem-token/API.ts" {
 declare module "@scom/scom-gem-token/data.json.ts" {
     const _default_7: {
         infuraId: string;
-        networks: ({
+        networks: {
             chainId: number;
-            isMainChain: boolean;
-            isCrossChainSupported: boolean;
             explorerName: string;
             explorerTxUrl: string;
             explorerAddressUrl: string;
-            isTestnet: boolean;
-            shortName?: undefined;
-        } | {
-            chainId: number;
-            shortName: string;
-            isCrossChainSupported: boolean;
-            explorerName: string;
-            explorerTxUrl: string;
-            explorerAddressUrl: string;
-            isTestnet: boolean;
-            isMainChain?: undefined;
-        })[];
+        }[];
         proxyAddresses: {
             "97": string;
             "43113": string;
@@ -1449,7 +1392,7 @@ declare module "@scom/scom-gem-token" {
         private btnApprove;
         private tokenElm;
         private edtAmount;
-        private mdAlert;
+        private txStatusModal;
         private balanceLayout;
         private backerStack;
         private backerTokenImg;
@@ -1477,7 +1420,7 @@ declare module "@scom/scom-gem-token" {
         defaultEdit: boolean;
         private rpcWalletEvents;
         private clientEvents;
-        constructor(parent?: Container, options?: any);
+        constructor(parent?: Container, options?: ScomGemTokenElement);
         onHide(): void;
         private registerEvent;
         static create(options?: ScomGemTokenElement, parent?: Container): Promise<ScomGemToken>;
@@ -1548,6 +1491,7 @@ declare module "@scom/scom-gem-token" {
         private updateStyle;
         private updateTheme;
         private initializeWidgetConfig;
+        private initWallet;
         private renderEmpty;
         private refreshDApp;
         init(): Promise<void>;
@@ -1564,6 +1508,7 @@ declare module "@scom/scom-gem-token" {
         set chainSpecificProperties(value: any);
         private initApprovalAction;
         private updateContractAddress;
+        private showTxStatusModal;
         private updateSubmitButton;
         private get submitButtonCaption();
         private onApprove;

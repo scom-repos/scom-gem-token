@@ -7,8 +7,15 @@ docker-compose up install
 docker-compose up build
 ```
 
-## Step 3: Run a dev server
+
+## Test
+## Step 3: Install packages
 ```sh
-docker-compose up -d serve
+docker-compose up installTest
+```
+
+## Step 4: Build and bundle library
+```sh
+docker-compose up test
 ```
 Access the dev server via http://127.0.0.1:8033/

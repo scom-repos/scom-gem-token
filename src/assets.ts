@@ -1,5 +1,4 @@
 import { application } from '@ijstech/components';
-
 const moduleDir = application.currentModuleDir;
 
 function fullPath(path: string): string {
@@ -7,6 +6,5 @@ function fullPath(path: string): string {
 };
 
 export default {
-  logo: fullPath('img/logo.svg'),
   fullPath
 };
