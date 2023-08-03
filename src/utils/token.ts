@@ -1,5 +1,4 @@
 import { BigNumber, Erc20, Wallet, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
-import { getRpcWallet } from "../store/index";
 import { ITokenObject } from '@scom/scom-token-list';
 
 export const getERC20Amount = async (wallet: IWallet, tokenAddress: string, decimals: number) => {
@@ -7,8 +6,7 @@ export const getERC20Amount = async (wallet: IWallet, tokenAddress: string, deci
   return await erc20.balance;
 }
 
-export const getTokenBalance = async (token: ITokenObject) => {
-  const wallet = getRpcWallet();
+export const getTokenBalance = async (wallet: IWallet, token: ITokenObject) => {
   let balance = new BigNumber(0);
   if (!token) return balance;
   if (token.address) {

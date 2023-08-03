@@ -11,7 +11,7 @@ export const formatNumber = (value: any, decimals?: number) => {
   if (val != 0 && new BigNumber(val).lt(minValue)) {
     return `<${minValue}`;
   }
-  return formatNumberWithSeparators(val, decimals || 4);
+  return formatNumberWithSeparators(val, decimals || 2);
 };
 
 export const formatNumberWithSeparators = (value: number, precision?: number) => {
@@ -42,11 +42,3 @@ export {
   getTokenBalance,
   registerSendTxEvents
 } from './token';
-
-export {
-  ApprovalStatus,
-  getERC20Allowance,
-  getERC20ApprovalModelAction,
-  IERC20ApprovalOptions,
-  IERC20ApprovalAction
-} from './approvalModel';

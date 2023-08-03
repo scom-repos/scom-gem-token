@@ -31,8 +31,14 @@ export const inputStyle = Styles.style({
 
 export const tokenSelectionStyle = Styles.style({
   $nest: {
-    'i-button.token-button': {
-      justifyContent: 'start'
+    '.custom-border > i-hstack': {
+      display: 'none'
+    },
+    '#gridTokenInput': {
+      paddingLeft: '0 !important'
+    },
+    '#pnlSelection > i-hstack': {
+      justifyContent: 'flex-start !important'
     }
   }
 })

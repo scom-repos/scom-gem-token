@@ -3,19 +3,19 @@ import { DappType, ICommissionInfo, IDeploy, IGemInfo } from './interface';
 import { Contracts } from './contracts/scom-gem-token-contract/index';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { registerSendTxEvents } from './utils/index';
-import { getEmbedderCommissionFee, getProxyAddress, getChainId, getRpcWallet } from './store/index';
+import { State } from './store/index';
 import { DefaultTokens, ITokenObject } from '@scom/scom-token-list';
 
-async function getFee(contractAddress: string, type: DappType) {
-  const wallet = getRpcWallet();
+async function getFee(state: State, contractAddress: string, type: DappType) {
+  const wallet = state.getRpcWallet();
   const contract = new Contracts.GEM(wallet, contractAddress);
   const fee = type === 'buy' ? await contract.mintingFee() : await contract.redemptionFee();
   const decimals = (await contract.decimals()).toNumber();
   return Utils.fromDecimals(fee, decimals);
 }
 
-async function getGemBalance(contractAddress: string) {
-  const wallet = getRpcWallet();
+async function getGemBalance(state: State, contractAddress: string) {
+  const wallet = state.getRpcWallet();
   const contract = new Contracts.GEM(wallet, contractAddress);
   const balance = await contract.balanceOf(wallet.address);
   return balance;
@@ -65,8 +65,8 @@ async function transfer(contractAddress: string, to: string, amount: string) {
   };
 }
 
-async function getGemInfo(contractAddress: string): Promise<IGemInfo> {
-  const wallet = getRpcWallet();
+async function getGemInfo(state: State, contractAddress: string): Promise<IGemInfo> {
+  const wallet = state.getRpcWallet();
   const gem = new Contracts.GEM(wallet, contractAddress);
 
   try {
@@ -100,6 +100,7 @@ async function getGemInfo(contractAddress: string): Promise<IGemInfo> {
 }
 
 async function buyToken(
+  state: State,
   contractAddress: string,
   backerCoinAmount: number,
   token: ITokenObject,
@@ -115,7 +116,7 @@ async function buyToken(
     const wallet = Wallet.getClientInstance();
     const tokenDecimals = token?.decimals || 18;
     const amount = Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
-    const _commissions = (commissions || []).filter(v => v.chainId === getChainId()).map(v => {
+    const _commissions = (commissions || []).filter(v => v.chainId === state.getChainId()).map(v => {
       return {
         to: v.walletAddress,
         amount: amount.times(v.share)
@@ -129,7 +130,7 @@ async function buyToken(
       receipt = await contract.buy(amount);
     }
     else {
-      let proxyAddress = getProxyAddress();
+      let proxyAddress = state.getProxyAddress();
       const proxy = new ProxyContracts.Proxy(wallet, proxyAddress);
       const txData = await contract.buy.txData(amount);
       const tokensIn =

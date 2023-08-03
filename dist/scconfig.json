@@ -11,6 +11,7 @@
         "@ijstech/eth-contract",
         "@scom/scom-dapp-container",
         "@scom/scom-commission-fee-setup",
-        "@scom/scom-tx-status-modal"
+        "@scom/scom-tx-status-modal",
+        "@scom/scom-token-input"
     ]
 }

@@ -1,5 +1,7 @@
 /// <reference path="@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
+/// <reference path="@scom/scom-token-input/@ijstech/eth-wallet/index.d.ts" />
+/// <reference path="@scom/scom-token-input/@scom/scom-token-modal/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
@@ -51,96 +53,46 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         provider?: IClientSideProvider;
     }
 }
-/// <amd-module name="@scom/scom-gem-token/store/index.ts" />
-declare module "@scom/scom-gem-token/store/index.ts" {
-    import { INetwork } from "@ijstech/eth-wallet";
-    export const enum EventId {
-        ConnectWallet = "connectWallet",
-        IsWalletConnected = "isWalletConnected",
-        IsWalletDisconnected = "IsWalletDisconnected",
-        chainChanged = "chainChanged"
-    }
-    export enum WalletPlugin {
-        MetaMask = "metamask",
-        WalletConnect = "walletconnect"
-    }
-    export const getNetworkInfo: (chainId: number) => INetwork;
-    export const getSupportedNetworks: () => INetwork[];
-    export type ProxyAddresses = {
-        [key: number]: string;
-    };
-    export const state: {
-        defaultChainId: number;
-        networkMap: {
-            [key: number]: INetwork;
-        };
-        proxyAddresses: ProxyAddresses;
-        embedderCommissionFee: string;
-        ipfsGatewayUrl: string;
-        rpcWalletId: string;
-    };
-    export const setDataFromSCConfig: (options: any) => void;
-    export const setIPFSGatewayUrl: (url: string) => void;
-    export const getIPFSGatewayUrl: () => string;
-    export const setProxyAddresses: (data: ProxyAddresses) => void;
-    export const getProxyAddress: (chainId?: number) => string;
-    export const getEmbedderCommissionFee: () => string;
-    export const setDefaultChainId: (chainId: number) => void;
-    export const getDefaultChainId: () => number;
-    export function isClientWalletConnected(): boolean;
-    export function isRpcWalletConnected(): boolean;
-    export function getChainId(): number;
-    export function initRpcWallet(defaultChainId: number): string;
-    export function getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
-    export function getClientWallet(): import("@ijstech/eth-wallet").IClientWallet;
-}
 /// <amd-module name="@scom/scom-gem-token/utils/token.ts" />
 declare module "@scom/scom-gem-token/utils/token.ts" {
     import { BigNumber, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
     import { ITokenObject } from '@scom/scom-token-list';
     export const getERC20Amount: (wallet: IWallet, tokenAddress: string, decimals: number) => Promise<BigNumber>;
-    export const getTokenBalance: (token: ITokenObject) => Promise<BigNumber>;
+    export const getTokenBalance: (wallet: IWallet, token: ITokenObject) => Promise<BigNumber>;
     export const registerSendTxEvents: (sendTxEventHandlers: ISendTxEventsOptions) => void;
-}
-/// <amd-module name="@scom/scom-gem-token/utils/approvalModel.ts" />
-declare module "@scom/scom-gem-token/utils/approvalModel.ts" {
-    import { BigNumber } from "@ijstech/eth-wallet";
-    import { ITokenObject } from '@scom/scom-token-list';
-    export enum ApprovalStatus {
-        TO_BE_APPROVED = 0,
-        APPROVING = 1,
-        NONE = 2
-    }
-    export const getERC20Allowance: (token: ITokenObject, spenderAddress: string) => Promise<BigNumber>;
-    export const getERC20ApprovalModelAction: (spenderAddress: string, options: IERC20ApprovalEventOptions) => IERC20ApprovalAction;
-    interface IERC20ApprovalEventOptions {
-        sender: any;
-        payAction: () => Promise<void>;
-        onToBeApproved: (token: ITokenObject) => Promise<void>;
-        onToBePaid: (token: ITokenObject) => Promise<void>;
-        onApproving: (token: ITokenObject, receipt?: string, data?: any) => Promise<void>;
-        onApproved: (token: ITokenObject, data?: any) => Promise<void>;
-        onPaying: (receipt?: string, data?: any) => Promise<void>;
-        onPaid: (data?: any) => Promise<void>;
-        onApprovingError: (token: ITokenObject, err: Error) => Promise<void>;
-        onPayingError: (err: Error) => Promise<void>;
-    }
-    export interface IERC20ApprovalOptions extends IERC20ApprovalEventOptions {
-        spenderAddress: string;
-    }
-    export interface IERC20ApprovalAction {
-        setSpenderAddress: (value: string) => void;
-        doApproveAction: (token: ITokenObject, inputAmount: string, data?: any) => Promise<void>;
-        doPayAction: (data?: any) => Promise<void>;
-        checkAllowance: (token: ITokenObject, inputAmount: string) => Promise<void>;
-    }
 }
 /// <amd-module name="@scom/scom-gem-token/utils/index.ts" />
 declare module "@scom/scom-gem-token/utils/index.ts" {
     export const formatNumber: (value: any, decimals?: number) => string;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
-    export { ApprovalStatus, getERC20Allowance, getERC20ApprovalModelAction, IERC20ApprovalOptions, IERC20ApprovalAction } from "@scom/scom-gem-token/utils/approvalModel.ts";
+}
+/// <amd-module name="@scom/scom-gem-token/store/index.ts" />
+declare module "@scom/scom-gem-token/store/index.ts" {
+    import { ERC20ApprovalModel, INetwork, IERC20ApprovalEventOptions } from "@ijstech/eth-wallet";
+    export type ProxyAddresses = {
+        [key: number]: string;
+    };
+    export class State {
+        networkMap: {
+            [key: number]: INetwork;
+        };
+        proxyAddresses: ProxyAddresses;
+        ipfsGatewayUrl: string;
+        embedderCommissionFee: string;
+        rpcWalletId: string;
+        approvalModel: ERC20ApprovalModel;
+        constructor(options: any);
+        private initData;
+        initRpcWallet(defaultChainId: number): string;
+        private setNetworkList;
+        getProxyAddress(chainId?: number): string;
+        getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
+        isRpcWalletConnected(): boolean;
+        getChainId(): number;
+        setApprovalModelAction(options: IERC20ApprovalEventOptions): Promise<import("@ijstech/eth-wallet").IERC20ApprovalAction>;
+    }
+    export function isClientWalletConnected(): boolean;
 }
 /// <amd-module name="@scom/scom-gem-token/assets.ts" />
 declare module "@scom/scom-gem-token/assets.ts" {
@@ -149,60 +101,6 @@ declare module "@scom/scom-gem-token/assets.ts" {
         fullPath: typeof fullPath;
     };
     export default _default;
-}
-/// <amd-module name="@scom/scom-gem-token/token-selection/index.css.ts" />
-declare module "@scom/scom-gem-token/token-selection/index.css.ts" {
-    export const scrollbarStyle: string;
-    export const buttonStyle: string;
-    export const tokenStyle: string;
-    export const modalStyle: string;
-}
-/// <amd-module name="@scom/scom-gem-token/token-selection/index.tsx" />
-declare module "@scom/scom-gem-token/token-selection/index.tsx" {
-    import { Module, ControlElement, Container } from '@ijstech/components';
-    import { ITokenObject } from '@scom/scom-token-list';
-    type selectTokenCallback = (token: ITokenObject) => void;
-    interface TokenSelectionElement extends ControlElement {
-        readonly?: boolean;
-        onSelectToken?: selectTokenCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-gem-token-selection']: TokenSelectionElement;
-            }
-        }
-    }
-    export class TokenSelection extends Module {
-        private btnTokens;
-        private mdTokenSelection;
-        private gridTokenList;
-        private $eventBus;
-        private _token;
-        private _readonly;
-        onSelectToken: selectTokenCallback;
-        private _chainId;
-        constructor(parent?: Container, options?: any);
-        get token(): ITokenObject | undefined;
-        set token(value: ITokenObject | undefined);
-        get chainId(): number;
-        set chainId(value: number);
-        get readonly(): boolean;
-        set readonly(value: boolean);
-        private onSetup;
-        private registerEvent;
-        private get tokenList();
-        private sortToken;
-        private renderTokenItems;
-        private renderToken;
-        private updateStatusButton;
-        private updateTokenButton;
-        private selectToken;
-        private showTokenModal;
-        private closeTokenModal;
-        init(): void;
-        render(): any;
-    }
 }
 /// <amd-module name="@scom/scom-gem-token/index.css.ts" />
 declare module "@scom/scom-gem-token/index.css.ts" {
@@ -758,9 +656,116 @@ declare module "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts"
     };
     export default _default_3;
 }
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Authorization.json.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Authorization.json.ts" {
+    const _default_4: {
+        abi: ({
+            inputs: any[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+            name?: undefined;
+            outputs?: undefined;
+        } | {
+            anonymous: boolean;
+            inputs: {
+                indexed: boolean;
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            type: string;
+            stateMutability?: undefined;
+            outputs?: undefined;
+        } | {
+            inputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            outputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+        })[];
+        bytecode: string;
+    };
+    export default _default_4;
+}
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Authorization.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Authorization.ts" {
+    import { IWallet, Contract as _Contract, TransactionReceipt, Event, TransactionOptions } from "@ijstech/eth-contract";
+    export class Authorization extends _Contract {
+        static _abi: any;
+        constructor(wallet: IWallet, address?: string);
+        deploy(options?: TransactionOptions): Promise<string>;
+        parseAuthorizeEvent(receipt: TransactionReceipt): Authorization.AuthorizeEvent[];
+        decodeAuthorizeEvent(event: Event): Authorization.AuthorizeEvent;
+        parseDeauthorizeEvent(receipt: TransactionReceipt): Authorization.DeauthorizeEvent[];
+        decodeDeauthorizeEvent(event: Event): Authorization.DeauthorizeEvent;
+        parseStartOwnershipTransferEvent(receipt: TransactionReceipt): Authorization.StartOwnershipTransferEvent[];
+        decodeStartOwnershipTransferEvent(event: Event): Authorization.StartOwnershipTransferEvent;
+        parseTransferOwnershipEvent(receipt: TransactionReceipt): Authorization.TransferOwnershipEvent[];
+        decodeTransferOwnershipEvent(event: Event): Authorization.TransferOwnershipEvent;
+        deny: {
+            (user: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (user: string, options?: TransactionOptions) => Promise<void>;
+            txData: (user: string, options?: TransactionOptions) => Promise<string>;
+        };
+        isPermitted: {
+            (param1: string, options?: TransactionOptions): Promise<boolean>;
+        };
+        newOwner: {
+            (options?: TransactionOptions): Promise<string>;
+        };
+        owner: {
+            (options?: TransactionOptions): Promise<string>;
+        };
+        permit: {
+            (user: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (user: string, options?: TransactionOptions) => Promise<void>;
+            txData: (user: string, options?: TransactionOptions) => Promise<string>;
+        };
+        takeOwnership: {
+            (options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (options?: TransactionOptions) => Promise<void>;
+            txData: (options?: TransactionOptions) => Promise<string>;
+        };
+        transferOwnership: {
+            (newOwner: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (newOwner: string, options?: TransactionOptions) => Promise<void>;
+            txData: (newOwner: string, options?: TransactionOptions) => Promise<string>;
+        };
+        private assign;
+    }
+    export module Authorization {
+        interface AuthorizeEvent {
+            user: string;
+            _event: Event;
+        }
+        interface DeauthorizeEvent {
+            user: string;
+            _event: Event;
+        }
+        interface StartOwnershipTransferEvent {
+            user: string;
+            _event: Event;
+        }
+        interface TransferOwnershipEvent {
+            user: string;
+            _event: Event;
+        }
+    }
+}
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.json.ts" {
-    const _default_4: {
+    const _default_5: {
         abi: ({
             anonymous: boolean;
             inputs: {
@@ -849,7 +854,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
         })[];
         bytecode: string;
     };
-    export default _default_4;
+    export default _default_5;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.ts" {
@@ -905,7 +910,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
     export class Proxy extends _Contract {
         static _abi: any;
         constructor(wallet: IWallet, address?: string);
-        deploy(options?: number | BigNumber | TransactionOptions): Promise<string>;
+        deploy(options?: TransactionOptions): Promise<string>;
         parseAddCommissionEvent(receipt: TransactionReceipt): Proxy.AddCommissionEvent[];
         decodeAddCommissionEvent(event: Event): Proxy.AddCommissionEvent;
         parseClaimEvent(receipt: TransactionReceipt): Proxy.ClaimEvent[];
@@ -1012,7 +1017,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.json.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.json.ts" {
-    const _default_5: {
+    const _default_6: {
         abi: ({
             anonymous: boolean;
             inputs: {
@@ -1101,7 +1106,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
         })[];
         bytecode: string;
     };
-    export default _default_5;
+    export default _default_6;
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts" {
@@ -1159,7 +1164,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
     export class ProxyV2 extends _Contract {
         static _abi: any;
         constructor(wallet: IWallet, address?: string);
-        deploy(options?: number | BigNumber | TransactionOptions): Promise<string>;
+        deploy(options?: TransactionOptions): Promise<string>;
         parseAddCommissionEvent(receipt: TransactionReceipt): ProxyV2.AddCommissionEvent[];
         decodeAddCommissionEvent(event: Event): ProxyV2.AddCommissionEvent;
         parseClaimEvent(receipt: TransactionReceipt): ProxyV2.ClaimEvent[];
@@ -1264,10 +1269,708 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/co
         }
     }
 }
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV3.json.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV3.json.ts" {
+    const _default_7: {
+        abi: ({
+            inputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+            name?: undefined;
+            outputs?: undefined;
+        } | {
+            anonymous: boolean;
+            inputs: {
+                indexed: boolean;
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            type: string;
+            stateMutability?: undefined;
+            outputs?: undefined;
+        } | {
+            inputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            outputs: {
+                components: ({
+                    internalType: string;
+                    name: string;
+                    type: string;
+                    components?: undefined;
+                } | {
+                    components: {
+                        internalType: string;
+                        name: string;
+                        type: string;
+                    }[];
+                    internalType: string;
+                    name: string;
+                    type: string;
+                })[];
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+        } | {
+            inputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            outputs: ({
+                internalType: string;
+                name: string;
+                type: string;
+                components?: undefined;
+            } | {
+                components: {
+                    internalType: string;
+                    name: string;
+                    type: string;
+                }[];
+                internalType: string;
+                name: string;
+                type: string;
+            })[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+        } | {
+            inputs: {
+                components: ({
+                    internalType: string;
+                    name: string;
+                    type: string;
+                    components?: undefined;
+                } | {
+                    components: {
+                        internalType: string;
+                        name: string;
+                        type: string;
+                    }[];
+                    internalType: string;
+                    name: string;
+                    type: string;
+                })[];
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            name: string;
+            outputs: {
+                internalType: string;
+                name: string;
+                type: string;
+            }[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+        } | {
+            inputs: ({
+                internalType: string;
+                name: string;
+                type: string;
+                components?: undefined;
+            } | {
+                components: {
+                    internalType: string;
+                    name: string;
+                    type: string;
+                }[];
+                internalType: string;
+                name: string;
+                type: string;
+            })[];
+            name: string;
+            outputs: any[];
+            stateMutability: string;
+            type: string;
+            anonymous?: undefined;
+        } | {
+            stateMutability: string;
+            type: string;
+            inputs?: undefined;
+            anonymous?: undefined;
+            name?: undefined;
+            outputs?: undefined;
+        })[];
+        bytecode: string;
+    };
+    export default _default_7;
+}
+/// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV3.ts" />
+declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV3.ts" {
+    import { IWallet, Contract as _Contract, TransactionReceipt, BigNumber, Event, TransactionOptions } from "@ijstech/eth-contract";
+    export interface IAddProjectAdminParams {
+        projectId: number | BigNumber;
+        admin: string;
+    }
+    export interface ICampaignAccumulatedCommissionParams {
+        param1: number | BigNumber;
+        param2: string;
+    }
+    export interface IClaimantIdsParams {
+        param1: string;
+        param2: string;
+    }
+    export interface IGetCampaignParams {
+        campaignId: number | BigNumber;
+        returnArrays: boolean;
+    }
+    export interface IGetCampaignArrayData1Params {
+        campaignId: number | BigNumber;
+        targetAndSelectorsStart: number | BigNumber;
+        targetAndSelectorsLength: number | BigNumber;
+        referrersStart: number | BigNumber;
+        referrersLength: number | BigNumber;
+    }
+    export interface IGetCampaignArrayData2Params {
+        campaignId: number | BigNumber;
+        inTokensStart: number | BigNumber;
+        inTokensLength: number | BigNumber;
+        outTokensStart: number | BigNumber;
+        outTokensLength: number | BigNumber;
+    }
+    export interface IGetClaimantBalanceParams {
+        claimant: string;
+        token: string;
+    }
+    export interface IGetClaimantsInfoParams {
+        fromId: number | BigNumber;
+        count: number | BigNumber;
+    }
+    export interface IProxyCallParams {
+        campaignId: number | BigNumber;
+        target: string;
+        data: string;
+        referrer: string;
+        to: string;
+        tokensIn: {
+            token: string;
+            amount: number | BigNumber;
+        }[];
+        tokensOut: string[];
+    }
+    export interface IRemoveProjectAdminParams {
+        projectId: number | BigNumber;
+        admin: string;
+    }
+    export interface IStakeParams {
+        projectId: number | BigNumber;
+        token: string;
+        amount: number | BigNumber;
+    }
+    export interface IStakeMultipleParams {
+        projectId: number | BigNumber;
+        token: string[];
+        amount: (number | BigNumber)[];
+    }
+    export interface IStakesBalanceParams {
+        param1: number | BigNumber;
+        param2: string;
+    }
+    export interface ITransferProjectOwnershipParams {
+        projectId: number | BigNumber;
+        newOwner: string;
+    }
+    export interface IUnstakeParams {
+        projectId: number | BigNumber;
+        token: string;
+        amount: number | BigNumber;
+    }
+    export interface IUnstakeMultipleParams {
+        projectId: number | BigNumber;
+        token: string[];
+        amount: (number | BigNumber)[];
+    }
+    export class ProxyV3 extends _Contract {
+        static _abi: any;
+        constructor(wallet: IWallet, address?: string);
+        deploy(protocolRate: number | BigNumber, options?: TransactionOptions): Promise<string>;
+        parseAddCommissionEvent(receipt: TransactionReceipt): ProxyV3.AddCommissionEvent[];
+        decodeAddCommissionEvent(event: Event): ProxyV3.AddCommissionEvent;
+        parseAddProjectAdminEvent(receipt: TransactionReceipt): ProxyV3.AddProjectAdminEvent[];
+        decodeAddProjectAdminEvent(event: Event): ProxyV3.AddProjectAdminEvent;
+        parseAuthorizeEvent(receipt: TransactionReceipt): ProxyV3.AuthorizeEvent[];
+        decodeAuthorizeEvent(event: Event): ProxyV3.AuthorizeEvent;
+        parseClaimEvent(receipt: TransactionReceipt): ProxyV3.ClaimEvent[];
+        decodeClaimEvent(event: Event): ProxyV3.ClaimEvent;
+        parseClaimProtocolFeeEvent(receipt: TransactionReceipt): ProxyV3.ClaimProtocolFeeEvent[];
+        decodeClaimProtocolFeeEvent(event: Event): ProxyV3.ClaimProtocolFeeEvent;
+        parseDeauthorizeEvent(receipt: TransactionReceipt): ProxyV3.DeauthorizeEvent[];
+        decodeDeauthorizeEvent(event: Event): ProxyV3.DeauthorizeEvent;
+        parseNewCampaignEvent(receipt: TransactionReceipt): ProxyV3.NewCampaignEvent[];
+        decodeNewCampaignEvent(event: Event): ProxyV3.NewCampaignEvent;
+        parseNewProjectEvent(receipt: TransactionReceipt): ProxyV3.NewProjectEvent[];
+        decodeNewProjectEvent(event: Event): ProxyV3.NewProjectEvent;
+        parseRemoveProjectAdminEvent(receipt: TransactionReceipt): ProxyV3.RemoveProjectAdminEvent[];
+        decodeRemoveProjectAdminEvent(event: Event): ProxyV3.RemoveProjectAdminEvent;
+        parseSetProtocolRateEvent(receipt: TransactionReceipt): ProxyV3.SetProtocolRateEvent[];
+        decodeSetProtocolRateEvent(event: Event): ProxyV3.SetProtocolRateEvent;
+        parseSkimEvent(receipt: TransactionReceipt): ProxyV3.SkimEvent[];
+        decodeSkimEvent(event: Event): ProxyV3.SkimEvent;
+        parseStakeEvent(receipt: TransactionReceipt): ProxyV3.StakeEvent[];
+        decodeStakeEvent(event: Event): ProxyV3.StakeEvent;
+        parseStartOwnershipTransferEvent(receipt: TransactionReceipt): ProxyV3.StartOwnershipTransferEvent[];
+        decodeStartOwnershipTransferEvent(event: Event): ProxyV3.StartOwnershipTransferEvent;
+        parseTakeoverProjectOwnershipEvent(receipt: TransactionReceipt): ProxyV3.TakeoverProjectOwnershipEvent[];
+        decodeTakeoverProjectOwnershipEvent(event: Event): ProxyV3.TakeoverProjectOwnershipEvent;
+        parseTransferBackEvent(receipt: TransactionReceipt): ProxyV3.TransferBackEvent[];
+        decodeTransferBackEvent(event: Event): ProxyV3.TransferBackEvent;
+        parseTransferForwardEvent(receipt: TransactionReceipt): ProxyV3.TransferForwardEvent[];
+        decodeTransferForwardEvent(event: Event): ProxyV3.TransferForwardEvent;
+        parseTransferOwnershipEvent(receipt: TransactionReceipt): ProxyV3.TransferOwnershipEvent[];
+        decodeTransferOwnershipEvent(event: Event): ProxyV3.TransferOwnershipEvent;
+        parseTransferProjectOwnershipEvent(receipt: TransactionReceipt): ProxyV3.TransferProjectOwnershipEvent[];
+        decodeTransferProjectOwnershipEvent(event: Event): ProxyV3.TransferProjectOwnershipEvent;
+        parseUnstakeEvent(receipt: TransactionReceipt): ProxyV3.UnstakeEvent[];
+        decodeUnstakeEvent(event: Event): ProxyV3.UnstakeEvent;
+        addProjectAdmin: {
+            (params: IAddProjectAdminParams, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IAddProjectAdminParams, options?: TransactionOptions) => Promise<void>;
+            txData: (params: IAddProjectAdminParams, options?: TransactionOptions) => Promise<string>;
+        };
+        campaignAccumulatedCommission: {
+            (params: ICampaignAccumulatedCommissionParams, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        claim: {
+            (token: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (token: string, options?: TransactionOptions) => Promise<void>;
+            txData: (token: string, options?: TransactionOptions) => Promise<string>;
+        };
+        claimMultiple: {
+            (tokens: string[], options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (tokens: string[], options?: TransactionOptions) => Promise<void>;
+            txData: (tokens: string[], options?: TransactionOptions) => Promise<string>;
+        };
+        claimMultipleProtocolFee: {
+            (tokens: string[], options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (tokens: string[], options?: TransactionOptions) => Promise<void>;
+            txData: (tokens: string[], options?: TransactionOptions) => Promise<string>;
+        };
+        claimProtocolFee: {
+            (token: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (token: string, options?: TransactionOptions) => Promise<void>;
+            txData: (token: string, options?: TransactionOptions) => Promise<string>;
+        };
+        claimantIdCount: {
+            (options?: TransactionOptions): Promise<BigNumber>;
+        };
+        claimantIds: {
+            (params: IClaimantIdsParams, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        claimantsInfo: {
+            (param1: number | BigNumber, options?: TransactionOptions): Promise<{
+                claimant: string;
+                token: string;
+                balance: BigNumber;
+            }>;
+        };
+        deny: {
+            (user: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (user: string, options?: TransactionOptions) => Promise<void>;
+            txData: (user: string, options?: TransactionOptions) => Promise<string>;
+        };
+        getCampaign: {
+            (params: IGetCampaignParams, options?: TransactionOptions): Promise<{
+                projectId: BigNumber;
+                maxInputTokensInEachCall: BigNumber;
+                maxOutputTokensInEachCall: BigNumber;
+                referrersRequireApproval: boolean;
+                startDate: BigNumber;
+                endDate: BigNumber;
+                targetAndSelectors: string[];
+                acceptAnyInToken: boolean;
+                acceptAnyOutToken: boolean;
+                inTokens: string[];
+                directTransferInToken: boolean[];
+                commissionInTokenConfig: {
+                    rate: BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: BigNumber;
+                    capPerCampaign: BigNumber;
+                }[];
+                outTokens: string[];
+                commissionOutTokenConfig: {
+                    rate: BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: BigNumber;
+                    capPerCampaign: BigNumber;
+                }[];
+                referrers: string[];
+            }>;
+        };
+        getCampaignArrayData1: {
+            (params: IGetCampaignArrayData1Params, options?: TransactionOptions): Promise<{
+                targetAndSelectors: string[];
+                referrers: string[];
+            }>;
+        };
+        getCampaignArrayData2: {
+            (params: IGetCampaignArrayData2Params, options?: TransactionOptions): Promise<{
+                inTokens: string[];
+                directTransferInToken: boolean[];
+                commissionInTokenConfig: {
+                    rate: BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: BigNumber;
+                    capPerCampaign: BigNumber;
+                }[];
+                outTokens: string[];
+                commissionOutTokenConfig: {
+                    rate: BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: BigNumber;
+                    capPerCampaign: BigNumber;
+                }[];
+            }>;
+        };
+        getCampaignArrayLength: {
+            (campaignId: number | BigNumber, options?: TransactionOptions): Promise<{
+                targetAndSelectorsLength: BigNumber;
+                inTokensLength: BigNumber;
+                outTokensLength: BigNumber;
+                referrersLength: BigNumber;
+            }>;
+        };
+        getCampaignsLength: {
+            (options?: TransactionOptions): Promise<BigNumber>;
+        };
+        getClaimantBalance: {
+            (params: IGetClaimantBalanceParams, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        getClaimantsInfo: {
+            (params: IGetClaimantsInfoParams, options?: TransactionOptions): Promise<{
+                claimant: string;
+                token: string;
+                balance: BigNumber;
+            }[]>;
+        };
+        getProject: {
+            (projectId: number | BigNumber, options?: TransactionOptions): Promise<{
+                owner: string;
+                newOwner: string;
+                projectAdmins: string[];
+            }>;
+        };
+        getProjectAdminsLength: {
+            (projectId: number | BigNumber, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        getProjectsLength: {
+            (options?: TransactionOptions): Promise<BigNumber>;
+        };
+        isPermitted: {
+            (param1: string, options?: TransactionOptions): Promise<boolean>;
+        };
+        lastBalance: {
+            (param1: string, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        newCampaign: {
+            (params: {
+                projectId: number | BigNumber;
+                maxInputTokensInEachCall: number | BigNumber;
+                maxOutputTokensInEachCall: number | BigNumber;
+                referrersRequireApproval: boolean;
+                startDate: number | BigNumber;
+                endDate: number | BigNumber;
+                targetAndSelectors: string[];
+                acceptAnyInToken: boolean;
+                acceptAnyOutToken: boolean;
+                inTokens: string[];
+                directTransferInToken: boolean[];
+                commissionInTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                outTokens: string[];
+                commissionOutTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                referrers: string[];
+            }, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: {
+                projectId: number | BigNumber;
+                maxInputTokensInEachCall: number | BigNumber;
+                maxOutputTokensInEachCall: number | BigNumber;
+                referrersRequireApproval: boolean;
+                startDate: number | BigNumber;
+                endDate: number | BigNumber;
+                targetAndSelectors: string[];
+                acceptAnyInToken: boolean;
+                acceptAnyOutToken: boolean;
+                inTokens: string[];
+                directTransferInToken: boolean[];
+                commissionInTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                outTokens: string[];
+                commissionOutTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                referrers: string[];
+            }, options?: TransactionOptions) => Promise<BigNumber>;
+            txData: (params: {
+                projectId: number | BigNumber;
+                maxInputTokensInEachCall: number | BigNumber;
+                maxOutputTokensInEachCall: number | BigNumber;
+                referrersRequireApproval: boolean;
+                startDate: number | BigNumber;
+                endDate: number | BigNumber;
+                targetAndSelectors: string[];
+                acceptAnyInToken: boolean;
+                acceptAnyOutToken: boolean;
+                inTokens: string[];
+                directTransferInToken: boolean[];
+                commissionInTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                outTokens: string[];
+                commissionOutTokenConfig: {
+                    rate: number | BigNumber;
+                    feeOnProjectOwner: boolean;
+                    capPerTransaction: number | BigNumber;
+                    capPerCampaign: number | BigNumber;
+                }[];
+                referrers: string[];
+            }, options?: TransactionOptions) => Promise<string>;
+        };
+        newOwner: {
+            (options?: TransactionOptions): Promise<string>;
+        };
+        newProject: {
+            (admins: string[], options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (admins: string[], options?: TransactionOptions) => Promise<BigNumber>;
+            txData: (admins: string[], options?: TransactionOptions) => Promise<string>;
+        };
+        owner: {
+            (options?: TransactionOptions): Promise<string>;
+        };
+        permit: {
+            (user: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (user: string, options?: TransactionOptions) => Promise<void>;
+            txData: (user: string, options?: TransactionOptions) => Promise<string>;
+        };
+        protocolFeeBalance: {
+            (param1: string, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        protocolRate: {
+            (options?: TransactionOptions): Promise<BigNumber>;
+        };
+        proxyCall: {
+            (params: IProxyCallParams, options?: number | BigNumber | TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IProxyCallParams, options?: number | BigNumber | TransactionOptions) => Promise<void>;
+            txData: (params: IProxyCallParams, options?: number | BigNumber | TransactionOptions) => Promise<string>;
+        };
+        removeProjectAdmin: {
+            (params: IRemoveProjectAdminParams, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IRemoveProjectAdminParams, options?: TransactionOptions) => Promise<void>;
+            txData: (params: IRemoveProjectAdminParams, options?: TransactionOptions) => Promise<string>;
+        };
+        setProtocolRate: {
+            (newRate: number | BigNumber, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (newRate: number | BigNumber, options?: TransactionOptions) => Promise<void>;
+            txData: (newRate: number | BigNumber, options?: TransactionOptions) => Promise<string>;
+        };
+        skim: {
+            (tokens: string[], options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (tokens: string[], options?: TransactionOptions) => Promise<void>;
+            txData: (tokens: string[], options?: TransactionOptions) => Promise<string>;
+        };
+        stake: {
+            (params: IStakeParams, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IStakeParams, options?: TransactionOptions) => Promise<void>;
+            txData: (params: IStakeParams, options?: TransactionOptions) => Promise<string>;
+        };
+        stakeETH: {
+            (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions): Promise<TransactionReceipt>;
+            call: (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions) => Promise<void>;
+            txData: (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions) => Promise<string>;
+        };
+        stakeMultiple: {
+            (params: IStakeMultipleParams, options?: number | BigNumber | TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IStakeMultipleParams, options?: number | BigNumber | TransactionOptions) => Promise<void>;
+            txData: (params: IStakeMultipleParams, options?: number | BigNumber | TransactionOptions) => Promise<string>;
+        };
+        stakesBalance: {
+            (params: IStakesBalanceParams, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        takeOwnership: {
+            (options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (options?: TransactionOptions) => Promise<void>;
+            txData: (options?: TransactionOptions) => Promise<string>;
+        };
+        takeoverProjectOwnership: {
+            (projectId: number | BigNumber, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (projectId: number | BigNumber, options?: TransactionOptions) => Promise<void>;
+            txData: (projectId: number | BigNumber, options?: TransactionOptions) => Promise<string>;
+        };
+        transferOwnership: {
+            (newOwner: string, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (newOwner: string, options?: TransactionOptions) => Promise<void>;
+            txData: (newOwner: string, options?: TransactionOptions) => Promise<string>;
+        };
+        transferProjectOwnership: {
+            (params: ITransferProjectOwnershipParams, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: ITransferProjectOwnershipParams, options?: TransactionOptions) => Promise<void>;
+            txData: (params: ITransferProjectOwnershipParams, options?: TransactionOptions) => Promise<string>;
+        };
+        unstake: {
+            (params: IUnstakeParams, options?: TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IUnstakeParams, options?: TransactionOptions) => Promise<void>;
+            txData: (params: IUnstakeParams, options?: TransactionOptions) => Promise<string>;
+        };
+        unstakeETH: {
+            (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions): Promise<TransactionReceipt>;
+            call: (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions) => Promise<void>;
+            txData: (projectId: number | BigNumber, options?: number | BigNumber | TransactionOptions) => Promise<string>;
+        };
+        unstakeMultiple: {
+            (params: IUnstakeMultipleParams, options?: number | BigNumber | TransactionOptions): Promise<TransactionReceipt>;
+            call: (params: IUnstakeMultipleParams, options?: number | BigNumber | TransactionOptions) => Promise<void>;
+            txData: (params: IUnstakeMultipleParams, options?: number | BigNumber | TransactionOptions) => Promise<string>;
+        };
+        private assign;
+    }
+    export module ProxyV3 {
+        interface AddCommissionEvent {
+            to: string;
+            token: string;
+            commission: BigNumber;
+            commissionBalance: BigNumber;
+            protocolFee: BigNumber;
+            protocolFeeBalance: BigNumber;
+            _event: Event;
+        }
+        interface AddProjectAdminEvent {
+            projectId: BigNumber;
+            admin: string;
+            _event: Event;
+        }
+        interface AuthorizeEvent {
+            user: string;
+            _event: Event;
+        }
+        interface ClaimEvent {
+            from: string;
+            token: string;
+            amount: BigNumber;
+            _event: Event;
+        }
+        interface ClaimProtocolFeeEvent {
+            token: string;
+            amount: BigNumber;
+            _event: Event;
+        }
+        interface DeauthorizeEvent {
+            user: string;
+            _event: Event;
+        }
+        interface NewCampaignEvent {
+            campaignId: BigNumber;
+            _event: Event;
+        }
+        interface NewProjectEvent {
+            projectId: BigNumber;
+            _event: Event;
+        }
+        interface RemoveProjectAdminEvent {
+            projectId: BigNumber;
+            admin: string;
+            _event: Event;
+        }
+        interface SetProtocolRateEvent {
+            protocolRate: BigNumber;
+            _event: Event;
+        }
+        interface SkimEvent {
+            token: string;
+            to: string;
+            amount: BigNumber;
+            _event: Event;
+        }
+        interface StakeEvent {
+            projectId: BigNumber;
+            token: string;
+            amount: BigNumber;
+            balance: BigNumber;
+            _event: Event;
+        }
+        interface StartOwnershipTransferEvent {
+            user: string;
+            _event: Event;
+        }
+        interface TakeoverProjectOwnershipEvent {
+            projectId: BigNumber;
+            newOwner: string;
+            _event: Event;
+        }
+        interface TransferBackEvent {
+            target: string;
+            token: string;
+            sender: string;
+            amount: BigNumber;
+            _event: Event;
+        }
+        interface TransferForwardEvent {
+            target: string;
+            token: string;
+            sender: string;
+            amount: BigNumber;
+            _event: Event;
+        }
+        interface TransferOwnershipEvent {
+            user: string;
+            _event: Event;
+        }
+        interface TransferProjectOwnershipEvent {
+            projectId: BigNumber;
+            newOwner: string;
+            _event: Event;
+        }
+        interface UnstakeEvent {
+            projectId: BigNumber;
+            token: string;
+            amount: BigNumber;
+            balance: BigNumber;
+            _event: Event;
+        }
+    }
+}
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/index.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/index.ts" {
+    export { Authorization } from "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Authorization.ts";
     export { Proxy } from "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/Proxy.ts";
     export { ProxyV2 } from "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts";
+    export { ProxyV3 } from "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/contracts/ProxyV3.ts";
 }
 /// <amd-module name="@scom/scom-gem-token/contracts/scom-commission-proxy-contract/index.ts" />
 declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/index.ts" {
@@ -1276,6 +1979,7 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
     import { IWallet } from '@ijstech/eth-wallet';
     export interface IDeployOptions {
         version?: string;
+        protocolRate?: string;
     }
     export interface IDeployResult {
         proxy: string;
@@ -1283,29 +1987,30 @@ declare module "@scom/scom-gem-token/contracts/scom-commission-proxy-contract/in
     export var DefaultDeployOptions: IDeployOptions;
     export function deploy(wallet: IWallet, options?: IDeployOptions): Promise<IDeployResult>;
     export function onProgress(handler: any): void;
-    const _default_6: {
+    const _default_8: {
         Contracts: typeof Contracts;
         deploy: typeof deploy;
         DefaultDeployOptions: IDeployOptions;
         onProgress: typeof onProgress;
     };
-    export default _default_6;
+    export default _default_8;
 }
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {
     import { BigNumber } from '@ijstech/eth-wallet';
     import { DappType, ICommissionInfo, IDeploy, IGemInfo } from "@scom/scom-gem-token/interface.tsx";
     import { Contracts } from "@scom/scom-gem-token/contracts/scom-gem-token-contract/index.ts";
+    import { State } from "@scom/scom-gem-token/store/index.ts";
     import { ITokenObject } from '@scom/scom-token-list';
-    function getFee(contractAddress: string, type: DappType): Promise<BigNumber>;
-    function getGemBalance(contractAddress: string): Promise<BigNumber>;
+    function getFee(state: State, contractAddress: string, type: DappType): Promise<BigNumber>;
+    function getGemBalance(state: State, contractAddress: string): Promise<BigNumber>;
     function deployContract(options: IDeploy, token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<string>;
     function transfer(contractAddress: string, to: string, amount: string): Promise<{
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         value: any;
     }>;
-    function getGemInfo(contractAddress: string): Promise<IGemInfo>;
-    function buyToken(contractAddress: string, backerCoinAmount: number, token: ITokenObject, commissions: ICommissionInfo[], callback?: any, confirmationCallback?: any): Promise<any>;
+    function getGemInfo(state: State, contractAddress: string): Promise<IGemInfo>;
+    function buyToken(state: State, contractAddress: string, backerCoinAmount: number, token: ITokenObject, commissions: ICommissionInfo[], callback?: any, confirmationCallback?: any): Promise<any>;
     function redeemToken(address: string, gemAmount: string, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt | {
         receipt: import("@ijstech/eth-contract").TransactionReceipt;
         data: Contracts.GEM.RedeemEvent;
@@ -1314,7 +2019,8 @@ declare module "@scom/scom-gem-token/API.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/data.json.ts" />
 declare module "@scom/scom-gem-token/data.json.ts" {
-    const _default_7: {
+    const _default_9: {
+        ipfsGatewayUrl: string;
         infuraId: string;
         networks: {
             chainId: number;
@@ -1345,7 +2051,68 @@ declare module "@scom/scom-gem-token/data.json.ts" {
             }[];
         };
     };
-    export default _default_7;
+    export default _default_9;
+}
+/// <amd-module name="@scom/scom-gem-token/formSchema.json.ts" />
+declare module "@scom/scom-gem-token/formSchema.json.ts" {
+    const _default_10: {
+        general: {
+            dataSchema: {
+                type: string;
+                properties: {};
+            };
+        };
+        theme: {
+            dataSchema: {
+                type: string;
+                properties: {
+                    dark: {
+                        type: string;
+                        properties: {
+                            backgroundColor: {
+                                type: string;
+                                format: string;
+                            };
+                            fontColor: {
+                                type: string;
+                                format: string;
+                            };
+                            inputBackgroundColor: {
+                                type: string;
+                                format: string;
+                            };
+                            inputFontColor: {
+                                type: string;
+                                format: string;
+                            };
+                        };
+                    };
+                    light: {
+                        type: string;
+                        properties: {
+                            backgroundColor: {
+                                type: string;
+                                format: string;
+                            };
+                            fontColor: {
+                                type: string;
+                                format: string;
+                            };
+                            inputBackgroundColor: {
+                                type: string;
+                                format: string;
+                            };
+                            inputFontColor: {
+                                type: string;
+                                format: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    export default _default_10;
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
@@ -1373,6 +2140,7 @@ declare module "@scom/scom-gem-token" {
         }
     }
     export default class ScomGemToken extends Module {
+        private state;
         private gridDApp;
         private imgLogo;
         private imgLogo2;
@@ -1412,20 +2180,20 @@ declare module "@scom/scom-gem-token" {
         private _type;
         private _entryContract;
         private _data;
-        private $eventBus;
         private approvalModelAction;
         private isApproving;
         private gemInfo;
         tag: any;
         defaultEdit: boolean;
         private rpcWalletEvents;
-        private clientEvents;
         constructor(parent?: Container, options?: ScomGemTokenElement);
+        removeRpcWalletEvents(): void;
         onHide(): void;
-        private registerEvent;
         static create(options?: ScomGemTokenElement, parent?: Container): Promise<ScomGemToken>;
         private onWalletConnect;
         private onChainChanged;
+        private get chainId();
+        private get rpcWallet();
         private get isBuy();
         private get tokenSymbol();
         get wallets(): IWalletPlugin[];
@@ -1484,6 +2252,7 @@ declare module "@scom/scom-gem-token" {
             getActions?: undefined;
         })[];
         private getData;
+        private resetRpcWallet;
         private setData;
         private getTag;
         private updateTag;
@@ -1494,7 +2263,6 @@ declare module "@scom/scom-gem-token" {
         private initWallet;
         private renderEmpty;
         private refreshDApp;
-        init(): Promise<void>;
         get contract(): string;
         get dappType(): DappType;
         set dappType(value: DappType);
@@ -1522,6 +2290,7 @@ declare module "@scom/scom-gem-token" {
         private onRedeemToken;
         private onSetMaxBalance;
         private renderTokenInput;
+        init(): Promise<void>;
         render(): any;
     }
 }

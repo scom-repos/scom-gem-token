@@ -10,21 +10,18 @@ import {
   Input,
   Button,
   Container,
-  IEventBus,
-  application,
   Panel,
   Icon,
   VStack,
   IDataSchema,
   ControlElement
 } from '@ijstech/components';
-import { BigNumber, Constants, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
+import { BigNumber, Constants, IERC20ApprovalAction, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
-import { getERC20ApprovalModelAction, getTokenBalance, IERC20ApprovalAction } from './utils/index';
-import { EventId, getEmbedderCommissionFee, getProxyAddress, setDataFromSCConfig, getChainId, setDefaultChainId, getRpcWallet, initRpcWallet, isRpcWalletConnected, isClientWalletConnected, getIPFSGatewayUrl } from './store/index';
+import { formatNumber, getTokenBalance } from './utils/index';
+import { State, isClientWalletConnected } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
-import { TokenSelection } from './token-selection/index';
 import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import configData from './data.json';
@@ -32,6 +29,8 @@ import { INetworkConfig } from '@scom/scom-network-picker';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
 import ScomTxStatusModal from '@scom/scom-tx-status-modal';
+import ScomTokenInput from '@scom/scom-token-input';
+import formSchema from './formSchema.json';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -60,6 +59,7 @@ declare global {
 
 @customElements('i-scom-gem-token')
 export default class ScomGemToken extends Module {
+  private state: State;
   private gridDApp: GridLayout;
   private imgLogo: Image;
   private imgLogo2: Image;
@@ -77,7 +77,7 @@ export default class ScomGemToken extends Module {
   private lblBalance: Label;
   private btnSubmit: Button;
   private btnApprove: Button;
-  private tokenElm: TokenSelection;
+  private tokenElm: ScomTokenInput;
   private edtAmount: Input;
   private txStatusModal: ScomTxStatusModal;
   private balanceLayout: GridLayout;
@@ -104,7 +104,6 @@ export default class ScomGemToken extends Module {
     networks: [],
     defaultChainId: 0
   };
-  private $eventBus: IEventBus;
   private approvalModelAction: IERC20ApprovalAction;
   private isApproving: boolean = false;
   private gemInfo: IGemInfo;
@@ -112,30 +111,23 @@ export default class ScomGemToken extends Module {
   tag: any = {}
   defaultEdit: boolean = true;
   private rpcWalletEvents: IEventBusRegistry[] = [];
-  private clientEvents: any[] = [];
 
   constructor(parent?: Container, options?: ScomGemTokenElement) {
     super(parent, options);
-    if (configData) setDataFromSCConfig(configData);
-    this.$eventBus = application.EventBus;
-    this.registerEvent();
+    this.state = new State(configData);
   }
 
-  onHide() {
-    this.dappContainer.onHide();
-    const rpcWallet = getRpcWallet();
+  removeRpcWalletEvents() {
+    const rpcWallet = this.rpcWallet;
     for (let event of this.rpcWalletEvents) {
       rpcWallet.unregisterWalletEvent(event);
     }
     this.rpcWalletEvents = [];
-    for (let event of this.clientEvents) {
-      event.unregister();
-    }
-    this.clientEvents = [];
   }
 
-  private registerEvent() {
-    this.clientEvents.push(this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged));
+  onHide() {
+    this.dappContainer.onHide();
+    this.removeRpcWalletEvents();
   }
 
   static async create(options?: ScomGemTokenElement, parent?: Container) {
@@ -156,6 +148,14 @@ export default class ScomGemToken extends Module {
   private onChainChanged = async () => {
     this.updateContractAddress();
     this.initializeWidgetConfig();
+  }
+
+  private get chainId() {
+    return this.state.getChainId();
+  }
+
+  private get rpcWallet() {
+    return this.state.getRpcWallet();
   }
 
   private get isBuy() {
@@ -199,7 +199,7 @@ export default class ScomGemToken extends Module {
     if (!token) return;
     try {
       const symbol = token?.symbol || '';
-      this.lblBalance.caption = token ? `${(await getTokenBalance(token)).toFixed(2)} ${symbol}` : `0 ${symbol}`;
+      this.lblBalance.caption = token ? `${formatNumber(await getTokenBalance(this.rpcWallet, token))} ${symbol}` : `0 ${symbol}`;
     } catch { }
   }
 
@@ -238,7 +238,7 @@ export default class ScomGemToken extends Module {
             const vstack = new VStack();
             const config = new ScomCommissionFeeSetup(null, {
               commissions: self._data.commissions || [],
-              fee: getEmbedderCommissionFee(),
+              fee: this.state.embedderCommissionFee,
               networks: self._data.networks
             });
             const hstack = new HStack(null, {
@@ -278,6 +278,7 @@ export default class ScomGemToken extends Module {
                 if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
                 if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
                 if (userInputData.description != undefined) this._data.description = userInputData.description;
+                await this.resetRpcWallet();
                 this.refreshDApp();
                 if (builder?.setData) builder.setData(this._data);
               },
@@ -330,68 +331,14 @@ export default class ScomGemToken extends Module {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: (category?: string) => {
-          const propertiesSchema: IDataSchema = {
-            type: 'object',
-            properties: {
-              // "contract": {
-              //   type: 'string'
-              // }
-            }
-          }
+          const propertiesSchema = { ...formSchema.general.dataSchema }
           if (!this._data.hideDescription) {
             propertiesSchema.properties['description'] = {
               type: 'string',
               format: 'multi'
             };
           }
-          const themeSchema: IDataSchema = {
-            type: 'object',
-            properties: {
-              "dark": {
-                type: 'object',
-                properties: {
-                  backgroundColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  fontColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  inputBackgroundColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  inputFontColor: {
-                    type: 'string',
-                    format: 'color'
-                  }
-                }
-              },
-              "light": {
-                type: 'object',
-                properties: {
-                  backgroundColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  fontColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  inputBackgroundColor: {
-                    type: 'string',
-                    format: 'color'
-                  },
-                  inputFontColor: {
-                    type: 'string',
-                    format: 'color'
-                  }
-                }
-              }
-            }
-          }
-          return this._getActions(propertiesSchema, themeSchema, category);
+          return this._getActions(propertiesSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema, category);
         },
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {
@@ -433,7 +380,7 @@ export default class ScomGemToken extends Module {
           }
         },
         getData: () => {
-          const fee = getEmbedderCommissionFee();
+          const fee = this.state.embedderCommissionFee;
           return { ...this.getData(), fee }
         },
         setData: this.setData.bind(this),
@@ -447,25 +394,37 @@ export default class ScomGemToken extends Module {
     return this._data;
   }
 
-  private async setData(value: IEmbedData) {
-    this._data = value;
-    const rpcWalletId = initRpcWallet(this.defaultChainId);
-    const rpcWallet = getRpcWallet();
-    const event = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
+  private async resetRpcWallet() {
+    this.removeRpcWalletEvents();
+    const rpcWalletId = await this.state.initRpcWallet(this.defaultChainId);
+    const rpcWallet = this.rpcWallet;
+    const chainChangedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.ChainChanged, async (chainId: number) => {
+      this.onChainChanged();
+    });
+    const connectedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
       this.onWalletConnect();
     });
-    this.rpcWalletEvents.push(event);
+    this.rpcWalletEvents.push(chainChangedEvent, connectedEvent);
 
     const data = {
       defaultChainId: this.defaultChainId,
       wallets: this.wallets,
       networks: this.networks,
       showHeader: this.showHeader,
-      rpcWalletId: rpcWallet.instanceId
+      rpcWalletId: rpcWallet.instanceId || ''
     }
-    if (this.dappContainer?.setData) this.dappContainer.setData(data)
+    if (this.dappContainer?.setData) this.dappContainer.setData(data);
+  }
+
+  private async setData(value: IEmbedData) {
+    this._data = value;
+    await this.resetRpcWallet();
+    if (!this.tokenElm.isConnected) await this.tokenElm.ready();
+    if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+      this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+    }
     await this.initializeWidgetConfig();
-    const commissionFee = getEmbedderCommissionFee();
+    const commissionFee = this.state.embedderCommissionFee;
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
     this.updateContractAddress();
   }
@@ -555,8 +514,8 @@ export default class ScomGemToken extends Module {
   // }
 
   private async initializeWidgetConfig() {
-    tokenStore.updateTokenMapData(getChainId());
-    const rpcWallet = getRpcWallet();
+    tokenStore.updateTokenMapData(this.chainId);
+    const rpcWallet = this.rpcWallet;
     if (rpcWallet.address) {
       tokenStore.updateAllTokenBalances(rpcWallet);
     }
@@ -572,8 +531,7 @@ export default class ScomGemToken extends Module {
   private initWallet = async () => {
     try {
       await Wallet.getClientInstance().init();
-      const rpcWallet = getRpcWallet();
-      await rpcWallet.init();
+      await this.rpcWallet.init();
     } catch (err) {
       console.log(err);
     }
@@ -613,7 +571,7 @@ export default class ScomGemToken extends Module {
     if (!this.btnSubmit.isConnected) await this.btnSubmit.ready();
     this.btnSubmit.caption = this.submitButtonCaption;
     this.imgLogo.url = this.imgLogo2.url = this.logo || assets.fullPath('img/gem-logo.png');
-    this.gemInfo = this.contract ? await getGemInfo(this.contract) : null;
+    this.gemInfo = this.contract ? await getGemInfo(this.state, this.contract) : null;
     if (this.gemInfo?.baseToken) {
       this.lbPrice.visible = true;
       this.hStackTokens.visible = true;
@@ -646,62 +604,33 @@ export default class ScomGemToken extends Module {
       if (!this.isBuy) {
         this.btnSubmit.enabled = false;
         this.btnApprove.visible = false;
-        this.backerTokenImg.url = tokenAssets.tokenPath(this.gemInfo.baseToken, getChainId());
+        this.backerTokenImg.url = tokenAssets.tokenPath(this.gemInfo.baseToken, this.chainId);
         if (!this.backerTokenBalanceLb.isConnected) await this.backerTokenBalanceLb.ready();
         this.backerTokenBalanceLb.caption = '0.00';
+      } else {
+        this.btnSubmit.enabled = new BigNumber(this.edtAmount.value).gt(0);
       }
       const feeValue = this.isBuy ? Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
       if (!this.feeLb.isConnected) await this.feeLb.ready();
       this.feeLb.caption = `${feeValue || ''} ${this.gemInfo.name}`;
       const qty = Number(this.edtGemQty.value);
-      const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
+      const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue));
       if (!this.lbYouWillGet.isConnected) await this.lbYouWillGet.ready();
-      this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
+      this.lbYouWillGet.caption = `${formatNumber(totalGemTokens)} ${this.gemInfo.name}`;
       this.feeTooltip.tooltip.content = this.isBuy ? buyTooltip : redeemTooltip;
       if (!this.lblBalance.isConnected) await this.lblBalance.ready();
-      this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
+      this.lblBalance.caption = `${formatNumber(await this.getBalance())} ${this.tokenSymbol}`;
       this.updateTokenBalance();
     } else {
       this.renderEmpty();
     }
-    if (!isRpcWalletConnected()) {
+    if (!this.state.isRpcWalletConnected()) {
       this.btnSubmit.enabled = true;
     }
   }
 
-  async init() {
-    this.isReadyCallbackQueued = true;
-    super.init();
-    const lazyLoad = this.getAttribute('lazyLoad', true, false);
-    if (!lazyLoad) {
-      const dappType = this.getAttribute('dappType', true);
-      const description = this.getAttribute('description', true);
-      const hideDescription = this.getAttribute('hideDescription', true);
-      const logo = this.getAttribute('logo', true);
-      const chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
-      const networks = this.getAttribute('networks', true, []);
-      const wallets = this.getAttribute('wallets', true, []);
-      const showHeader = this.getAttribute('showHeader', true);
-      const defaultChainId = this.getAttribute('defaultChainId', true, 1);
-      setDefaultChainId(defaultChainId);
-      await this.setData({
-        dappType,
-        description,
-        hideDescription,
-        logo,
-        chainSpecificProperties,
-        networks,
-        wallets,
-        showHeader,
-        defaultChainId
-      });
-    }
-    this.isReadyCallbackQueued = false;
-    this.executeReadyCallback();
-  }
-
   get contract() {
-    return this._data.chainSpecificProperties?.[getChainId()]?.contract ?? '';
+    return this._data.chainSpecificProperties?.[this.chainId]?.contract ?? '';
   }
 
   get dappType(): DappType {
@@ -727,8 +656,7 @@ export default class ScomGemToken extends Module {
 
   get logo() {
     if (this._data.logo?.startsWith('ipfs://')) {
-      const ipfsGatewayUrl = getIPFSGatewayUrl();
-      return this._data.logo.replace('ipfs://', ipfsGatewayUrl);
+      return this._data.logo.replace('ipfs://', this.state.ipfsGatewayUrl);
     }
     return this._data.logo ?? '';
   }
@@ -746,15 +674,15 @@ export default class ScomGemToken extends Module {
 
   private async initApprovalAction() {
     if (!this.approvalModelAction) {
-      this._entryContract = getProxyAddress();
-      this.approvalModelAction = getERC20ApprovalModelAction(this._entryContract, {
+      this._entryContract = this.state.getProxyAddress();
+      this.approvalModelAction = await this.state.setApprovalModelAction({
         sender: this,
         payAction: async () => {
           await this.doSubmitAction();
         },
         onToBeApproved: async (token: ITokenObject) => {
           this.btnApprove.visible = true;
-          this.btnSubmit.enabled = !isRpcWalletConnected();
+          this.btnSubmit.enabled = !this.state.isRpcWalletConnected();
           if (!this.isApproving) {
             this.btnApprove.rightIcon.visible = false;
             this.btnApprove.caption = 'Approve';
@@ -765,7 +693,7 @@ export default class ScomGemToken extends Module {
         onToBePaid: async (token: ITokenObject) => {
           this.btnApprove.visible = false;
           this.isApproving = false;
-          this.btnSubmit.enabled = !isRpcWalletConnected() || new BigNumber(this.edtAmount.value).gt(0);
+          this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || new BigNumber(this.edtAmount.value).gt(0);
         },
         onApproving: async (token: ITokenObject, receipt?: string) => {
           this.isApproving = true;
@@ -804,6 +732,7 @@ export default class ScomGemToken extends Module {
           this.showTxStatusModal('error', err);
         }
       });
+      this.state.approvalModel.spenderAddress = this._entryContract;
     }
   }
 
@@ -813,9 +742,9 @@ export default class ScomGemToken extends Module {
         this._entryContract = this.contract;
       }
       else {
-        this._entryContract = getProxyAddress();
+        this._entryContract = this.state.getProxyAddress();
       }
-      this.approvalModelAction.setSpenderAddress(this._entryContract);
+      this.state.approvalModel.spenderAddress = this._entryContract;
     }
   }
 
@@ -837,7 +766,7 @@ export default class ScomGemToken extends Module {
   }
 
   private get submitButtonCaption() {
-    return !isRpcWalletConnected() ? 'Switch Network' : 'Submit';
+    return !this.state.isRpcWalletConnected() ? 'Switch Network' : 'Submit';
   }
 
   private onApprove() {
@@ -848,28 +777,29 @@ export default class ScomGemToken extends Module {
   private async onQtyChanged() {
     const qty = Number(this.edtGemQty.value);
     const backerCoinAmount = this.getBackerCoinAmount(qty);
-    const commissionFee = getEmbedderCommissionFee();
+    const commissionFee = this.state.embedderCommissionFee;
     this.edtAmount.value = new BigNumber(qty).times(commissionFee).plus(qty).toFixed();
     const feeValue = this.isBuy ? Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
-    const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue)).toFixed();
-    this.lbYouWillGet.caption = `${totalGemTokens} ${this.gemInfo.name}`;
+    const totalGemTokens = new BigNumber(qty).minus(new BigNumber(qty).times(feeValue));
+    this.lbYouWillGet.caption = `${formatNumber(totalGemTokens)} ${this.gemInfo.name}`;
     this.btnApprove.enabled = new BigNumber(this.edtGemQty.value).gt(0);
 
-    if (this.approvalModelAction && isRpcWalletConnected())
+    if (this.approvalModelAction && this.state.isRpcWalletConnected())
       this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, backerCoinAmount.toString());
   }
 
   private async onAmountChanged() {
     const gemAmount = Number(this.edtAmount.value);
-    this.backerTokenBalanceLb.caption = this.getBackerCoinAmount(gemAmount).toFixed(2);
+    this.backerTokenBalanceLb.caption = formatNumber(this.getBackerCoinAmount(gemAmount));
     const balance = await this.getBalance();
-    this.btnSubmit.enabled = !isRpcWalletConnected() || balance.gt(0) && new BigNumber(this.edtAmount.value).gt(0) && new BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
+    this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || balance.gt(0) && new BigNumber(this.edtAmount.value).gt(0) && new BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
   }
 
   private getBackerCoinAmount(gemAmount: number) {
     const redemptionFee = Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
     const price = Utils.fromDecimals(this.gemInfo.price).toFixed();
-    return gemAmount / Number(price) - (gemAmount / Number(price) * Number(redemptionFee));
+    const amount = new BigNumber(gemAmount);
+    return amount.dividedBy(price).minus(amount.dividedBy(price).multipliedBy(redemptionFee));
   }
 
   // private getGemAmount(backerCoinAmount: number) {
@@ -882,9 +812,9 @@ export default class ScomGemToken extends Module {
     let balance = new BigNumber(0);
     const tokenData = token || this.gemInfo.baseToken;
     if (this.isBuy && tokenData) {
-      balance = await getTokenBalance(tokenData);
+      balance = await getTokenBalance(this.rpcWallet, tokenData);
     } else if (!this.isBuy && this.contract) {
-      balance = await getGemBalance(this.contract);
+      balance = await getGemBalance(this.state, this.contract);
       balance = Utils.fromDecimals(balance);
     }
     return balance;
@@ -924,8 +854,8 @@ export default class ScomGemToken extends Module {
   }
 
   private async onSubmit() {
-    if (!isRpcWalletConnected()) {
-      const chainId = getChainId();
+    if (!this.state.isRpcWalletConnected()) {
+      const chainId = this.chainId;
       const clientWallet = Wallet.getClientInstance();
       await clientWallet.switchNetwork(chainId);
       return;
@@ -939,15 +869,16 @@ export default class ScomGemToken extends Module {
   }
 
   private onBuyToken = async (quantity: number) => {
-    this.txStatusModal.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
         this.showTxStatusModal('error', error);
+      } else if (receipt) {
+        this.showTxStatusModal('success', receipt);
       }
     };
 
-    await buyToken(this.contract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
+    await buyToken(this.state, this.contract, quantity, this.gemInfo.baseToken, this._data.commissions, callback,
       async (result: any) => {
         this.edtGemQty.value = '';
         this.edtAmount.value = '';
@@ -958,17 +889,18 @@ export default class ScomGemToken extends Module {
   }
 
   private onRedeemToken = async () => {
-    this.txStatusModal.closeModal();
     if (!this.gemInfo.name) return;
     const callback = (error: Error, receipt?: string) => {
       if (error) {
         this.showTxStatusModal('error', error);
+      } else if (receipt) {
+        this.showTxStatusModal('success', receipt);
       }
     };
     const gemAmount = this.edtAmount.value;
     await redeemToken(this.contract, gemAmount, callback,
       async (result: any) => {
-        this.lblBalance.caption = `${(await this.getBalance()).toFixed(2)} ${this.tokenSymbol}`;
+        this.lblBalance.caption = `${formatNumber(await this.getBalance())} ${this.tokenSymbol}`;
         this.edtAmount.value = '';
         this.backerTokenBalanceLb.caption = '0.00';
       }
@@ -986,9 +918,12 @@ export default class ScomGemToken extends Module {
     this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
+      if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+        this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+      }
       this.tokenElm.token = this.gemInfo.baseToken;
       this.tokenElm.visible = true;
-      this.tokenElm.readonly = !!this.contract;
+      this.tokenElm.tokenReadOnly = !!this.contract;
       this.gemLogoStack.visible = false;
       this.maxStack.visible = false;
       this.gridTokenInput.templateColumns = ['60%', 'auto'];
@@ -1009,6 +944,36 @@ export default class ScomGemToken extends Module {
       if (!this.gridTokenInput.isConnected) await this.gridTokenInput.ready();
       this.gridTokenInput.templateColumns = ['50px', 'auto', '100px'];
     }
+  }
+
+  async init() {
+    this.isReadyCallbackQueued = true;
+    super.init();
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      const dappType = this.getAttribute('dappType', true);
+      const description = this.getAttribute('description', true);
+      const hideDescription = this.getAttribute('hideDescription', true);
+      const logo = this.getAttribute('logo', true);
+      const chainSpecificProperties = this.getAttribute('chainSpecificProperties', true);
+      const networks = this.getAttribute('networks', true, []);
+      const wallets = this.getAttribute('wallets', true, []);
+      const showHeader = this.getAttribute('showHeader', true);
+      const defaultChainId = this.getAttribute('defaultChainId', true, 1);
+      await this.setData({
+        dappType,
+        description,
+        hideDescription,
+        logo,
+        chainSpecificProperties,
+        networks,
+        wallets,
+        showHeader,
+        defaultChainId
+      });
+    }
+    this.isReadyCallbackQueued = false;
+    this.executeReadyCallback();
   }
 
   render() {
@@ -1083,7 +1048,7 @@ export default class ScomGemToken extends Module {
                       <i-input
                         id='edtGemQty'
                         value={1}
-                        onChanged={this.onQtyChanged.bind(this)}
+                        onChanged={this.onQtyChanged}
                         class={inputStyle}
                         inputType='number'
                         font={{ size: '1rem', bold: true }}
@@ -1117,11 +1082,16 @@ export default class ScomGemToken extends Module {
                       grid={{ area: 'tokenInput' }}
                     >
                       <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
-                      <i-scom-gem-token-selection
+                      <i-scom-token-input
                         id="tokenElm"
+                        isBalanceShown={false}
+                        isBtnMaxShown={false}
+                        isCommonShown={false}
+                        isInputShown={false}
+                        isSortBalanceShown={false}
                         class={tokenSelectionStyle}
                         width="100%"
-                      ></i-scom-gem-token-selection>
+                      />
                       <i-input
                         id="edtAmount"
                         width='100%'
@@ -1132,7 +1102,7 @@ export default class ScomGemToken extends Module {
                         inputType='number'
                         font={{ size: '1.25rem' }}
                         opacity={0.3}
-                        onChanged={this.onAmountChanged.bind(this)}
+                        onChanged={this.onAmountChanged}
                       ></i-input>
                       <i-hstack id="maxStack" horizontalAlignment="end" visible={false}>
                         <i-button
@@ -1173,7 +1143,7 @@ export default class ScomGemToken extends Module {
                       rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
                       border={{ radius: 12 }}
                       visible={false}
-                      onClick={this.onApprove.bind(this)}
+                      onClick={this.onApprove}
                     ></i-button>
                     <i-button
                       id='btnSubmit'
@@ -1184,7 +1154,7 @@ export default class ScomGemToken extends Module {
                       background={{ color: Theme.colors.primary.main }}
                       rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
                       border={{ radius: 12 }}
-                      onClick={this.onSubmit.bind(this)}
+                      onClick={this.onSubmit}
                       enabled={false}
                     ></i-button>
                   </i-vstack>
