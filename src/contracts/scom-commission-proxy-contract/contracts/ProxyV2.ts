@@ -12,7 +12,7 @@ export class ProxyV2 extends _Contract{
         super(wallet, address, Bin.abi, Bin.bytecode);
         this.assign()
     }
-    deploy(options?: number|BigNumber|TransactionOptions): Promise<string>{
+    deploy(options?: TransactionOptions): Promise<string>{
         return this.__deploy([], options);
     }
     parseAddCommissionEvent(receipt: TransactionReceipt): ProxyV2.AddCommissionEvent[]{

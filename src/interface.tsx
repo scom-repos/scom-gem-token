@@ -1,4 +1,4 @@
-import { BigNumber, IClientSideProvider, INetwork } from "@ijstech/eth-wallet";
+import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
 import { INetworkConfig } from "@scom/scom-network-picker";
 import { ITokenObject } from '@scom/scom-token-list';
 

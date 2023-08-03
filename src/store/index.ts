@@ -1,150 +1,116 @@
 import { application } from "@ijstech/components";
-import { INetwork, Wallet } from "@ijstech/eth-wallet";
+import { ERC20ApprovalModel, INetwork, Wallet, IERC20ApprovalEventOptions } from "@ijstech/eth-wallet";
 import getNetworkList from "@scom/scom-network-list";
-
-export const enum EventId {
-  ConnectWallet = 'connectWallet',
-  IsWalletConnected = 'isWalletConnected',
-  IsWalletDisconnected = 'IsWalletDisconnected',
-  chainChanged = 'chainChanged'
-}
-
-export enum WalletPlugin {
-  MetaMask = 'metamask',
-  WalletConnect = 'walletconnect',
-}
-
-const setNetworkList = (networkList: INetwork[], infuraId?: string) => {
-  const wallet = Wallet.getClientInstance();
-  state.networkMap = {};
-  const defaultNetworkList = getNetworkList();
-  const defaultNetworkMap = defaultNetworkList.reduce((acc, cur) => {
-    acc[cur.chainId] = cur;
-    return acc;
-  }, {});
-  for (let network of networkList) {
-    const networkInfo = defaultNetworkMap[network.chainId];
-    if (!networkInfo) continue;
-    if (infuraId && network.rpcUrls && network.rpcUrls.length > 0) {
-      for (let i = 0; i < network.rpcUrls.length; i++) {
-        network.rpcUrls[i] = network.rpcUrls[i].replace(/{InfuraId}/g, infuraId);
-      }
-    }
-    state.networkMap[network.chainId] = {
-      ...networkInfo,
-      ...network
-    };
-    wallet.setNetworkInfo(state.networkMap[network.chainId]);
-  }
-}
-
-export const getNetworkInfo = (chainId: number) => {
-  return state.networkMap[chainId];
-}
-
-export const getSupportedNetworks = () => {
-  return Object.values(state.networkMap);
-}
 
 export type ProxyAddresses = { [key: number]: string };
 
-export const state = {
-  defaultChainId: 1,
-  networkMap: {} as { [key: number]: INetwork },
-  proxyAddresses: {} as ProxyAddresses,
-  embedderCommissionFee: '0',
-  ipfsGatewayUrl: '',
-  rpcWalletId: ''
-}
+export class State {
+  networkMap: { [key: number]: INetwork } = {};
+  proxyAddresses: ProxyAddresses = {};
+  ipfsGatewayUrl: string = '';
+  embedderCommissionFee: string = '0';
+  rpcWalletId: string = '';
+  approvalModel: ERC20ApprovalModel;
 
-export const setDataFromSCConfig = (options: any) => {
-  if (options.networks) {
-    setNetworkList(options.networks, options.infuraId)
+  constructor(options: any) {
+    this.initData(options);
   }
-  if (options.proxyAddresses) {
-    setProxyAddresses(options.proxyAddresses)
+
+  private initData(options: any) {
+    if (options.networks) {
+      this.setNetworkList(options.networks, options.infuraId);
+    }
+    if (options.ipfsGatewayUrl) {
+      this.ipfsGatewayUrl = options.ipfsGatewayUrl;
+    }
+    if (options.proxyAddresses) {
+      this.proxyAddresses = options.proxyAddresses;
+    }
+    if (options.embedderCommissionFee) {
+      this.embedderCommissionFee = options.embedderCommissionFee;
+    }
   }
-  if (options.embedderCommissionFee) {
-    setEmbedderCommissionFee(options.embedderCommissionFee);
+
+  initRpcWallet(defaultChainId: number) {
+    if (this.rpcWalletId) {
+      return this.rpcWalletId;
+    }
+    const clientWallet = Wallet.getClientInstance();
+    const networkList: INetwork[] = Object.values(application.store?.networkMap || []);
+    const instanceId = clientWallet.initRpcWallet({
+      networks: networkList,
+      defaultChainId,
+      infuraId: application.store?.infuraId,
+      multicalls: application.store?.multicalls
+    });
+    this.rpcWalletId = instanceId;
+    if (clientWallet.address) {
+      const rpcWallet = Wallet.getRpcWalletInstance(instanceId);
+      rpcWallet.address = clientWallet.address;
+    }
+    return instanceId;
   }
-}
 
-export const setIPFSGatewayUrl = (url: string) => {
-  state.ipfsGatewayUrl = url;
-}
-
-export const getIPFSGatewayUrl = () => {
-  return state.ipfsGatewayUrl;
-}
-
-export const setProxyAddresses = (data: ProxyAddresses) => {
-  state.proxyAddresses = data;
-}
-
-export const getProxyAddress = (chainId?: number) => {
-  const _chainId = chainId || Wallet.getInstance().chainId;
-  const proxyAddresses = state.proxyAddresses;
-  if (proxyAddresses) {
-    return proxyAddresses[_chainId];
+  private setNetworkList(networkList: INetwork[], infuraId?: string) {
+    const wallet = Wallet.getClientInstance();
+    this.networkMap = {};
+    const defaultNetworkList = getNetworkList();
+    const defaultNetworkMap = defaultNetworkList.reduce((acc, cur) => {
+      acc[cur.chainId] = cur;
+      return acc;
+    }, {});
+    for (let network of networkList) {
+      const networkInfo = defaultNetworkMap[network.chainId];
+      if (!networkInfo) continue;
+      if (infuraId && network.rpcUrls && network.rpcUrls.length > 0) {
+        for (let i = 0; i < network.rpcUrls.length; i++) {
+          network.rpcUrls[i] = network.rpcUrls[i].replace(/{InfuraId}/g, infuraId);
+        }
+      }
+      this.networkMap[network.chainId] = {
+        ...networkInfo,
+        ...network
+      };
+      wallet.setNetworkInfo(this.networkMap[network.chainId]);
+    }
   }
-  return null;
-}
 
-const setEmbedderCommissionFee = (fee: string) => {
-  state.embedderCommissionFee = fee;
-}
+  getProxyAddress(chainId?: number) {
+    const _chainId = chainId || this.getChainId();
+    const proxyAddresses = this.proxyAddresses;
+    if (proxyAddresses) {
+      return proxyAddresses[_chainId];
+    }
+    return null;
+  }
 
-export const getEmbedderCommissionFee = () => {
-  return state.embedderCommissionFee;
-}
+  getRpcWallet() {
+    return this.rpcWalletId ? Wallet.getRpcWalletInstance(this.rpcWalletId) : null;
+  }
 
-export const setDefaultChainId = (chainId: number) => {
-  state.defaultChainId = chainId;
-}
+  isRpcWalletConnected() {
+    const wallet = this.getRpcWallet();
+    return wallet?.isConnected;
+  }
 
-export const getDefaultChainId = () => {
-  return state.defaultChainId;
+  getChainId() {
+    const rpcWallet = this.getRpcWallet();
+    return rpcWallet?.chainId;
+  }
+
+  async setApprovalModelAction(options: IERC20ApprovalEventOptions) {
+    const approvalOptions = {
+      ...options,
+      spenderAddress: ''
+    };
+    let wallet = this.getRpcWallet();
+    this.approvalModel = new ERC20ApprovalModel(wallet, approvalOptions);
+    let approvalModelAction = this.approvalModel.getAction();
+    return approvalModelAction;
+  }
 }
 
 export function isClientWalletConnected() {
   const wallet = Wallet.getClientInstance();
   return wallet.isConnected;
-}
-
-export function isRpcWalletConnected() {
-  const wallet = getRpcWallet();
-  return wallet?.isConnected;
-}
-
-export function getChainId() {
-  const rpcWallet = getRpcWallet();
-  return rpcWallet?.chainId;
-}
-
-export function initRpcWallet(defaultChainId: number) {
-  if (state.rpcWalletId) {
-    return state.rpcWalletId;
-  }
-  const clientWallet = Wallet.getClientInstance();
-  const networkList: INetwork[] = Object.values(application.store.networkMap);
-  const instanceId = clientWallet.initRpcWallet({
-    networks: networkList,
-    defaultChainId,
-    infuraId: application.store.infuraId,
-    multicalls: application.store.multicalls
-  });
-  state.rpcWalletId = instanceId;
-  if (clientWallet.address) {
-    const rpcWallet = Wallet.getRpcWalletInstance(instanceId);
-    rpcWallet.address = clientWallet.address;
-  }
-  return instanceId;
-}
-
-export function getRpcWallet() {
-  return Wallet.getRpcWalletInstance(state.rpcWalletId);
-}
-
-export function getClientWallet() {
-  return Wallet.getClientInstance();
 }

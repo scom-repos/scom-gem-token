@@ -4,13 +4,15 @@ import {IWallet, BigNumber, Utils} from '@ijstech/eth-wallet';
 
 export interface IDeployOptions {
     version?: string;
+    protocolRate?: string;
 };
 export interface IDeployResult {
     proxy: string;
 };
 var progressHandler: any;
 export var DefaultDeployOptions: IDeployOptions = {
-    version: 'V1'
+    version: 'V3',
+    protocolRate: '0.01'
 };
 function progress(msg: string){
     if (typeof(progressHandler) == 'function'){
@@ -20,14 +22,21 @@ function progress(msg: string){
 export async function deploy(wallet: IWallet, options?: IDeployOptions): Promise<IDeployResult>{
     progress('Contracts deployment start');
     let proxy;
-    if (options.version == 'V2') {
-        proxy = new Contracts.ProxyV2(wallet);
+    if (options.version == 'V3') {
+        proxy = new Contracts.ProxyV3(wallet);
+        progress('Deploy Proxy');
+        await proxy.deploy(Utils.toDecimals(options.protocolRate, 6))
     }
     else {
-        proxy = new Contracts.Proxy(wallet);
+        if (options.version == 'V2') {
+            proxy = new Contracts.ProxyV2(wallet);
+        }
+        else {
+            proxy = new Contracts.Proxy(wallet);
+        }
+        progress('Deploy Proxy');
+        await proxy.deploy();
     }
-    progress('Deploy Proxy');
-    await proxy.deploy();
     progress('Proxy deployed ' + proxy.address);
     progress('Contracts deployment finished');
     return {
