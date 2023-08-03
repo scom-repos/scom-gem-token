@@ -1,0 +1,16 @@
+{
+    "name": "@scom/scom-gem-token",
+    "type": "widget",
+    "version": "0.1.15",
+    "dependencies": [
+        "@ijstech/components",
+        "@ijstech/eth-wallet",
+        "@scom/scom-network-picker",
+        "@scom/scom-token-list",
+        "@scom/scom-network-list",
+        "@ijstech/eth-contract",
+        "@scom/scom-dapp-container",
+        "@scom/scom-commission-fee-setup",
+        "@scom/scom-tx-status-modal"
+    ]
+}
