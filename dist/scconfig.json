@@ -1,7 +1,7 @@
 {
     "name": "@scom/scom-gem-token",
     "type": "widget",
-    "version": "0.1.17",
+    "version": "0.1.18",
     "dependencies": [
         "@ijstech/components",
         "@ijstech/eth-wallet",
