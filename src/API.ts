@@ -1,7 +1,7 @@
 import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
 import { DappType, ICommissionInfo, IDeploy, IGemInfo } from './interface';
-import { Contracts } from './contracts/scom-gem-token-contract/index';
-import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
+import { Contracts } from '@scom/scom-gem-token-contract';
+import { Contracts as ProxyContracts } from '@scom/scom-commission-proxy-contract';
 import { registerSendTxEvents } from './utils/index';
 import { State } from './store/index';
 import { DefaultTokens, ITokenObject } from '@scom/scom-token-list';
