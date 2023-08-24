@@ -12,7 +12,8 @@ export const imageStyle = Styles.style({
 })
 
 export const markdownStyle = Styles.style({
-  overflowWrap: 'break-word'
+  overflowWrap: 'break-word',
+  color: Theme.text.primary
 })
 
 export const inputStyle = Styles.style({

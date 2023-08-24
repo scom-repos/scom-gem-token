@@ -222,7 +222,8 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
         }
     });
     exports.markdownStyle = components_3.Styles.style({
-        overflowWrap: 'break-word'
+        overflowWrap: 'break-word',
+        color: Theme.text.primary
     });
     exports.inputStyle = components_3.Styles.style({
         $nest: {
