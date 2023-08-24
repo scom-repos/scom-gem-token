@@ -1,4 +1,5 @@
 /// <reference path="@ijstech/eth-wallet/index.d.ts" />
+/// <reference path="@scom/scom-commission-proxy-contract/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-token-input/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-token-input/@scom/scom-token-modal/@ijstech/eth-wallet/index.d.ts" />

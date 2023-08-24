@@ -10,9 +10,11 @@
         "@scom/scom-network-list",
         "@scom/scom-gem-token-contract",
         "@scom/scom-commission-proxy-contract",
+        "@scom/scom-multicall",
         "@scom/scom-dapp-container",
         "@scom/scom-commission-fee-setup",
         "@scom/scom-tx-status-modal",
+        "@scom/scom-token-modal",
         "@scom/scom-token-input"
     ]
 }
