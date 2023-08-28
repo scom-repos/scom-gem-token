@@ -14,7 +14,8 @@ import {
   Icon,
   VStack,
   IDataSchema,
-  ControlElement
+  ControlElement,
+  IUISchema
 } from '@ijstech/components';
 import { BigNumber, Constants, IERC20ApprovalAction, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
@@ -203,7 +204,7 @@ export default class ScomGemToken extends Module {
     } catch { }
   }
 
-  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema, category?: string) {
+  private _getActions(dataSchema: IDataSchema, uiSchema: IUISchema, category?: string) {
     let self = this;
     const actions: any[] = [
       {
@@ -264,60 +265,57 @@ export default class ScomGemToken extends Module {
     if (category && category !== 'offers') {
       actions.push(
         {
-          name: 'Settings',
-          icon: 'cog',
+          name: 'Edit',
+          icon: 'edit',
           command: (builder: any, userInputData: any) => {
-            let _oldData: IEmbedData = {
+            let oldData: IEmbedData = {
               wallets: [],
               networks: [],
               defaultChainId: 0
             };
-            return {
-              execute: async () => {
-                _oldData = { ...this._data };
-                if (userInputData.dappType != undefined) this._data.dappType = userInputData.dappType;
-                if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
-                if (userInputData.description != undefined) this._data.description = userInputData.description;
-                await this.resetRpcWallet();
-                this.refreshDApp();
-                if (builder?.setData) builder.setData(this._data);
-              },
-              undo: async () => {
-                this._data = { ..._oldData };
-                this.refreshDApp();
-                if (builder?.setData) builder.setData(this._data);
-              },
-              redo: () => { }
-            }
-          },
-          userInputDataSchema: propertiesSchema
-        }
-      );
-      actions.push(
-        {
-          name: 'Theme Settings',
-          icon: 'palette',
-          command: (builder: any, userInputData: any) => {
             let oldTag = {};
             return {
               execute: async () => {
-                if (!userInputData) return;
+                oldData = JSON.parse(JSON.stringify(this._data));
+                const {
+                  dappType,
+                  logo,
+                  description,
+                  ...themeSettings
+                } = userInputData;
+
+                const generalSettings = {
+                  dappType,
+                  logo,
+                  description
+                };
+                if (generalSettings.dappType != undefined) this._data.dappType = generalSettings.dappType;
+                if (generalSettings.logo != undefined) this._data.logo = generalSettings.logo;
+                if (generalSettings.description != undefined) this._data.description = generalSettings.description;
+                await this.resetRpcWallet();
+                this.refreshDApp();
+                if (builder?.setData) builder.setData(this._data);
+
                 oldTag = JSON.parse(JSON.stringify(this.tag));
-                if (builder) builder.setTag(userInputData);
-                else this.setTag(userInputData);
-                if (this.dappContainer) this.dappContainer.setTag(userInputData);
+                if (builder?.setTag) builder.setTag(themeSettings);
+                else this.setTag(themeSettings);
+                if (this.dappContainer) this.dappContainer.setTag(themeSettings);
               },
-              undo: () => {
-                if (!userInputData) return;
+              undo: async () => {
+                this._data = JSON.parse(JSON.stringify(oldData));
+                this.refreshDApp();
+                if (builder?.setData) builder.setData(this._data);
+
                 this.tag = JSON.parse(JSON.stringify(oldTag));
-                if (builder) builder.setTag(this.tag);
+                if (builder?.setTag) builder.setTag(this.tag);
                 else this.setTag(this.tag);
                 if (this.dappContainer) this.dappContainer.setTag(this.tag);
               },
               redo: () => { }
             }
           },
-          userInputDataSchema: themeSchema
+          userInputDataSchema: dataSchema,
+          userInputUISchema: uiSchema
         }
       );
     }
@@ -331,14 +329,31 @@ export default class ScomGemToken extends Module {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: (category?: string) => {
-          const propertiesSchema = { ...formSchema.general.dataSchema }
+          const dataSchema = { ...formSchema.dataSchema };
+          const uiSchema = { ...formSchema.uiSchema };
           if (!this._data.hideDescription) {
-            propertiesSchema.properties['description'] = {
+            dataSchema.properties['description'] = {
               type: 'string',
               format: 'multi'
             };
+            uiSchema.elements.unshift({
+              type: 'Category',
+              label: 'General',
+              elements: [
+                {
+                  type: 'VerticalLayout',
+                  elements: [
+                    {
+                      type: 'Control',
+                      label: 'Description',
+                      scope: '#/properties/description'
+                    }
+                  ]
+                }
+              ]
+            })
           }
-          return this._getActions(propertiesSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema, category);
+          return this._getActions(dataSchema as IDataSchema, uiSchema as IUISchema, category);
         },
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {

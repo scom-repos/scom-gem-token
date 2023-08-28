@@ -4,6 +4,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 define("@scom/scom-gem-token/interface.tsx", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -499,26 +510,44 @@ define("@scom/scom-gem-token/formSchema.json.ts", ["require", "exports"], functi
         }
     };
     exports.default = {
-        general: {
-            dataSchema: {
-                type: 'object',
-                properties: {}
-            }
-        },
-        theme: {
-            dataSchema: {
-                type: 'object',
-                properties: {
-                    dark: {
-                        type: 'object',
-                        properties: theme
-                    },
-                    light: {
-                        type: 'object',
-                        properties: theme
-                    }
+        dataSchema: {
+            type: 'object',
+            properties: {
+                dark: {
+                    type: 'object',
+                    properties: theme
+                },
+                light: {
+                    type: 'object',
+                    properties: theme
                 }
             }
+        },
+        uiSchema: {
+            type: 'Categorization',
+            elements: [
+                {
+                    type: 'Category',
+                    label: 'Theme',
+                    elements: [
+                        {
+                            type: 'VerticalLayout',
+                            elements: [
+                                {
+                                    type: 'Control',
+                                    label: 'Dark',
+                                    scope: '#/properties/dark'
+                                },
+                                {
+                                    type: 'Control',
+                                    label: 'Light',
+                                    scope: '#/properties/light'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         }
     };
 });
@@ -680,7 +709,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         set defaultChainId(value) {
             this._data.defaultChainId = value;
         }
-        _getActions(propertiesSchema, themeSchema, category) {
+        _getActions(dataSchema, uiSchema, category) {
             let self = this;
             const actions = [
                 {
@@ -740,61 +769,49 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             ];
             if (category && category !== 'offers') {
                 actions.push({
-                    name: 'Settings',
-                    icon: 'cog',
+                    name: 'Edit',
+                    icon: 'edit',
                     command: (builder, userInputData) => {
-                        let _oldData = {
+                        let oldData = {
                             wallets: [],
                             networks: [],
                             defaultChainId: 0
                         };
+                        let oldTag = {};
                         return {
                             execute: async () => {
-                                _oldData = Object.assign({}, this._data);
-                                if (userInputData.dappType != undefined)
-                                    this._data.dappType = userInputData.dappType;
-                                if (userInputData.logo != undefined)
-                                    this._data.logo = userInputData.logo;
-                                if (userInputData.description != undefined)
-                                    this._data.description = userInputData.description;
+                                oldData = JSON.parse(JSON.stringify(this._data));
+                                const { dappType, logo, description } = userInputData, themeSettings = __rest(userInputData, ["dappType", "logo", "description"]);
+                                const generalSettings = {
+                                    dappType,
+                                    logo,
+                                    description
+                                };
+                                if (generalSettings.dappType != undefined)
+                                    this._data.dappType = generalSettings.dappType;
+                                if (generalSettings.logo != undefined)
+                                    this._data.logo = generalSettings.logo;
+                                if (generalSettings.description != undefined)
+                                    this._data.description = generalSettings.description;
                                 await this.resetRpcWallet();
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
+                                oldTag = JSON.parse(JSON.stringify(this.tag));
+                                if (builder === null || builder === void 0 ? void 0 : builder.setTag)
+                                    builder.setTag(themeSettings);
+                                else
+                                    this.setTag(themeSettings);
+                                if (this.dappContainer)
+                                    this.dappContainer.setTag(themeSettings);
                             },
                             undo: async () => {
-                                this._data = Object.assign({}, _oldData);
+                                this._data = JSON.parse(JSON.stringify(oldData));
                                 this.refreshDApp();
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
-                            },
-                            redo: () => { }
-                        };
-                    },
-                    userInputDataSchema: propertiesSchema
-                });
-                actions.push({
-                    name: 'Theme Settings',
-                    icon: 'palette',
-                    command: (builder, userInputData) => {
-                        let oldTag = {};
-                        return {
-                            execute: async () => {
-                                if (!userInputData)
-                                    return;
-                                oldTag = JSON.parse(JSON.stringify(this.tag));
-                                if (builder)
-                                    builder.setTag(userInputData);
-                                else
-                                    this.setTag(userInputData);
-                                if (this.dappContainer)
-                                    this.dappContainer.setTag(userInputData);
-                            },
-                            undo: () => {
-                                if (!userInputData)
-                                    return;
                                 this.tag = JSON.parse(JSON.stringify(oldTag));
-                                if (builder)
+                                if (builder === null || builder === void 0 ? void 0 : builder.setTag)
                                     builder.setTag(this.tag);
                                 else
                                     this.setTag(this.tag);
@@ -804,7 +821,8 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             redo: () => { }
                         };
                     },
-                    userInputDataSchema: themeSchema
+                    userInputDataSchema: dataSchema,
+                    userInputUISchema: uiSchema
                 });
             }
             return actions;
@@ -816,14 +834,31 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     name: 'Builder Configurator',
                     target: 'Builders',
                     getActions: (category) => {
-                        const propertiesSchema = Object.assign({}, formSchema_json_1.default.general.dataSchema);
+                        const dataSchema = Object.assign({}, formSchema_json_1.default.dataSchema);
+                        const uiSchema = Object.assign({}, formSchema_json_1.default.uiSchema);
                         if (!this._data.hideDescription) {
-                            propertiesSchema.properties['description'] = {
+                            dataSchema.properties['description'] = {
                                 type: 'string',
                                 format: 'multi'
                             };
+                            uiSchema.elements.unshift({
+                                type: 'Category',
+                                label: 'General',
+                                elements: [
+                                    {
+                                        type: 'VerticalLayout',
+                                        elements: [
+                                            {
+                                                type: 'Control',
+                                                label: 'Description',
+                                                scope: '#/properties/description'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            });
                         }
-                        return this._getActions(propertiesSchema, formSchema_json_1.default.theme.dataSchema, category);
+                        return this._getActions(dataSchema, uiSchema, category);
                     },
                     getData: this.getData.bind(this),
                     setData: async (data) => {
