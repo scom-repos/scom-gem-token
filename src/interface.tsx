@@ -28,7 +28,6 @@ export interface IEmbedData extends Partial<IDeploy> {
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;
-  providers: IProviderUI[];
 }
 
 export interface ICommissionInfo {
@@ -52,9 +51,4 @@ export interface IWalletPlugin {
   name: string;
   packageName?: string;
   provider?: IClientSideProvider;
-}
-
-export interface IProviderUI {
-  key: string;
-  chainId: number;
 }

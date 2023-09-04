@@ -18,8 +18,8 @@ import {
   IUISchema
 } from '@ijstech/components';
 import { BigNumber, Constants, IERC20ApprovalAction, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
-import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin, IProviderUI } from './interface';
-import { formatNumber, getPair, getProviderProxySelectors, getTokenBalance } from './utils/index';
+import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
+import { formatNumber, getTokenBalance } from './utils/index';
 import { State, isClientWalletConnected } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
@@ -49,7 +49,6 @@ interface ScomGemTokenElement extends ControlElement {
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;
-  providers: IProviderUI[];
 }
 
 declare global {
@@ -103,7 +102,6 @@ export default class ScomGemToken extends Module {
   private _type: DappType | undefined;
   private _entryContract: string;
   private _data: IEmbedData = {
-    providers: [],
     wallets: [],
     networks: [],
     defaultChainId: 0
@@ -215,7 +213,6 @@ export default class ScomGemToken extends Module {
         icon: 'dollar-sign',
         command: (builder: any, userInputData: any) => {
           let _oldData: IEmbedData = {
-            providers: [],
             wallets: [],
             networks: [],
             defaultChainId: 0
@@ -273,7 +270,6 @@ export default class ScomGemToken extends Module {
           icon: 'edit',
           command: (builder: any, userInputData: any) => {
             let oldData: IEmbedData = {
-              providers: [],
               wallets: [],
               networks: [],
               defaultChainId: 0
@@ -346,16 +342,7 @@ export default class ScomGemToken extends Module {
         name: 'Project Owner Configurator',
         target: 'Project Owners',
         getProxySelectors: async () => {
-          const selectors = await getProviderProxySelectors(this.state, this._data.providers);
-          return selectors;
-        },
-        getDexProviderOptions: (chainId: number) => {
-          const providers = this.state.getDexInfoList({ chainId });
-          return providers;
-        },
-        getPair: async (market: string, tokenA: ITokenObject, tokenB: ITokenObject) => {
-          const pair = await getPair(this.state, market, tokenA, tokenB);
-          return pair;
+          return [];
         },
         getActions: () => {
           return this.getProjectOwnerActions();
@@ -985,8 +972,6 @@ export default class ScomGemToken extends Module {
   async init() {
     this.isReadyCallbackQueued = true;
     super.init();
-    const dexList = getDexList();
-    this.state.setDexInfoList(dexList);
     const lazyLoad = this.getAttribute('lazyLoad', true, false);
     if (!lazyLoad) {
       const dappType = this.getAttribute('dappType', true);
@@ -998,7 +983,6 @@ export default class ScomGemToken extends Module {
       const wallets = this.getAttribute('wallets', true, []);
       const showHeader = this.getAttribute('showHeader', true);
       const defaultChainId = this.getAttribute('defaultChainId', true, 1);
-      const providers = this.getAttribute('providers', true, []);
       await this.setData({
         dappType,
         description,
@@ -1008,8 +992,7 @@ export default class ScomGemToken extends Module {
         networks,
         wallets,
         showHeader,
-        defaultChainId,
-        providers
+        defaultChainId
       });
     }
     this.isReadyCallbackQueued = false;

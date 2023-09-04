@@ -1,9 +1,5 @@
-import { BigNumber } from "@ijstech/eth-wallet";
-import { ITokenObject, WETHByChainId } from '@scom/scom-token-list';
-import { Contracts } from "@scom/oswap-openswap-contract";
-import { State } from '../store/index';
-import { getSwapProxySelectors } from '@scom/scom-dex-list';
-import { IProviderUI } from '../interface';
+import { BigNumber, IRpcWallet } from "@ijstech/eth-wallet";
+import { Contracts } from '@scom/scom-gem-token-contract';
 
 export const formatNumber = (value: any, decimals?: number) => {
   let val = value;
@@ -42,41 +38,18 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
   }
 }
 
-const getWETH = (chainId: number): ITokenObject => {
-  return WETHByChainId[chainId];
-};
-
-const getFactoryAddress = (state: State, key: string): string => {
-  const factoryAddress = state.getDexDetail(key, state.getChainId())?.factoryAddress || '';
-  return factoryAddress;
-}
-
-export const getProviderProxySelectors = async (state: State, providers: IProviderUI[]) => {
-  const wallet = state.getRpcWallet();
-  await wallet.init();
-  let selectorsSet: Set<string> = new Set();
-  for (let provider of providers) {
-    const dex = state.getDexInfoList({ key: provider.key, chainId: provider.chainId })[0];
-    if (dex) {
-      const routerAddress = dex.details.find(v => v.chainId === provider.chainId)?.routerAddress || '';
-      const selectors = await getSwapProxySelectors(wallet, dex.dexType, provider.chainId, routerAddress);
-      selectors.forEach(v => selectorsSet.add(v));
-    }
-  }
-  return Array.from(selectorsSet);
-}
-
-export const getPair = async (state: State, market: string, tokenA: ITokenObject, tokenB: ITokenObject) => {
-  const wallet: any = state.getRpcWallet();
-  let chainId = state.getChainId();
-  if (!tokenA.address) tokenA = getWETH(chainId);
-  if (!tokenB.address) tokenB = getWETH(chainId);
-  let factory = new Contracts.OSWAP_Factory(wallet, getFactoryAddress(state, market));
-  let pair = await factory.getPair({
-    param1: tokenA.address!,
-    param2: tokenB.address!
-  });
-  return pair;
+export async function getProxySelectors(wallet: IRpcWallet, chainId: number, contractAddress: string): Promise<string[]> {
+  if (wallet.chainId != chainId) await wallet.switchNetwork(chainId);
+  let contract = new Contracts.GEM(wallet, contractAddress);
+  let permittedProxyFunctions: (keyof Contracts.GEM)[] = [
+    "buy",
+    "redeem"
+  ];
+  let selectors = permittedProxyFunctions
+    .map(e => e + "(" + contract._abi.filter(f => f.name == e)[0].inputs.map(f => f.type).join(',') + ")")
+    .map(e => wallet.soliditySha3(e).substring(0, 10))
+    .map(e => contract.address.toLowerCase() + e.replace("0x", ""));
+  return selectors;
 }
 
 export {
