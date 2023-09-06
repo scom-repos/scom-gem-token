@@ -1,5 +1,6 @@
 import { BigNumber, IRpcWallet } from "@ijstech/eth-wallet";
 import { Contracts } from '@scom/scom-gem-token-contract';
+import { State } from "../store/index";
 
 export const formatNumber = (value: any, decimals?: number) => {
   let val = value;
@@ -38,7 +39,9 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
   }
 }
 
-export async function getProxySelectors(wallet: IRpcWallet, chainId: number, contractAddress: string): Promise<string[]> {
+export async function getProxySelectors(state: State, chainId: number, contractAddress: string): Promise<string[]> {
+  const wallet = state.getRpcWallet();
+  await wallet.init();
   if (wallet.chainId != chainId) await wallet.switchNetwork(chainId);
   let contract = new Contracts.GEM(wallet, contractAddress);
   let permittedProxyFunctions: (keyof Contracts.GEM)[] = [

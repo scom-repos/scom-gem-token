@@ -19,7 +19,7 @@ import {
 } from '@ijstech/components';
 import { BigNumber, Constants, IERC20ApprovalAction, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
-import { formatNumber, getTokenBalance } from './utils/index';
+import { formatNumber, getProxySelectors, getTokenBalance } from './utils/index';
 import { State, isClientWalletConnected } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
@@ -31,8 +31,7 @@ import ScomDappContainer from '@scom/scom-dapp-container';
 import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
 import ScomTxStatusModal from '@scom/scom-tx-status-modal';
 import ScomTokenInput from '@scom/scom-token-input';
-import { getFormSchema } from './formSchema.json';
-import getDexList from '@scom/scom-dex-list';
+import { getFormSchema, getProjectOwnerSchema } from './formSchema.json';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -324,7 +323,7 @@ export default class ScomGemToken extends Module {
   }
 
   private getProjectOwnerActions() {
-    const formSchema: any = getFormSchema();
+    const formSchema: any = getProjectOwnerSchema();
     const actions: any[] = [
       {
         name: 'Settings',
@@ -341,8 +340,9 @@ export default class ScomGemToken extends Module {
       {
         name: 'Project Owner Configurator',
         target: 'Project Owners',
-        getProxySelectors: async () => {
-          return [];
+        getProxySelectors: async (chainId: number) => {
+          const selectors = await getProxySelectors(this.state, chainId, this.contract);
+          return selectors;
         },
         getActions: () => {
           return this.getProjectOwnerActions();
@@ -653,7 +653,7 @@ export default class ScomGemToken extends Module {
   }
 
   get contract() {
-    return this._data.chainSpecificProperties?.[this.chainId]?.contract ?? '';
+    return this._data.contractAddress ?? this._data.chainSpecificProperties?.[this.chainId]?.contract ?? '';
   }
 
   get dappType(): DappType {

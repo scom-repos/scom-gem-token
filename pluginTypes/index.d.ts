@@ -4,7 +4,6 @@
 /// <reference path="@scom/scom-token-input/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-token-input/@scom/scom-token-modal/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
-/// <reference path="@scom/scom-dex-list/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
     import { BigNumber, IClientSideProvider } from "@ijstech/eth-wallet";
@@ -28,12 +27,12 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         description?: string;
         hideDescription?: boolean;
         commissions?: ICommissionInfo[];
+        contractAddress?: string;
         chainSpecificProperties?: Record<number, IChainSpecificProperties>;
         defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
-        providers: IProviderUI[];
     }
     export interface ICommissionInfo {
         chainId: number;
@@ -55,20 +54,14 @@ declare module "@scom/scom-gem-token/interface.tsx" {
         packageName?: string;
         provider?: IClientSideProvider;
     }
-    export interface IProviderUI {
-        key: string;
-        chainId: number;
-    }
 }
 /// <amd-module name="@scom/scom-gem-token/store/index.ts" />
 declare module "@scom/scom-gem-token/store/index.ts" {
     import { ERC20ApprovalModel, INetwork, IERC20ApprovalEventOptions } from "@ijstech/eth-wallet";
-    import { IDexDetail, IDexInfo } from '@scom/scom-dex-list';
     export type ProxyAddresses = {
         [key: number]: string;
     };
     export class State {
-        dexInfoList: IDexInfo[];
         networkMap: {
             [key: number]: INetwork;
         };
@@ -80,12 +73,6 @@ declare module "@scom/scom-gem-token/store/index.ts" {
         constructor(options: any);
         private initData;
         initRpcWallet(defaultChainId: number): string;
-        setDexInfoList(value: IDexInfo[]): void;
-        getDexInfoList(options?: {
-            key?: string;
-            chainId?: number;
-        }): IDexInfo[];
-        getDexDetail(key: string, chainId: number): IDexDetail;
         private setNetworkList;
         getProxyAddress(chainId?: number): string;
         getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
@@ -105,13 +92,10 @@ declare module "@scom/scom-gem-token/utils/token.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/utils/index.ts" />
 declare module "@scom/scom-gem-token/utils/index.ts" {
-    import { ITokenObject } from '@scom/scom-token-list';
     import { State } from "@scom/scom-gem-token/store/index.ts";
-    import { IProviderUI } from "@scom/scom-gem-token/interface.tsx";
     export const formatNumber: (value: any, decimals?: number) => string;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
-    export const getProviderProxySelectors: (state: State, providers: IProviderUI[]) => Promise<string[]>;
-    export const getPair: (state: State, market: string, tokenA: ITokenObject, tokenB: ITokenObject) => Promise<string>;
+    export function getProxySelectors(state: State, chainId: number, contractAddress: string): Promise<string[]>;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
 }
 /// <amd-module name="@scom/scom-gem-token/assets.ts" />
@@ -257,12 +241,87 @@ declare module "@scom/scom-gem-token/formSchema.json.ts" {
             }[];
         };
     };
+    export function getProjectOwnerSchema(): {
+        dataSchema: {
+            type: string;
+            properties: {
+                description: {
+                    type: string;
+                    format: string;
+                };
+                contractAddress: {
+                    type: string;
+                    required: boolean;
+                };
+                dark: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        fontColor: {
+                            type: string;
+                            format: string;
+                        };
+                        inputBackgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        inputFontColor: {
+                            type: string;
+                            format: string;
+                        };
+                    };
+                };
+                light: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        fontColor: {
+                            type: string;
+                            format: string;
+                        };
+                        inputBackgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        inputFontColor: {
+                            type: string;
+                            format: string;
+                        };
+                    };
+                };
+            };
+        };
+        uiSchema: {
+            type: string;
+            elements: {
+                type: string;
+                label: string;
+                elements: {
+                    type: string;
+                    elements: ({
+                        type: string;
+                        label: string;
+                        scope: string;
+                    } | {
+                        type: string;
+                        scope: string;
+                        label?: undefined;
+                    })[];
+                }[];
+            }[];
+        };
+    };
 }
 /// <amd-module name="@scom/scom-gem-token" />
 declare module "@scom/scom-gem-token" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin, IProviderUI } from "@scom/scom-gem-token/interface.tsx";
-    import { ITokenObject } from '@scom/scom-token-list';
+    import { IEmbedData, DappType, IChainSpecificProperties, IWalletPlugin } from "@scom/scom-gem-token/interface.tsx";
     import { INetworkConfig } from '@scom/scom-network-picker';
     import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
     interface ScomGemTokenElement extends ControlElement {
@@ -276,7 +335,6 @@ declare module "@scom/scom-gem-token" {
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
-        providers: IProviderUI[];
     }
     global {
         namespace JSX {
@@ -356,9 +414,7 @@ declare module "@scom/scom-gem-token" {
         getConfigurators(): ({
             name: string;
             target: string;
-            getProxySelectors: () => Promise<string[]>;
-            getDexProviderOptions: (chainId: number) => import("@scom/scom-dex-list").IDexInfo[];
-            getPair: (market: string, tokenA: ITokenObject, tokenB: ITokenObject) => Promise<string>;
+            getProxySelectors: (chainId: number) => Promise<string[]>;
             getActions: () => any[];
             getData: any;
             setData: (data: IEmbedData) => Promise<void>;
@@ -377,8 +433,6 @@ declare module "@scom/scom-gem-token" {
             setTag: any;
             getTag: any;
             getProxySelectors?: undefined;
-            getDexProviderOptions?: undefined;
-            getPair?: undefined;
             elementName?: undefined;
             getLinkParams?: undefined;
             setLinkParams?: undefined;
@@ -399,12 +453,12 @@ declare module "@scom/scom-gem-token" {
                 description?: string;
                 hideDescription?: boolean;
                 commissions?: import("@scom/scom-gem-token/interface.tsx").ICommissionInfo[];
+                contractAddress?: string;
                 chainSpecificProperties?: Record<number, IChainSpecificProperties>;
                 defaultChainId: number;
                 wallets: IWalletPlugin[];
                 networks: INetworkConfig[];
                 showHeader?: boolean;
-                providers: IProviderUI[];
                 name?: string;
                 symbol?: string;
                 cap?: string;
@@ -416,8 +470,6 @@ declare module "@scom/scom-gem-token" {
             setTag: any;
             getTag: any;
             getProxySelectors?: undefined;
-            getDexProviderOptions?: undefined;
-            getPair?: undefined;
             getActions?: undefined;
         })[];
         private getData;
