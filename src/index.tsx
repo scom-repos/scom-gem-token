@@ -19,7 +19,7 @@ import {
 } from '@ijstech/components';
 import { BigNumber, Constants, IERC20ApprovalAction, IEventBusRegistry, Utils, Wallet } from '@ijstech/eth-wallet';
 import { IEmbedData, DappType, IGemInfo, IChainSpecificProperties, IWalletPlugin } from './interface';
-import { formatNumber, getTokenBalance } from './utils/index';
+import { formatNumber, getProxySelectors, getTokenBalance } from './utils/index';
 import { State, isClientWalletConnected } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
@@ -31,7 +31,7 @@ import ScomDappContainer from '@scom/scom-dapp-container';
 import ScomCommissionFeeSetup from '@scom/scom-commission-fee-setup';
 import ScomTxStatusModal from '@scom/scom-tx-status-modal';
 import ScomTokenInput from '@scom/scom-token-input';
-import formSchema from './formSchema.json';
+import { getFormSchema, getProjectOwnerSchema } from './formSchema.json';
 
 const Theme = Styles.Theme.ThemeVars;
 const buyTooltip = 'The fee the project owner will receive for token minting';
@@ -204,7 +204,7 @@ export default class ScomGemToken extends Module {
     } catch { }
   }
 
-  private _getActions(dataSchema: IDataSchema, uiSchema: IUISchema, category?: string) {
+  private getBuilderActions(dataSchema: IDataSchema, uiSchema: IUISchema, category?: string) {
     let self = this;
     const actions: any[] = [
       {
@@ -322,38 +322,46 @@ export default class ScomGemToken extends Module {
     return actions
   }
 
+  private getProjectOwnerActions() {
+    const formSchema: any = getProjectOwnerSchema();
+    const actions: any[] = [
+      {
+        name: 'Settings',
+        userInputDataSchema: formSchema.dataSchema,
+        userInputUISchema: formSchema.uiSchema
+      }
+    ];
+    return actions;
+  }
+
   getConfigurators() {
     let self = this;
     return [
       {
+        name: 'Project Owner Configurator',
+        target: 'Project Owners',
+        getProxySelectors: async (chainId: number) => {
+          const selectors = await getProxySelectors(this.state, chainId, this.contract);
+          return selectors;
+        },
+        getActions: () => {
+          return this.getProjectOwnerActions();
+        },
+        getData: this.getData.bind(this),
+        setData: async (data: IEmbedData) => {
+          await this.setData(data)
+        },
+        setTag: this.setTag.bind(this),
+        getTag: this.getTag.bind(this)
+      },
+      {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: (category?: string) => {
+          const formSchema: any = getFormSchema(this._data.hideDescription);
           const dataSchema = { ...formSchema.dataSchema };
           const uiSchema = { ...formSchema.uiSchema };
-          if (!this._data.hideDescription) {
-            dataSchema.properties['description'] = {
-              type: 'string',
-              format: 'multi'
-            };
-            uiSchema.elements.unshift({
-              type: 'Category',
-              label: 'General',
-              elements: [
-                {
-                  type: 'VerticalLayout',
-                  elements: [
-                    {
-                      type: 'Control',
-                      label: 'Description',
-                      scope: '#/properties/description'
-                    }
-                  ]
-                }
-              ]
-            })
-          }
-          return this._getActions(dataSchema as IDataSchema, uiSchema as IUISchema, category);
+          return this.getBuilderActions(dataSchema as IDataSchema, uiSchema as IUISchema, category);
         },
         getData: this.getData.bind(this),
         setData: async (data: IEmbedData) => {
@@ -645,7 +653,7 @@ export default class ScomGemToken extends Module {
   }
 
   get contract() {
-    return this._data.chainSpecificProperties?.[this.chainId]?.contract ?? '';
+    return this._data.contractAddress ?? this._data.chainSpecificProperties?.[this.chainId]?.contract ?? '';
   }
 
   get dappType(): DappType {
@@ -671,7 +679,7 @@ export default class ScomGemToken extends Module {
 
   get logo() {
     if (this._data.logo?.startsWith('ipfs://')) {
-      return this._data.logo.replace('ipfs://', this.state.ipfsGatewayUrl);
+      return this._data.logo.replace('ipfs://', '/ipfs/');
     }
     return this._data.logo ?? '';
   }

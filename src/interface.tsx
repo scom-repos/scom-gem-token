@@ -23,6 +23,7 @@ export interface IEmbedData extends Partial<IDeploy> {
   description?: string;
   hideDescription?: boolean;
   commissions?: ICommissionInfo[];
+  contractAddress?: string;
   chainSpecificProperties?: Record<number, IChainSpecificProperties>;
   defaultChainId: number;
   wallets: IWalletPlugin[];
