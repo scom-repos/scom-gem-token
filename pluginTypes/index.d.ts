@@ -92,9 +92,9 @@ declare module "@scom/scom-gem-token/utils/token.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/utils/index.ts" />
 declare module "@scom/scom-gem-token/utils/index.ts" {
+    import { BigNumber } from "@ijstech/eth-wallet";
     import { State } from "@scom/scom-gem-token/store/index.ts";
-    export const formatNumber: (value: any, decimals?: number) => string;
-    export const formatNumberWithSeparators: (value: number, precision?: number) => string;
+    export const formatNumber: (value: number | string | BigNumber, decimalFigures?: number) => string;
     export function getProxySelectors(state: State, chainId: number, contractAddress: string): Promise<string[]>;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-gem-token/utils/token.ts";
 }
