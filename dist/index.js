@@ -160,48 +160,18 @@ define("@scom/scom-gem-token/utils/token.ts", ["require", "exports", "@ijstech/e
     };
     exports.registerSendTxEvents = registerSendTxEvents;
 });
-define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token-contract", "@scom/scom-gem-token/utils/token.ts"], function (require, exports, eth_wallet_3, scom_gem_token_contract_1, token_1) {
+define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@scom/scom-gem-token-contract", "@ijstech/components", "@scom/scom-gem-token/utils/token.ts"], function (require, exports, scom_gem_token_contract_1, components_2, token_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.getProxySelectors = exports.formatNumberWithSeparators = exports.formatNumber = void 0;
-    const formatNumber = (value, decimals) => {
-        let val = value;
+    exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.getProxySelectors = exports.formatNumber = void 0;
+    const formatNumber = (value, decimalFigures) => {
+        if (typeof value === 'object') {
+            value = value.toString();
+        }
         const minValue = '0.0000001';
-        if (typeof value === 'string') {
-            val = new eth_wallet_3.BigNumber(value).toNumber();
-        }
-        else if (typeof value === 'object') {
-            val = value.toNumber();
-        }
-        if (val != 0 && new eth_wallet_3.BigNumber(val).lt(minValue)) {
-            return `<${minValue}`;
-        }
-        return (0, exports.formatNumberWithSeparators)(val, decimals || 2);
+        return components_2.FormatUtils.formatNumber(value, { decimalFigures: decimalFigures || 4, minValue });
     };
     exports.formatNumber = formatNumber;
-    const formatNumberWithSeparators = (value, precision) => {
-        if (!value)
-            value = 0;
-        if (precision) {
-            let outputStr = '';
-            if (value >= 1) {
-                const unit = Math.pow(10, precision);
-                const rounded = Math.floor(value * unit) / unit;
-                outputStr = rounded.toLocaleString('en-US', { maximumFractionDigits: precision });
-            }
-            else {
-                outputStr = value.toLocaleString('en-US', { maximumSignificantDigits: precision });
-            }
-            if (outputStr.length > 18) {
-                outputStr = outputStr.substring(0, 18) + '...';
-            }
-            return outputStr;
-        }
-        else {
-            return value.toLocaleString('en-US');
-        }
-    };
-    exports.formatNumberWithSeparators = formatNumberWithSeparators;
     async function getProxySelectors(state, chainId, contractAddress) {
         const wallet = state.getRpcWallet();
         await wallet.init();
@@ -223,10 +193,10 @@ define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@ijstech/e
     Object.defineProperty(exports, "getTokenBalance", { enumerable: true, get: function () { return token_1.getTokenBalance; } });
     Object.defineProperty(exports, "registerSendTxEvents", { enumerable: true, get: function () { return token_1.registerSendTxEvents; } });
 });
-define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
+define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const moduleDir = components_2.application.currentModuleDir;
+    const moduleDir = components_3.application.currentModuleDir;
     function fullPath(path) {
         return `${moduleDir}/${path}`;
     }
@@ -235,12 +205,12 @@ define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/compon
         fullPath
     };
 });
-define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.centerStyle = exports.tokenSelectionStyle = exports.inputStyle = exports.markdownStyle = exports.imageStyle = void 0;
-    const Theme = components_3.Styles.Theme.ThemeVars;
-    exports.imageStyle = components_3.Styles.style({
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    exports.imageStyle = components_4.Styles.style({
         $nest: {
             '&>img': {
                 maxWidth: 'unset',
@@ -249,11 +219,11 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
             }
         }
     });
-    exports.markdownStyle = components_3.Styles.style({
+    exports.markdownStyle = components_4.Styles.style({
         overflowWrap: 'break-word',
         color: Theme.text.primary
     });
-    exports.inputStyle = components_3.Styles.style({
+    exports.inputStyle = components_4.Styles.style({
         $nest: {
             '> input': {
                 background: Theme.input.background,
@@ -266,7 +236,7 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
             }
         }
     });
-    exports.tokenSelectionStyle = components_3.Styles.style({
+    exports.tokenSelectionStyle = components_4.Styles.style({
         $nest: {
             '.custom-border > i-hstack': {
                 display: 'none'
@@ -279,11 +249,11 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
             }
         }
     });
-    exports.centerStyle = components_3.Styles.style({
+    exports.centerStyle = components_4.Styles.style({
         textAlign: 'center'
     });
 });
-define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token-contract", "@scom/scom-commission-proxy-contract", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-token-list"], function (require, exports, eth_wallet_4, scom_gem_token_contract_2, scom_commission_proxy_contract_1, index_1, scom_token_list_1) {
+define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token-contract", "@scom/scom-commission-proxy-contract", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-token-list"], function (require, exports, eth_wallet_3, scom_gem_token_contract_2, scom_commission_proxy_contract_1, index_1, scom_token_list_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.getGemInfo = exports.getGemBalance = exports.redeemToken = exports.buyToken = exports.transfer = exports.getFee = exports.deployContract = void 0;
@@ -292,7 +262,7 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
         const contract = new scom_gem_token_contract_2.Contracts.GEM(wallet, contractAddress);
         const fee = type === 'buy' ? await contract.mintingFee() : await contract.redemptionFee();
         const decimals = (await contract.decimals()).toNumber();
-        return eth_wallet_4.Utils.fromDecimals(fee, decimals);
+        return eth_wallet_3.Utils.fromDecimals(fee, decimals);
     }
     exports.getFee = getFee;
     async function getGemBalance(state, contractAddress) {
@@ -303,7 +273,7 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
     }
     exports.getGemBalance = getGemBalance;
     async function deployContract(options, token, callback, confirmationCallback) {
-        const wallet = eth_wallet_4.Wallet.getClientInstance();
+        const wallet = eth_wallet_3.Wallet.getClientInstance();
         (0, index_1.registerSendTxEvents)({
             transactionHash: callback,
             confirmation: confirmationCallback
@@ -312,21 +282,21 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
         const receipt = await gem.deploy({
             name: options.name,
             symbol: options.symbol,
-            cap: eth_wallet_4.Utils.toDecimals(options.cap).dp(0),
-            mintingFee: eth_wallet_4.Utils.toDecimals(options.mintingFee).dp(0),
-            redemptionFee: eth_wallet_4.Utils.toDecimals(options.redemptionFee).dp(0),
-            price: eth_wallet_4.Utils.toDecimals(options.price).dp(0),
+            cap: eth_wallet_3.Utils.toDecimals(options.cap).dp(0),
+            mintingFee: eth_wallet_3.Utils.toDecimals(options.mintingFee).dp(0),
+            redemptionFee: eth_wallet_3.Utils.toDecimals(options.redemptionFee).dp(0),
+            price: eth_wallet_3.Utils.toDecimals(options.price).dp(0),
             baseToken: (token === null || token === void 0 ? void 0 : token.address) || ""
         });
         return gem.address;
     }
     exports.deployContract = deployContract;
     async function transfer(contractAddress, to, amount) {
-        const wallet = eth_wallet_4.Wallet.getClientInstance();
+        const wallet = eth_wallet_3.Wallet.getClientInstance();
         const contract = new scom_gem_token_contract_2.Contracts.GEM(wallet, contractAddress);
         const receipt = await contract.transfer({
             to,
-            amount: new eth_wallet_4.BigNumber(amount)
+            amount: new eth_wallet_3.BigNumber(amount)
         });
         let value;
         if (receipt) {
@@ -379,16 +349,16 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
                 transactionHash: callback,
                 confirmation: confirmationCallback
             });
-            const wallet = eth_wallet_4.Wallet.getClientInstance();
+            const wallet = eth_wallet_3.Wallet.getClientInstance();
             const tokenDecimals = (token === null || token === void 0 ? void 0 : token.decimals) || 18;
-            const amount = eth_wallet_4.Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
+            const amount = eth_wallet_3.Utils.toDecimals(backerCoinAmount, tokenDecimals).dp(0);
             const _commissions = (commissions || []).filter(v => v.chainId === state.getChainId()).map(v => {
                 return {
                     to: v.walletAddress,
                     amount: amount.times(v.share)
                 };
             });
-            const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new eth_wallet_4.BigNumber(0);
+            const commissionsAmount = _commissions.length ? _commissions.map(v => v.amount).reduce((a, b) => a.plus(b)) : new eth_wallet_3.BigNumber(0);
             const contract = new scom_gem_token_contract_2.Contracts.GEM(wallet, contractAddress);
             let receipt;
             if (commissionsAmount.isZero()) {
@@ -432,9 +402,9 @@ define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-walle
                 transactionHash: callback,
                 confirmation: confirmationCallback
             });
-            const wallet = eth_wallet_4.Wallet.getClientInstance();
+            const wallet = eth_wallet_3.Wallet.getClientInstance();
             const contract = new scom_gem_token_contract_2.Contracts.GEM(wallet, address);
-            const receipt = await contract.redeem(eth_wallet_4.Utils.toDecimals(gemAmount).dp(0));
+            const receipt = await contract.redeem(eth_wallet_3.Utils.toDecimals(gemAmount).dp(0));
             if (receipt) {
                 const data = contract.parseRedeemEvent(receipt)[0];
                 return {
@@ -669,13 +639,13 @@ define("@scom/scom-gem-token/formSchema.json.ts", ["require", "exports"], functi
     }
     exports.getProjectOwnerSchema = getProjectOwnerSchema;
 });
-define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts", "@scom/scom-commission-fee-setup", "@scom/scom-gem-token/formSchema.json.ts"], function (require, exports, components_4, eth_wallet_5, index_2, index_3, scom_token_list_2, assets_1, index_css_1, API_1, data_json_1, scom_commission_fee_setup_1, formSchema_json_1) {
+define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-gem-token/store/index.ts", "@scom/scom-token-list", "@scom/scom-gem-token/assets.ts", "@scom/scom-gem-token/index.css.ts", "@scom/scom-gem-token/API.ts", "@scom/scom-gem-token/data.json.ts", "@scom/scom-commission-fee-setup", "@scom/scom-gem-token/formSchema.json.ts"], function (require, exports, components_5, eth_wallet_4, index_2, index_3, scom_token_list_2, assets_1, index_css_1, API_1, data_json_1, scom_commission_fee_setup_1, formSchema_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_4.Styles.Theme.ThemeVars;
+    const Theme = components_5.Styles.Theme.ThemeVars;
     const buyTooltip = 'The fee the project owner will receive for token minting';
     const redeemTooltip = 'The spread the project owner will receive for redemptions';
-    let ScomGemToken = class ScomGemToken extends components_4.Module {
+    let ScomGemToken = class ScomGemToken extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -713,7 +683,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             };
             this.initWallet = async () => {
                 try {
-                    await eth_wallet_5.Wallet.getClientInstance().init();
+                    await eth_wallet_4.Wallet.getClientInstance().init();
                     await this.rpcWallet.init();
                 }
                 catch (err) {
@@ -858,16 +828,16 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     },
                     customUI: {
                         render: (data, onConfirm) => {
-                            const vstack = new components_4.VStack();
+                            const vstack = new components_5.VStack();
                             const config = new scom_commission_fee_setup_1.default(null, {
                                 commissions: self._data.commissions || [],
                                 fee: this.state.embedderCommissionFee,
                                 networks: self._data.networks
                             });
-                            const hstack = new components_4.HStack(null, {
+                            const hstack = new components_5.HStack(null, {
                                 verticalAlignment: 'center',
                             });
-                            const button = new components_4.Button(hstack, {
+                            const button = new components_5.Button(hstack, {
                                 caption: 'Confirm',
                                 width: '100%',
                                 height: 40,
@@ -1036,10 +1006,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.removeRpcWalletEvents();
             const rpcWalletId = await this.state.initRpcWallet(this.defaultChainId);
             const rpcWallet = this.rpcWallet;
-            const chainChangedEvent = rpcWallet.registerWalletEvent(this, eth_wallet_5.Constants.RpcWalletEvent.ChainChanged, async (chainId) => {
+            const chainChangedEvent = rpcWallet.registerWalletEvent(this, eth_wallet_4.Constants.RpcWalletEvent.ChainChanged, async (chainId) => {
                 this.onChainChanged();
             });
-            const connectedEvent = rpcWallet.registerWalletEvent(this, eth_wallet_5.Constants.RpcWalletEvent.Connected, async (connected) => {
+            const connectedEvent = rpcWallet.registerWalletEvent(this, eth_wallet_4.Constants.RpcWalletEvent.Connected, async (connected) => {
                 this.onWalletConnect();
             });
             this.rpcWalletEvents.push(chainChangedEvent, connectedEvent);
@@ -1063,7 +1033,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             }
             await this.initializeWidgetConfig();
             const commissionFee = this.state.embedderCommissionFee;
-            this.iconOrderTotal.tooltip.content = `A commission fee of ${new eth_wallet_5.BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
+            this.iconOrderTotal.tooltip.content = `A commission fee of ${new eth_wallet_4.BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
             this.updateContractAddress();
         }
         getTag() {
@@ -1248,14 +1218,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     this.backerTokenBalanceLb.caption = '0.00';
                 }
                 else {
-                    this.btnSubmit.enabled = new eth_wallet_5.BigNumber(this.edtAmount.value).gt(0);
+                    this.btnSubmit.enabled = new eth_wallet_4.BigNumber(this.edtAmount.value).gt(0);
                 }
-                const feeValue = this.isBuy ? eth_wallet_5.Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : eth_wallet_5.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+                const feeValue = this.isBuy ? eth_wallet_4.Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : eth_wallet_4.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
                 if (!this.feeLb.isConnected)
                     await this.feeLb.ready();
                 this.feeLb.caption = `${feeValue || ''} ${this.gemInfo.name}`;
                 const qty = Number(this.edtGemQty.value);
-                const totalGemTokens = new eth_wallet_5.BigNumber(qty).minus(new eth_wallet_5.BigNumber(qty).times(feeValue));
+                const totalGemTokens = new eth_wallet_4.BigNumber(qty).minus(new eth_wallet_4.BigNumber(qty).times(feeValue));
                 if (!this.lbYouWillGet.isConnected)
                     await this.lbYouWillGet.ready();
                 this.lbYouWillGet.caption = `${(0, index_2.formatNumber)(totalGemTokens)} ${this.gemInfo.name}`;
@@ -1329,13 +1299,13 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                             this.btnApprove.rightIcon.visible = false;
                             this.btnApprove.caption = 'Approve';
                         }
-                        this.btnApprove.enabled = new eth_wallet_5.BigNumber(this.edtGemQty.value).gt(0);
+                        this.btnApprove.enabled = new eth_wallet_4.BigNumber(this.edtGemQty.value).gt(0);
                         this.isApproving = false;
                     },
                     onToBePaid: async (token) => {
                         this.btnApprove.visible = false;
                         this.isApproving = false;
-                        this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || new eth_wallet_5.BigNumber(this.edtAmount.value).gt(0);
+                        this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || new eth_wallet_4.BigNumber(this.edtAmount.value).gt(0);
                     },
                     onApproving: async (token, receipt) => {
                         this.isApproving = true;
@@ -1397,17 +1367,17 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         }
         onApprove() {
             this.showTxStatusModal('warning', 'Approving');
-            this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, eth_wallet_5.Utils.toDecimals(this.edtAmount.value, this.gemInfo.baseToken.decimals).toFixed());
+            this.approvalModelAction.doApproveAction(this.gemInfo.baseToken, eth_wallet_4.Utils.toDecimals(this.edtAmount.value, this.gemInfo.baseToken.decimals).toFixed());
         }
         async onQtyChanged() {
             const qty = Number(this.edtGemQty.value);
             const backerCoinAmount = this.getBackerCoinAmount(qty);
             const commissionFee = this.state.embedderCommissionFee;
-            this.edtAmount.value = new eth_wallet_5.BigNumber(qty).times(commissionFee).plus(qty).toFixed();
-            const feeValue = this.isBuy ? eth_wallet_5.Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : eth_wallet_5.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
-            const totalGemTokens = new eth_wallet_5.BigNumber(qty).minus(new eth_wallet_5.BigNumber(qty).times(feeValue));
+            this.edtAmount.value = new eth_wallet_4.BigNumber(qty).times(commissionFee).plus(qty).toFixed();
+            const feeValue = this.isBuy ? eth_wallet_4.Utils.fromDecimals(this.gemInfo.mintingFee).toFixed() : eth_wallet_4.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+            const totalGemTokens = new eth_wallet_4.BigNumber(qty).minus(new eth_wallet_4.BigNumber(qty).times(feeValue));
             this.lbYouWillGet.caption = `${(0, index_2.formatNumber)(totalGemTokens)} ${this.gemInfo.name}`;
-            this.btnApprove.enabled = new eth_wallet_5.BigNumber(this.edtGemQty.value).gt(0);
+            this.btnApprove.enabled = new eth_wallet_4.BigNumber(this.edtGemQty.value).gt(0);
             if (this.approvalModelAction && this.state.isRpcWalletConnected())
                 this.approvalModelAction.checkAllowance(this.gemInfo.baseToken, backerCoinAmount.toString());
         }
@@ -1415,12 +1385,12 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             const gemAmount = Number(this.edtAmount.value);
             this.backerTokenBalanceLb.caption = (0, index_2.formatNumber)(this.getBackerCoinAmount(gemAmount));
             const balance = await this.getBalance();
-            this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || balance.gt(0) && new eth_wallet_5.BigNumber(this.edtAmount.value).gt(0) && new eth_wallet_5.BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
+            this.btnSubmit.enabled = !this.state.isRpcWalletConnected() || balance.gt(0) && new eth_wallet_4.BigNumber(this.edtAmount.value).gt(0) && new eth_wallet_4.BigNumber(this.edtAmount.value).isLessThanOrEqualTo(balance);
         }
         getBackerCoinAmount(gemAmount) {
-            const redemptionFee = eth_wallet_5.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
-            const price = eth_wallet_5.Utils.fromDecimals(this.gemInfo.price).toFixed();
-            const amount = new eth_wallet_5.BigNumber(gemAmount);
+            const redemptionFee = eth_wallet_4.Utils.fromDecimals(this.gemInfo.redemptionFee).toFixed();
+            const price = eth_wallet_4.Utils.fromDecimals(this.gemInfo.price).toFixed();
+            const amount = new eth_wallet_4.BigNumber(gemAmount);
             return amount.dividedBy(price).minus(amount.dividedBy(price).multipliedBy(redemptionFee));
         }
         // private getGemAmount(backerCoinAmount: number) {
@@ -1429,14 +1399,14 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         //   return (backerCoinAmount - (backerCoinAmount * Number(mintingFee))) * Number(price);
         // }
         async getBalance(token) {
-            let balance = new eth_wallet_5.BigNumber(0);
+            let balance = new eth_wallet_4.BigNumber(0);
             const tokenData = token || this.gemInfo.baseToken;
             if (this.isBuy && tokenData) {
                 balance = await (0, index_2.getTokenBalance)(this.rpcWallet, tokenData);
             }
             else if (!this.isBuy && this.contract) {
                 balance = await (0, API_1.getGemBalance)(this.state, this.contract);
-                balance = eth_wallet_5.Utils.fromDecimals(balance);
+                balance = eth_wallet_4.Utils.fromDecimals(balance);
             }
             return balance;
         }
@@ -1478,7 +1448,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         async onSubmit() {
             if (!this.state.isRpcWalletConnected()) {
                 const chainId = this.chainId;
-                const clientWallet = eth_wallet_5.Wallet.getClientInstance();
+                const clientWallet = eth_wallet_4.Wallet.getClientInstance();
                 await clientWallet.switchNetwork(chainId);
                 return;
             }
@@ -1618,7 +1588,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
         }
     };
     ScomGemToken = __decorate([
-        (0, components_4.customElements)('i-scom-gem-token')
+        (0, components_5.customElements)('i-scom-gem-token')
     ], ScomGemToken);
     exports.default = ScomGemToken;
 });

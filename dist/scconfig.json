@@ -5,10 +5,10 @@
     "dependencies": [
         "@ijstech/components",
         "@ijstech/eth-wallet",
+        "@scom/scom-network-list",
         "@scom/scom-network-picker",
         "@scom/scom-token-list",
         "@scom/scom-gem-token-contract",
-        "@scom/scom-network-list",
         "@scom/scom-commission-proxy-contract",
         "@scom/scom-multicall",
         "@scom/scom-dapp-container",
