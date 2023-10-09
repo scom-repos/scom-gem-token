@@ -443,9 +443,10 @@ export default class ScomGemToken extends Module {
     this._data = value;
     await this.resetRpcWallet();
     if (!this.tokenElm.isConnected) await this.tokenElm.ready();
-    if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-      this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-    }
+    // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+    //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+    // }
+    this.tokenElm.chainId = this.state.getChainId() ?? this.defaultChainId;
     await this.initializeWidgetConfig();
     const commissionFee = this.state.embedderCommissionFee;
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
@@ -941,9 +942,10 @@ export default class ScomGemToken extends Module {
     this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
-      if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-        this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-      }
+      // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+      //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+      // }
+      this.tokenElm.chainId = this.state.getChainId() ?? this.defaultChainId;
       this.tokenElm.token = this.gemInfo.baseToken;
       this.tokenElm.visible = true;
       this.tokenElm.tokenReadOnly = !!this.contract;
@@ -1129,7 +1131,6 @@ export default class ScomGemToken extends Module {
                         font={{ size: '1.25rem' }}
                         background={{color: Theme.input.background}}
                         padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
-                        opacity={0.3}
                         class={inputStyle}
                         onChanged={this.onAmountChanged}
                       ></i-input>

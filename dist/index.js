@@ -996,13 +996,15 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                 this.dappContainer.setData(data);
         }
         async setData(value) {
+            var _a;
             this._data = value;
             await this.resetRpcWallet();
             if (!this.tokenElm.isConnected)
                 await this.tokenElm.ready();
-            if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-                this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-            }
+            // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+            //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+            // }
+            this.tokenElm.chainId = (_a = this.state.getChainId()) !== null && _a !== void 0 ? _a : this.defaultChainId;
             await this.initializeWidgetConfig();
             const commissionFee = this.state.embedderCommissionFee;
             this.iconOrderTotal.tooltip.content = `A commission fee of ${new eth_wallet_4.BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
@@ -1437,6 +1439,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             await this.onAmountChanged();
         }
         async renderTokenInput() {
+            var _a;
             if (!this.edtAmount.isConnected)
                 await this.edtAmount.ready();
             if (!this.tokenElm.isConnected)
@@ -1444,9 +1447,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
             this.edtAmount.readOnly = this.isBuy || !this.contract;
             this.edtAmount.value = "";
             if (this.isBuy) {
-                if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-                    this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-                }
+                // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+                //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+                // }
+                this.tokenElm.chainId = (_a = this.state.getChainId()) !== null && _a !== void 0 ? _a : this.defaultChainId;
                 this.tokenElm.token = this.gemInfo.baseToken;
                 this.tokenElm.visible = true;
                 this.tokenElm.tokenReadOnly = !!this.contract;
@@ -1536,7 +1540,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                         this.$render("i-grid-layout", { id: 'gridTokenInput', verticalAlignment: "center", templateColumns: ['60%', 'auto'], border: { radius: 16 }, overflow: "hidden", background: { color: Theme.input.background }, font: { color: Theme.input.fontColor }, height: 56, width: "50%", margin: { left: 'auto', right: 'auto', top: '1rem' }, padding: { left: '0px' }, grid: { area: 'tokenInput' } },
                                             this.$render("i-panel", { id: "gemLogoStack", padding: { left: 10 }, visible: false }),
                                             this.$render("i-scom-token-input", { id: "tokenElm", isBalanceShown: false, isBtnMaxShown: false, isCommonShown: false, isInputShown: false, isSortBalanceShown: false, padding: { top: '0px', left: '0px', right: '11px', bottom: '0px' }, width: "100%" }),
-                                            this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, border: { style: 'none' }, inputType: 'number', font: { size: '1.25rem' }, background: { color: Theme.input.background }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, opacity: 0.3, class: index_css_1.inputStyle, onChanged: this.onAmountChanged }),
+                                            this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, border: { style: 'none' }, inputType: 'number', font: { size: '1.25rem' }, background: { color: Theme.input.background }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, class: index_css_1.inputStyle, onChanged: this.onAmountChanged }),
                                             this.$render("i-hstack", { id: "maxStack", horizontalAlignment: "end", visible: false },
                                                 this.$render("i-button", { caption: "Max", padding: { top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }, margin: { right: 10 }, font: { size: '0.875rem', color: Theme.colors.primary.contrastText }, onClick: () => this.onSetMaxBalance() }))),
                                         this.$render("i-hstack", { id: "backerStack", horizontalAlignment: "space-between", verticalAlignment: "center", grid: { area: 'redeem' }, margin: { top: '1rem', bottom: '1rem' }, maxWidth: "50%", visible: false },
