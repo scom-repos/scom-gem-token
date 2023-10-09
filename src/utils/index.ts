@@ -5,7 +5,7 @@ import { FormatUtils } from "@ijstech/components";
 
 export const formatNumber = (value: number | string | BigNumber, decimalFigures?: number) => {
   if (typeof value === 'object') {
-    value = value.toString();
+    value = value.toFixed();
   }
   const minValue = '0.0000001';
   return FormatUtils.formatNumber(value, {decimalFigures: decimalFigures || 4, minValue});

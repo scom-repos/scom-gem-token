@@ -1,8 +1,6 @@
 /// <reference path="@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-commission-proxy-contract/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
-/// <reference path="@scom/scom-token-input/@ijstech/eth-wallet/index.d.ts" />
-/// <reference path="@scom/scom-token-input/@scom/scom-token-modal/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-gem-token/interface.tsx" />
 declare module "@scom/scom-gem-token/interface.tsx" {
@@ -108,11 +106,8 @@ declare module "@scom/scom-gem-token/assets.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/index.css.ts" />
 declare module "@scom/scom-gem-token/index.css.ts" {
-    export const imageStyle: string;
     export const markdownStyle: string;
     export const inputStyle: string;
-    export const tokenSelectionStyle: string;
-    export const centerStyle: string;
 }
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {

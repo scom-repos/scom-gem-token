@@ -23,7 +23,7 @@ import { formatNumber, getProxySelectors, getTokenBalance } from './utils/index'
 import { State, isClientWalletConnected } from './store/index';
 import { assets as tokenAssets, ITokenObject, tokenStore } from '@scom/scom-token-list';
 import assets from './assets';
-import { imageStyle, inputStyle, markdownStyle, tokenSelectionStyle, centerStyle } from './index.css';
+import { inputStyle, markdownStyle } from './index.css';
 import { deployContract, buyToken, redeemToken, getGemBalance, getGemInfo } from './API';
 import configData from './data.json';
 import { INetworkConfig } from '@scom/scom-network-picker';
@@ -443,9 +443,10 @@ export default class ScomGemToken extends Module {
     this._data = value;
     await this.resetRpcWallet();
     if (!this.tokenElm.isConnected) await this.tokenElm.ready();
-    if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-      this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-    }
+    // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+    //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+    // }
+    this.tokenElm.chainId = this.state.getChainId() ?? this.defaultChainId;
     await this.initializeWidgetConfig();
     const commissionFee = this.state.embedderCommissionFee;
     this.iconOrderTotal.tooltip.content = `A commission fee of ${new BigNumber(commissionFee).times(100)}% will be applied to the amount you input.`;
@@ -941,9 +942,10 @@ export default class ScomGemToken extends Module {
     this.edtAmount.readOnly = this.isBuy || !this.contract;
     this.edtAmount.value = "";
     if (this.isBuy) {
-      if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
-        this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
-      }
+      // if (this.tokenElm.rpcWalletId !== this.rpcWallet.instanceId) {
+      //   this.tokenElm.rpcWalletId = this.rpcWallet.instanceId;
+      // }
+      this.tokenElm.chainId = this.state.getChainId() ?? this.defaultChainId;
       this.tokenElm.token = this.gemInfo.baseToken;
       this.tokenElm.visible = true;
       this.tokenElm.tokenReadOnly = !!this.contract;
@@ -958,7 +960,8 @@ export default class ScomGemToken extends Module {
       this.gemLogoStack.append(
         <i-image
           url={this.logo}
-          class={imageStyle} width={30} height={30}
+          border={{radius: 4}}
+          width={30} height={30}
           fallbackUrl={assets.fullPath('img/gem-logo.png')}
         ></i-image>
       )
@@ -1031,7 +1034,7 @@ export default class ScomGemToken extends Module {
                 gap="0.813rem"
               >
                 <i-hstack>
-                  <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
+                  <i-image id='imgLogo' height={100} border={{radius: 4}}></i-image>
                 </i-hstack>
                 <i-label id="lblTitle" font={{ bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' }}></i-label>
                 <i-markdown
@@ -1048,11 +1051,11 @@ export default class ScomGemToken extends Module {
                 verticalAlignment='space-between'
               >
                 <i-vstack horizontalAlignment='center' id="pnlLogoTitle" gap='0.5rem'>
-                  <i-image id='imgLogo2' class={imageStyle} height={100}></i-image>
+                  <i-image id='imgLogo2' height={100} border={{radius: 4}}></i-image>
                   <i-label id="lblTitle2" font={{ bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' }}></i-label>
                 </i-vstack>
                 <i-label id="lbPrice" caption="Price" font={{ size: '1rem' }} opacity={0.6}></i-label>
-                <i-hstack id="hStackTokens" gap="4px" class={centerStyle} margin={{ bottom: '1rem' }}>
+                <i-hstack id="hStackTokens" gap="4px" class={'text-center'} margin={{ bottom: '1rem' }}>
                   <i-label id="fromTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
                   <i-label caption="=" font={{ bold: true, size: '1.5rem' }}></i-label>
                   <i-label id="toTokenLb" font={{ bold: true, size: '1.5rem' }}></i-label>
@@ -1071,11 +1074,13 @@ export default class ScomGemToken extends Module {
                       <i-input
                         id='edtGemQty'
                         value={1}
-                        onChanged={this.onQtyChanged}
-                        class={inputStyle}
+                        background={{color: Theme.input.background}}
+                        padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
                         inputType='number'
                         font={{ size: '1rem', bold: true }}
                         border={{ radius: 4, style: 'solid', width: '1px', color: Theme.divider }}
+                        class={inputStyle}
+                        onChanged={this.onQtyChanged}
                       ></i-input>
                     </i-hstack>
                     <i-hstack
@@ -1102,6 +1107,7 @@ export default class ScomGemToken extends Module {
                       font={{ color: Theme.input.fontColor }}
                       height={56} width="50%"
                       margin={{ left: 'auto', right: 'auto', top: '1rem' }}
+                      padding={{left: '0px'}}
                       grid={{ area: 'tokenInput' }}
                     >
                       <i-panel id="gemLogoStack" padding={{ left: 10 }} visible={false} />
@@ -1112,7 +1118,7 @@ export default class ScomGemToken extends Module {
                         isCommonShown={false}
                         isInputShown={false}
                         isSortBalanceShown={false}
-                        class={tokenSelectionStyle}
+                        padding={{top: '0px', left: '0px', right: '11px', bottom: '0px'}}
                         width="100%"
                       />
                       <i-input
@@ -1121,10 +1127,11 @@ export default class ScomGemToken extends Module {
                         height='100%'
                         minHeight={40}
                         border={{ style: 'none' }}
-                        class={inputStyle}
                         inputType='number'
                         font={{ size: '1.25rem' }}
-                        opacity={0.3}
+                        background={{color: Theme.input.background}}
+                        padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
+                        class={inputStyle}
                         onChanged={this.onAmountChanged}
                       ></i-input>
                       <i-hstack id="maxStack" horizontalAlignment="end" visible={false}>
