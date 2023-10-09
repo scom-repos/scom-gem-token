@@ -166,7 +166,7 @@ define("@scom/scom-gem-token/utils/index.ts", ["require", "exports", "@scom/scom
     exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.getProxySelectors = exports.formatNumber = void 0;
     const formatNumber = (value, decimalFigures) => {
         if (typeof value === 'object') {
-            value = value.toString();
+            value = value.toFixed();
         }
         const minValue = '0.0000001';
         return components_2.FormatUtils.formatNumber(value, { decimalFigures: decimalFigures || 4, minValue });
@@ -208,17 +208,8 @@ define("@scom/scom-gem-token/assets.ts", ["require", "exports", "@ijstech/compon
 define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.centerStyle = exports.tokenSelectionStyle = exports.inputStyle = exports.markdownStyle = exports.imageStyle = void 0;
+    exports.inputStyle = exports.markdownStyle = void 0;
     const Theme = components_4.Styles.Theme.ThemeVars;
-    exports.imageStyle = components_4.Styles.style({
-        $nest: {
-            '&>img': {
-                maxWidth: 'unset',
-                maxHeight: 'unset',
-                borderRadius: 4
-            }
-        }
-    });
     exports.markdownStyle = components_4.Styles.style({
         overflowWrap: 'break-word',
         color: Theme.text.primary
@@ -226,31 +217,12 @@ define("@scom/scom-gem-token/index.css.ts", ["require", "exports", "@ijstech/com
     exports.inputStyle = components_4.Styles.style({
         $nest: {
             '> input': {
-                background: Theme.input.background,
-                color: Theme.input.fontColor,
-                padding: '0.25rem 0.5rem',
                 textAlign: 'right'
             },
             'input[readonly]': {
                 cursor: 'default'
             }
         }
-    });
-    exports.tokenSelectionStyle = components_4.Styles.style({
-        $nest: {
-            '.custom-border > i-hstack': {
-                display: 'none'
-            },
-            '#gridTokenInput': {
-                paddingLeft: '0 !important'
-            },
-            '#pnlSelection > i-hstack': {
-                justifyContent: 'flex-start !important'
-            }
-        }
-    });
-    exports.centerStyle = components_4.Styles.style({
-        textAlign: 'center'
     });
 });
 define("@scom/scom-gem-token/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-gem-token-contract", "@scom/scom-commission-proxy-contract", "@scom/scom-gem-token/utils/index.ts", "@scom/scom-token-list"], function (require, exports, eth_wallet_3, scom_gem_token_contract_2, scom_commission_proxy_contract_1, index_1, scom_token_list_1) {
@@ -1488,7 +1460,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                     await this.gemLogoStack.ready();
                 this.gemLogoStack.visible = true;
                 this.gemLogoStack.clearInnerHTML();
-                this.gemLogoStack.append(this.$render("i-image", { url: this.logo, class: index_css_1.imageStyle, width: 30, height: 30, fallbackUrl: assets_1.default.fullPath('img/gem-logo.png') }));
+                this.gemLogoStack.append(this.$render("i-image", { url: this.logo, border: { radius: 4 }, width: 30, height: 30, fallbackUrl: assets_1.default.fullPath('img/gem-logo.png') }));
                 if (!this.maxStack.isConnected)
                     await this.maxStack.ready();
                 this.maxStack.visible = !!this.contract;
@@ -1537,15 +1509,15 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                         this.$render("i-grid-layout", { id: 'gridDApp', width: '100%', height: '100%', templateColumns: ['repeat(2, 1fr)'], padding: { bottom: '1.563rem' } },
                             this.$render("i-vstack", { id: "pnlDescription", padding: { top: '0.5rem', bottom: '0.5rem', left: '5.25rem', right: '6.313rem' }, gap: "0.813rem" },
                                 this.$render("i-hstack", null,
-                                    this.$render("i-image", { id: 'imgLogo', class: index_css_1.imageStyle, height: 100 })),
+                                    this.$render("i-image", { id: 'imgLogo', height: 100, border: { radius: 4 } })),
                                 this.$render("i-label", { id: "lblTitle", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } }),
                                 this.$render("i-markdown", { id: 'markdownViewer', class: index_css_1.markdownStyle, width: '100%', height: '100%', font: { size: '1rem' } })),
                             this.$render("i-vstack", { gap: "0.5rem", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' }, verticalAlignment: 'space-between' },
                                 this.$render("i-vstack", { horizontalAlignment: 'center', id: "pnlLogoTitle", gap: '0.5rem' },
-                                    this.$render("i-image", { id: 'imgLogo2', class: index_css_1.imageStyle, height: 100 }),
+                                    this.$render("i-image", { id: 'imgLogo2', height: 100, border: { radius: 4 } }),
                                     this.$render("i-label", { id: "lblTitle2", font: { bold: true, size: '1.25rem', color: '#3940F1', transform: 'uppercase' } })),
                                 this.$render("i-label", { id: "lbPrice", caption: "Price", font: { size: '1rem' }, opacity: 0.6 }),
-                                this.$render("i-hstack", { id: "hStackTokens", gap: "4px", class: index_css_1.centerStyle, margin: { bottom: '1rem' } },
+                                this.$render("i-hstack", { id: "hStackTokens", gap: "4px", class: 'text-center', margin: { bottom: '1rem' } },
                                     this.$render("i-label", { id: "fromTokenLb", font: { bold: true, size: '1.5rem' } }),
                                     this.$render("i-label", { caption: "=", font: { bold: true, size: '1.5rem' } }),
                                     this.$render("i-label", { id: "toTokenLb", font: { bold: true, size: '1.5rem' } })),
@@ -1553,7 +1525,7 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                     this.$render("i-grid-layout", { id: "balanceLayout", gap: { column: '0.5rem', row: '0.25rem' } },
                                         this.$render("i-hstack", { id: 'pnlQty', horizontalAlignment: 'end', verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'qty' } },
                                             this.$render("i-label", { caption: 'Qty', font: { size: '1rem', bold: true }, opacity: 0.6 }),
-                                            this.$render("i-input", { id: 'edtGemQty', value: 1, onChanged: this.onQtyChanged, class: index_css_1.inputStyle, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider } })),
+                                            this.$render("i-input", { id: 'edtGemQty', value: 1, background: { color: Theme.input.background }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, inputType: 'number', font: { size: '1rem', bold: true }, border: { radius: 4, style: 'solid', width: '1px', color: Theme.divider }, class: index_css_1.inputStyle, onChanged: this.onQtyChanged })),
                                         this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: 'center', gap: "0.5rem", grid: { area: 'balance' } },
                                             this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                                 this.$render("i-label", { id: "lbOrderTotalTitle", caption: 'Total', font: { size: '1rem' } }),
@@ -1561,10 +1533,10 @@ define("@scom/scom-gem-token", ["require", "exports", "@ijstech/components", "@i
                                             this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                                                 this.$render("i-label", { caption: 'Balance:', font: { size: '1rem' }, opacity: 0.6 }),
                                                 this.$render("i-label", { id: 'lblBalance', font: { size: '1rem' }, opacity: 0.6 }))),
-                                        this.$render("i-grid-layout", { id: 'gridTokenInput', verticalAlignment: "center", templateColumns: ['60%', 'auto'], border: { radius: 16 }, overflow: "hidden", background: { color: Theme.input.background }, font: { color: Theme.input.fontColor }, height: 56, width: "50%", margin: { left: 'auto', right: 'auto', top: '1rem' }, grid: { area: 'tokenInput' } },
+                                        this.$render("i-grid-layout", { id: 'gridTokenInput', verticalAlignment: "center", templateColumns: ['60%', 'auto'], border: { radius: 16 }, overflow: "hidden", background: { color: Theme.input.background }, font: { color: Theme.input.fontColor }, height: 56, width: "50%", margin: { left: 'auto', right: 'auto', top: '1rem' }, padding: { left: '0px' }, grid: { area: 'tokenInput' } },
                                             this.$render("i-panel", { id: "gemLogoStack", padding: { left: 10 }, visible: false }),
-                                            this.$render("i-scom-token-input", { id: "tokenElm", isBalanceShown: false, isBtnMaxShown: false, isCommonShown: false, isInputShown: false, isSortBalanceShown: false, class: index_css_1.tokenSelectionStyle, width: "100%" }),
-                                            this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, border: { style: 'none' }, class: index_css_1.inputStyle, inputType: 'number', font: { size: '1.25rem' }, opacity: 0.3, onChanged: this.onAmountChanged }),
+                                            this.$render("i-scom-token-input", { id: "tokenElm", isBalanceShown: false, isBtnMaxShown: false, isCommonShown: false, isInputShown: false, isSortBalanceShown: false, padding: { top: '0px', left: '0px', right: '11px', bottom: '0px' }, width: "100%" }),
+                                            this.$render("i-input", { id: "edtAmount", width: '100%', height: '100%', minHeight: 40, border: { style: 'none' }, inputType: 'number', font: { size: '1.25rem' }, background: { color: Theme.input.background }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, opacity: 0.3, class: index_css_1.inputStyle, onChanged: this.onAmountChanged }),
                                             this.$render("i-hstack", { id: "maxStack", horizontalAlignment: "end", visible: false },
                                                 this.$render("i-button", { caption: "Max", padding: { top: '0.25rem', bottom: '0.25rem', left: '1rem', right: '1rem' }, margin: { right: 10 }, font: { size: '0.875rem', color: Theme.colors.primary.contrastText }, onClick: () => this.onSetMaxBalance() }))),
                                         this.$render("i-hstack", { id: "backerStack", horizontalAlignment: "space-between", verticalAlignment: "center", grid: { area: 'redeem' }, margin: { top: '1rem', bottom: '1rem' }, maxWidth: "50%", visible: false },

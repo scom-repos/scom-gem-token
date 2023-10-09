@@ -108,11 +108,8 @@ declare module "@scom/scom-gem-token/assets.ts" {
 }
 /// <amd-module name="@scom/scom-gem-token/index.css.ts" />
 declare module "@scom/scom-gem-token/index.css.ts" {
-    export const imageStyle: string;
     export const markdownStyle: string;
     export const inputStyle: string;
-    export const tokenSelectionStyle: string;
-    export const centerStyle: string;
 }
 /// <amd-module name="@scom/scom-gem-token/API.ts" />
 declare module "@scom/scom-gem-token/API.ts" {
