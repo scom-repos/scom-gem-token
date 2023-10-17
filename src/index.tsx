@@ -539,10 +539,7 @@ export default class ScomGemToken extends Module {
 
   private async initializeWidgetConfig() {
     tokenStore.updateTokenMapData(this.chainId);
-    const rpcWallet = this.rpcWallet;
-    if (rpcWallet.address) {
-      tokenStore.updateAllTokenBalances(rpcWallet);
-    }
+    tokenStore.updateTokenBalancesByChainId(this.chainId);
     await this.initWallet();
     if (isClientWalletConnected()) {
       this.refreshDApp();
